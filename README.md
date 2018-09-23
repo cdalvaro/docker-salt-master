@@ -64,7 +64,7 @@ But it is necessary to mount the `/srv/` volume ir order to provide your custom 
 Minion keys can be added automatically on startup to SaltStack master by mounting the volume `/etc/salt-docker/keys` and copying the minion keys inside `keys/minions/` directory:
 
 ```sh
-mkdir -p key/minions
+mkdir -p keys/minions
 cp -v /etc/salt/pki/minion/minion.pub keys/minions/minion1
 
 docker run --name salt_master -d \
