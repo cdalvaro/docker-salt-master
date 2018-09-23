@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  master:
+    container_name: salt_master
+    image: cdalvaro/saltstack-master:2018.3.2
+    build:
+      context: ./
+    volumes:
+      - "./srv/:/srv/:ro"
+    ports:
+      - "4505:4505/tcp"
+      - "4506:4506/tcp"
+    environment:
+      - SALT_LOG_LEVEL=info
+
