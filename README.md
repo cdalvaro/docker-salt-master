@@ -19,12 +19,16 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
 
 ## Installation
 
-At the moment there are not auomated images at [Dockerhub](https://hub.docker.com) (There will be as soon as possible...)
-
-In the meantime, you can build the image locally.
+Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/saltstack-master/) and is the recommended method of installation.
 
 ```sh
-docker build -t cdalvaro/saltstack_master gitlab.com/cdalvaro/saltstack-master
+docker pull cdalvaro/saltstack-master:2018.3.2
+```
+
+Alternatively you can build the image locally.
+
+```sh
+docker build -t cdalvaro/saltstack-master github.com/cdalvaro/saltstack-master
 ```
 
 ## Quick Start
@@ -48,7 +52,7 @@ docker run --name salt_master --detach \
     --publish 4505:4505 --publish 4506:4506 \
     --env 'SALT_LOG_LEVEL=info' \
     --read-only --volume ./srv/:/srv/ \
-    cdalvaro/saltstack_master:2018.3.2
+    cdalvaro/saltstack-master:2018.3.2
 ```
 
 ## Configuration
@@ -72,7 +76,7 @@ docker run --name salt_master -d \
     --env 'SALT_LOG_LEVEL=info' \
     --read-only --volume ./srv/:/srv/ \
     --volume ./keys/:/etc/salt-docker/keys/ \
-    cdalvaro/saltstack_master:2018.3.2
+    cdalvaro/saltstack-master:2018.3.2
 ```
 
 ## Usage

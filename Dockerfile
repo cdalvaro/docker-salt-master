@@ -22,7 +22,6 @@ ENV SALT_BOOTSTRAP_OPTS='-M -N -X -U'
 # Version of salt to install:
 # https://github.com/saltstack/salt/releases
 ENV SALT_GIT_RELEASE="v2018.3.2"
-ENV SALT_LOG_LEVEL="info"
 
 # Set non interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
