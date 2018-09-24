@@ -4,8 +4,6 @@ services:
   master:
     container_name: salt_master
     image: cdalvaro/saltstack-master:2018.3.2
-    build:
-      context: ./
     volumes:
       - "./srv/:/srv/:ro"
     ports:

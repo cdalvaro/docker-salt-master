@@ -5,9 +5,11 @@ LABEL description="SaltStack master"
 LABEL version="2018.3.2"
 
 ENV SALT_DOCKER_DIR="/etc/salt-docker" \
-    SALT_MASTER_DIR="/etc/salt/pki/master"
+    SALT_MASTER_DIR="/etc/salt/pki/master" \
+    SALT_USER=root
 
 ENV SALT_BUILD_DIR="${SALT_DOCKER_DIR}/build" \
+    SALT_CONFS_DIR="${SALT_DOCKER_DIR}/config" \
     SALT_KEYS_DIR="${SALT_DOCKER_DIR}/keys" \
     SALT_RUNTIME_DIR="${SALT_DOCKER_DIR}/runtime"
 
@@ -19,7 +21,7 @@ ENV SALT_BUILD_DIR="${SALT_DOCKER_DIR}/build" \
 ## -U: Fully upgrade the system prior to bootstrapping Salt
 ENV SALT_BOOTSTRAP_OPTS='-M -N -X -U'
 
-# Version of salt to install:
+# Release version to install
 # https://github.com/saltstack/salt/releases
 ENV SALT_GIT_RELEASE="v2018.3.2"
 
@@ -37,8 +39,8 @@ RUN update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \
     dpkg-reconfigure locales
 
 EXPOSE 4505/tcp 4506/tcp
-RUN mkdir -p /srv ${SALT_KEYS_DIR}
-VOLUME [ "/srv", "${SALT_KEYS_DIR}" ]
+RUN mkdir -p /srv ${SALT_KEYS_DIR} ${SALT_CONFS_DIR}
+VOLUME [ "/srv", "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" ]
 
 RUN mkdir -p ${SALT_BUILD_DIR}
 WORKDIR ${SALT_BUILD_DIR}
@@ -57,4 +59,3 @@ RUN chmod +x /sbin/entrypoint.sh
 WORKDIR ${SALT_DOCKER_DIR}
 
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]
-
