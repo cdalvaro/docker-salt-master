@@ -2,11 +2,9 @@
 
 Dockerfile to build a [SaltStack](https://www.saltstack.com) Master image for the Docker opensource container platform.
 
-SaltStack Master is set up in the Docker image using the install from git source method as documented
-in the the [official bootstrap](https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html) documentation.
+SaltStack Master is set up in the Docker image using the install from git source method as documented in the the [official bootstrap](https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html) documentation.
 
-For other methods to install SaltStack please refer to the
-[Official SaltStack Installation Guide](https://docs.saltstack.com/en/latest/topics/installation/index.html).
+For other methods to install SaltStack please refer to the [Official SaltStack Installation Guide](https://docs.saltstack.com/en/latest/topics/installation/index.html).
 
 ## Table of Contents
 
@@ -22,8 +20,7 @@ For other methods to install SaltStack please refer to the
 
 ## Installation
 
-Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/saltstack-master/)
-and is the recommended method of installation.
+Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/saltstack-master/) and is the recommended method of installation.
 
 ```sh
 docker pull cdalvaro/saltstack-master:2018.3.2
@@ -46,7 +43,7 @@ docker build -t cdalvaro/saltstack-master github.com/cdalvaro/saltstack-master
 The quickest way to get started is using [docker-compose](https://docs.docker.com/compose/).
 
 ```sh
-wget https://gitlab.com/cdalvaro/saltstack-master/raw/master/docker-compose.yml
+wget https://raw.githubusercontent.com/cdalvaro/saltstack-master/master/docker-compose.yml
 ```
 
 Start SaltStack master using:
@@ -75,8 +72,7 @@ But it is necessary to mount the `/srv/` volume ir order to provide your custom 
 
 ### Minion Keys
 
-Minion keys can be added automatically on startup to SaltStack master by mounting the volume `/etc/salt-docker/keys`
-and copying the minion keys inside `keys/minions/` directory:
+Minion keys can be added automatically on startup to SaltStack master by mounting the volume `/etc/salt-docker/keys` and copying the minion keys inside `keys/minions/` directory:
 
 ```sh
 mkdir -p keys/minions
@@ -90,10 +86,9 @@ docker run --name salt_master -d \
     cdalvaro/saltstack-master:2018.3.2
 ```
 
-## Available Configuration Parameters
+### Available Configuration Parameters
 
-Please refer the docker run command options for the `--env-file` flag where you can specify all required environment variables in a single file.
-This will save you from writing a potentially long docker run command. Alternatively you can use docker-compose.
+Please refer the docker run command options for the `--env-file` flag where you can specify all required environment variables in a single file. This will save you from writing a potentially long docker run command. Alternatively you can use docker-compose.
 
 Below is the list of available options that can be used to customize your SaltStack master installation.
 
@@ -102,9 +97,7 @@ Below is the list of available options that can be used to customize your SaltSt
 | `SALT_LOG_LEVEL` | The level of messages to send to the console. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: 'warning' |
 | `SALT_LEVEL_LOGFILE` | The level of messages to send to the log file. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: 'warning' |
 
-Any parameter not listed in the table and available in the next
-[link](https://docs.saltstack.com/en/latest/ref/configuration/examples.html#configuration-examples-master)
-can be set by creating the directory `confs` and adding into it configurations files with the desired parameters:
+Any parameter not listed in the above table and available in the following [link](https://docs.saltstack.com/en/latest/ref/configuration/examples.html#configuration-examples-master), can be set by creating the directory `confs` and adding into it a `.conf` file with the desired parameters:
 
 ```sh
 mkdir confs
@@ -139,8 +132,7 @@ docker-compose exec master salt '*' state.apply
 
 ## Shell Access
 
-For debugging and maintenance purposes you may want access the container shell.
-If you are using docker version 1.3.0 or higher you can access a running container shell using docker exec command.
+For debugging and maintenance purposes you may want access the container shell. If you are using docker version 1.3.0 or higher you can access a running container shell using docker exec command.
 
 ```sh
 docker exec -it salt_master bash

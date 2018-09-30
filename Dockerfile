@@ -59,3 +59,4 @@ RUN chmod +x /sbin/entrypoint.sh
 WORKDIR ${SALT_DOCKER_DIR}
 
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]
+CMD [ "app:start" ]
