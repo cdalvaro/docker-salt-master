@@ -5,7 +5,7 @@ LABEL description="SaltStack master"
 LABEL version="2018.3.2"
 
 ENV SALT_DOCKER_DIR="/etc/salt-docker" \
-    SALT_MASTER_DIR="/etc/salt/pki/master" \
+    SALT_ROOT_DIR="/etc/salt" \
     SALT_USER=root
 
 ENV SALT_BUILD_DIR="${SALT_DOCKER_DIR}/build" \
