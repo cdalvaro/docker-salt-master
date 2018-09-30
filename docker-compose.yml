@@ -10,5 +10,5 @@ services:
       - "4505:4505/tcp"
       - "4506:4506/tcp"
     environment:
+      - DEBUG=false
       - SALT_LOG_LEVEL=info
-
