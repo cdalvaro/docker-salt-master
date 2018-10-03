@@ -3,6 +3,21 @@
 set -e
 source ${SALT_RUNTIME_DIR}/env-defaults.sh
 
+# Map salt user with host user
+function map_uidgid()
+{
+  USERMAP_ORIG_UID=$(id -u ${SALT_USER})
+  USERMAP_ORIG_GID=$(id -g ${SALT_USER})
+  USERMAP_GID=${USERMAP_GID:-${USERMAP_UID:-$USERMAP_ORIG_GID}}
+  USERMAP_UID=${USERMAP_UID:-$USERMAP_ORIG_UID}
+  if [[ ${USERMAP_UID} != ${USERMAP_ORIG_UID} ]] || [[ ${USERMAP_GID} != ${USERMAP_ORIG_GID} ]]; then
+    echo "Mapping UID and GID for ${SALT_USER}:${SALT_USER} to ${USERMAP_UID}:${USERMAP_GID}..."
+    groupmod -o -g ${USERMAP_GID} ${SALT_USER}
+    sed -i -e "s|:${USERMAP_ORIG_UID}:${USERMAP_GID}:|:${USERMAP_UID}:${USERMAP_GID}:|" /etc/passwd
+    find ${SALT_HOME} -path ${SALT_DATA_DIR}/\* -prune -o -print0 | xargs -0 chown -h ${SALT_USER}:
+  fi
+}
+
 # This function generates a master_sign key pair and its signature
 function gen_signed_keys()
 {
@@ -30,30 +45,34 @@ function setup_keys()
       ${SALT_ROOT_DIR}/master
 
   cat >> ${SALT_ROOT_DIR}/master <<EOF
-
 #####         Security settings        #####
 ############################################
 master_sign_pubkey: ${SALT_MASTER_SIGN_PUBKEY}
 master_sign_key_name: ${SALT_MASTER_SIGN_KEY_NAME}
 master_pubkey_signature: ${SALT_MASTER_PUBKEY_SIGNATURE}
 master_use_pubkey_signature: ${SALT_MASTER_USE_PUBKEY_SIGNATURE}
+
 EOF
 
-  if [ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}" ] && [ ${SALT_MASTER_SIGN_PUBKEY} == True ]; then
+  if [ ! -f ${SALT_KEYS_DIR}/master.pem ]; then
+    echo "Generating keys..."
+    salt-key --gen-keys master --gen-keys-dir ${SALT_KEYS_DIR}
+  fi
+
+  if [ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ] && [ ${SALT_MASTER_SIGN_PUBKEY} == True ]; then
     echo "Generating signed keys..."
-    if [ ! -f ${SALT_KEYS_DIR}/master.pem ]; then
-      salt-key --gen-keys master --gen-keys-dir ${SALT_KEYS_DIR}
-    fi
     salt-key --gen-signature --auto-create --pub ${SALT_KEYS_DIR}/master.pub --signature-path ${SALT_KEYS_DIR}
   fi
 
   for pub_key in $(find ${SALT_KEYS_DIR} -type f -maxdepth 2); do
     if [[ ${pub_key} =~ .*\.pem$ ]]; then
-      chmod -v 400 ${pub_key}
+      chmod 400 ${pub_key}
     else
-      chmod -v 644 ${pub_key}
+      chmod 644 ${pub_key}
     fi
   done
+
+  find ${SALT_HOME} -path ${SALT_KEYS_DIR}/\* -prune -o -print0 | xargs -0 chown -h ${SALT_USER}:
 }
 
 # This functions cofigures master service
@@ -64,16 +83,16 @@ function configure_salt_master()
 
   # Backup file
   if [ ! -f ${SALT_ROOT_DIR}/master.backup ]; then
-    cp -pv ${SALT_ROOT_DIR}/master ${SALT_ROOT_DIR}/master.backup
+    cp -p ${SALT_ROOT_DIR}/master ${SALT_ROOT_DIR}/master.backup
   else
-    cp -pv ${SALT_ROOT_DIR}/master.backup ${SALT_ROOT_DIR}/master
+    cp -p ${SALT_ROOT_DIR}/master.backup ${SALT_ROOT_DIR}/master
   fi
 
   # Set env variables
   sed -i \
       -e "s|^[#]*log_level:.*$|log_level: ${SALT_LOG_LEVEL}|" \
       -e "s|^[#]*log_level_logfile:.*$|log_level_logfile: ${SALT_LEVEL_LOGFILE}|" \
-      -e "s|^[#]*default_include:.*$|default_include: ${SALT_ROOT_DIR}/master.d/*.conf|" \
+      -e "s|^[#]*default_include:.*$|default_include: ${SALT_CONFS_DIR}/*.conf|" \
       -e "s|^[#]*pki_dir:.*$|pki_dir: ${SALT_KEYS_DIR}/|" \
       ${SALT_ROOT_DIR}/master
 
@@ -81,12 +100,24 @@ function configure_salt_master()
 
 ######       Custom Settings          ######
 ############################################
-EOF
 
-  # Sync config files
-  if [[ $(find ${SALT_CONFS_DIR} -type f -name '*.conf' | wc -l) -gt 0 ]]; then
-    rsync --verbose --delete ${SALT_CONFS_DIR}/*.conf ${SALT_ROOT_DIR}/master.d/
-    chown ${SALT_USER}:${SALT_USER} ${SALT_ROOT_DIR}/master.d/*.conf
-    chmod +rx-w ${SALT_ROOT_DIR}/master.d/*.conf
-  fi
+######       Base Directories         ######
+############################################
+file_roots:
+  base:
+    - ${SALT_BASE_DIR}/salt
+
+pillar_roots:
+  base:
+    - ${SALT_BASE_DIR}/pillar
+
+EOF
+}
+
+# Initializes the system
+function initialize_system()
+{
+  map_uidgid
+  configure_salt_master
+  setup_keys
 }
