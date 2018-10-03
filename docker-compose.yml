@@ -5,10 +5,13 @@ services:
     container_name: salt_master
     image: cdalvaro/saltstack-master:2018.3.2
     volumes:
-      - "./srv/:/srv/:ro"
+      - "./srv/:/home/salt/data/srv"
     ports:
       - "4505:4505/tcp"
       - "4506:4506/tcp"
     environment:
       - DEBUG=false
+      - USERMAP_UID=501
+      - USERMAP_GID=20
+
       - SALT_LOG_LEVEL=info

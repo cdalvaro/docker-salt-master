@@ -14,6 +14,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
   - [Custom Recipes](#custom-recipes)
   - [Minion Keys](#minion-keys)
   - [Master Signed Keys](#master-signed-keys)
+  - [Host Mapping](#host-mapping)
   - [Available Configuration Parameters](#available-configuration-parameters)
 - [Usage](#usage)
 - [Shell Access](#shell-access)
@@ -73,7 +74,7 @@ But it is necessary to mount the `/srv/` volume ir order to provide your custom 
 
 ### Minion Keys
 
-Minion keys can be added automatically on startup to SaltStack master by mounting the volume `/etc/salt-docker/keys` and copying the minion keys inside `keys/minions/` directory:
+Minion keys can be added automatically on startup to SaltStack master by mounting the volume `/home/salt/data/keys` and copying the minion keys inside `keys/minions/` directory:
 
 ```sh
 mkdir -p keys/minions
@@ -82,8 +83,8 @@ rsync root@minion1:/etc/salt/pki/minion/minion.pub keys/minions/minion1
 docker run --name salt_master -d \
     --publish 4505:4505/tcp --publish 4506:4506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
-    --volume $(pwd)/srv/:/srv/ \
-    --volume $(pwd)/keys/:/etc/salt-docker/keys/ \
+    --volume $(pwd)/srv/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/saltstack-master:2018.3.2
 ```
 
@@ -96,8 +97,8 @@ docker run --name salt_stack --detach \
     --publish 4505:4505/tcp --publish 4506:4506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
     --env 'SALT_MASTER_SIGN_PUBKEY=True'
-    --volume $(pwd)/srv/:/srv/ \
-    --volume $(pwd)/keys/:/etc/salt-docker/keys/ \
+    --volume $(pwd)/srv/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/saltstack-master:2018.3.2
 ```
 
@@ -107,11 +108,24 @@ Additionally, you can generate new keys by executing the following command:
 
 ```sh
 docker run --name salt_stack -it --rm \
-    --volume $(pwd)/keys/:/etc/salt-docker/keys/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/saltstack-master:2018.3.2 app:gen-signed-keys other_master_sign
 ```
 
 The newly created keys will appear inside `keys/generated/other_master_sign` directory.
+
+### Host Mapping
+
+Per default the container is configured to run `salt-master` as user and group `salt` with `uid` and `gid` `1000`. From the host it appears as if the mounted data volumes are owned by the host's user/group `1000` and maybe leading to unfavorable effects.
+
+Also the container processes seem to be executed as the host's user/group `1000`. The container can be configured to map the uid and gid of git to different ids on host by passing the environment variables `USERMAP_UID` and `USERMAP_GID`. The following command maps the ids to the current user and group on the host.
+
+```sh
+docker run --name salt_stack -it --rm \
+    --env "USERMAP_UID=$(id -u)" --env "USERMAP_GID=$(id -g)" \
+    --volume $(pwd)/srv/:/home/salt/data/srv/ \
+    cdalvaro/saltstack-master:2018.3.2
+```
 
 ### Available Configuration Parameters
 
@@ -127,12 +141,15 @@ Below is the list of available options that can be used to customize your SaltSt
 | `SALT_MASTER_USE_PUBKEY_SIGNATURE` | Instead of computing the signature for each auth-reply, use a pre-calculated signature. This option requires `SALT_MASTER_SIGN_PUBKEY` set to 'True'. Possible values: 'True' or 'False'. Default: `True` |
 | `SALT_MASTER_SIGN_KEY_NAME` | The customizable name of the signing-key-pair without suffix. Default: `master_sign` |
 | `SALT_MASTER_PUBKEY_SIGNATURE` | The name of the file in the master's pki-directory that holds the pre-calculated signature of the master's public-key. Default: `master_pubkey_signature` |
+| `SALT_MASTER_ROOT_USER` | Forces `salt-master` to be runned as `root` instead of `salt`. Default: `False` |
+| `USERMAP_UID` | Sets the uid for user `salt` to the specified uid. Default: `1000`. |
+| `USERMAP_GID` | Sets the gid for user `salt` to the specified gid. Default: `1000`. |
 
-Any parameter not listed in the above table and available in the following [link](https://docs.saltstack.com/en/latest/ref/configuration/examples.html#configuration-examples-master), can be set by creating the directory `confs` and adding into it a `.conf` file with the desired parameters:
+Any parameter not listed in the above table and available in the following [link](https://docs.saltstack.com/en/latest/ref/configuration/examples.html#configuration-examples-master), can be set by creating the directory `config` and adding into it a `.conf` file with the desired parameters:
 
 ```sh
-mkdir confs
-cat > confs/ports.conf << EOF
+mkdir config
+cat > config/ports.conf << EOF
 # The tcp port used by the publisher:
 publish_port: 3505
 # The port used by the communication interface.
@@ -142,8 +159,8 @@ EOF
 docker run --name salt_master -d \
     --publish 3505:3505/tcp --publish 3506:3506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
-    --read-only --volume $(pwd)/srv/:/srv/ \
-    --volume $(pwd)/confs/:/etc/salt-docker/confs/ \
+    --read-only --volume $(pwd)/srv/:/home/salt/data/srv/ \
+    --volume $(pwd)/config/:/home/salt/data/config/ \
     cdalvaro/saltstack-master:2018.3.2
 ```
 

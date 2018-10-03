@@ -4,14 +4,18 @@ LABEL maintainer="carlos.alvaro@citelan.es"
 LABEL description="SaltStack master"
 LABEL version="2018.3.2"
 
-ENV SALT_DOCKER_DIR="/etc/salt-docker" \
+ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
-    SALT_USER=root
+    SALT_USER="salt" \
+    SALT_HOME="/home/salt"
 
 ENV SALT_BUILD_DIR="${SALT_DOCKER_DIR}/build" \
-    SALT_CONFS_DIR="${SALT_DOCKER_DIR}/config" \
-    SALT_KEYS_DIR="${SALT_DOCKER_DIR}/keys" \
-    SALT_RUNTIME_DIR="${SALT_DOCKER_DIR}/runtime"
+    SALT_RUNTIME_DIR="${SALT_DOCKER_DIR}/runtime" \
+    SALT_DATA_DIR="${SALT_HOME}/data"
+
+ENV SALT_CONFS_DIR="${SALT_DATA_DIR}/config" \
+    SALT_KEYS_DIR="${SALT_DATA_DIR}/keys" \
+    SALT_BASE_DIR="${SALT_DATA_DIR}/srv"
 
 # Bootstrap script options:
 # https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html#command-line-options
@@ -31,32 +35,39 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install packages
 RUN apt-get update
 RUN apt-get install --yes --quiet --no-install-recommends \
-    ca-certificates apt-transport-https curl git vim python3 locales virt-what
+    ca-certificates apt-transport-https curl git vim python3 locales
 
 # Configure locales
 RUN update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \
     locale-gen en_US.UTF-8 \
     dpkg-reconfigure locales
 
-EXPOSE 4505/tcp 4506/tcp
-RUN mkdir -p /srv ${SALT_KEYS_DIR} ${SALT_CONFS_DIR}
-VOLUME [ "/srv", "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" ]
-
+# Install saltstack
 RUN mkdir -p ${SALT_BUILD_DIR}
 WORKDIR ${SALT_BUILD_DIR}
 
 RUN curl -o bootstrap-salt.sh -L https://bootstrap.saltstack.com
 RUN sh bootstrap-salt.sh ${SALT_BOOTSTRAP_OPTS} git ${SALT_GIT_RELEASE}
 
-RUN apt-get clean --yes
-RUN rm -rf /var/lib/apt/lists/*
+# Salt user
+RUN useradd -d ${SALT_HOME} -ms /bin/bash -U -G root,sudo ${SALT_USER}
+RUN chown -R ${SALT_USER}: ${SALT_ROOT_DIR}
+
+EXPOSE 4505/tcp 4506/tcp
+RUN mkdir -p ${SALT_DATA_DIR} ${SALT_BASE_DIR} ${SALT_KEYS_DIR} ${SALT_CONFS_DIR}
+VOLUME [ "${SALT_BASE_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" ]
 
 COPY assets/runtime ${SALT_RUNTIME_DIR}
 RUN chmod -R +x ${SALT_RUNTIME_DIR}
 
+# Cleaning tasks
+RUN apt-get clean --yes
+RUN rm -rf /var/lib/apt/lists/*
+
+# Entrypoint
 COPY entrypoint.sh /sbin/entrypoint.sh
 RUN chmod +x /sbin/entrypoint.sh
-WORKDIR ${SALT_DOCKER_DIR}
+WORKDIR ${SALT_HOME}
 
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]
 CMD [ "app:start" ]
