@@ -114,10 +114,21 @@ pillar_roots:
 EOF
 }
 
+# Initializes main directories
+function initialize_datadir()
+{
+  echo "Configuring directories..."
+  
+  # This symlink simplifies paths for loading sls files
+  rm -rf /srv
+  ln -sf ${SALT_BASE_DIR} /srv
+}
+
 # Initializes the system
 function initialize_system()
 {
   map_uidgid
+  initialize_datadir
   configure_salt_master
   setup_keys
 }
