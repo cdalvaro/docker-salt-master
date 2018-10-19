@@ -9,6 +9,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
 ## Table of Contents
 
 - [Installation](#installation)
+  - [Changelog](CHANGELOG.md)
 - [Quick Start](#quick-start)
 - [Configuration](#configuration)
   - [Custom Recipes](#custom-recipes)
@@ -60,7 +61,7 @@ Alternatively, you can manually launch the `saltstack-master`  container:
 docker run --name salt_master --detach \
     --publish 4505:4505/tcp --publish 4506:4506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
-    --read-only --volume $(pwd)/srv/:/srv/ \
+    --read-only --volume $(pwd)/srv/:/home/salt/data/srv/ \
     cdalvaro/saltstack-master:2018.3.2
 ```
 
