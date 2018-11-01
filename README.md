@@ -1,4 +1,4 @@
-# SaltStack Master v2018.3.2
+# SaltStack Master v2018.3.3
 
 Dockerfile to build a [SaltStack](https://www.saltstack.com) Master image for the Docker opensource container platform.
 
@@ -26,7 +26,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
 Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/saltstack-master/) and is the recommended method of installation.
 
 ```sh
-docker pull cdalvaro/saltstack-master:2018.3.2
+docker pull cdalvaro/saltstack-master:2018.3.3
 ```
 
 You can also pull the latest tag which is built from the repository HEAD
@@ -62,7 +62,7 @@ docker run --name salt_master --detach \
     --publish 4505:4505/tcp --publish 4506:4506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
     --read-only --volume $(pwd)/srv/:/home/salt/data/srv/ \
-    cdalvaro/saltstack-master:2018.3.2
+    cdalvaro/saltstack-master:2018.3.3
 ```
 
 ## Configuration
@@ -86,7 +86,7 @@ docker run --name salt_master -d \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/srv/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:2018.3.2
+    cdalvaro/saltstack-master:2018.3.3
 ```
 
 ### Master Signed Keys
@@ -100,7 +100,7 @@ docker run --name salt_stack --detach \
     --env 'SALT_MASTER_SIGN_PUBKEY=True'
     --volume $(pwd)/srv/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:2018.3.2
+    cdalvaro/saltstack-master:2018.3.3
 ```
 
 The container will create the `master_sign` key and its signature. More information about how to configure the minion service can be found [here](https://docs.saltstack.com/en/latest/topics/tutorials/multimaster_pki.html#prepping-the-minion-to-verify-received-public-keys).
@@ -110,7 +110,7 @@ Additionally, you can generate new keys by executing the following command:
 ```sh
 docker run --name salt_stack -it --rm \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:2018.3.2 app:gen-signed-keys other_master_sign
+    cdalvaro/saltstack-master:2018.3.3 app:gen-signed-keys other_master_sign
 ```
 
 The newly created keys will appear inside `keys/generated/other_master_sign` directory.
@@ -125,7 +125,7 @@ Also the container processes seem to be executed as the host's user/group `1000`
 docker run --name salt_stack -it --rm \
     --env "USERMAP_UID=$(id -u)" --env "USERMAP_GID=$(id -g)" \
     --volume $(pwd)/srv/:/home/salt/data/srv/ \
-    cdalvaro/saltstack-master:2018.3.2
+    cdalvaro/saltstack-master:2018.3.3
 ```
 
 ### Available Configuration Parameters
@@ -162,7 +162,7 @@ docker run --name salt_master -d \
     --env 'SALT_LOG_LEVEL=info' \
     --read-only --volume $(pwd)/srv/:/home/salt/data/srv/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
-    cdalvaro/saltstack-master:2018.3.2
+    cdalvaro/saltstack-master:2018.3.3
 ```
 
 ## Usage
