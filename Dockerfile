@@ -2,7 +2,7 @@ FROM ubuntu:18.04
 
 LABEL maintainer="carlos.alvaro@citelan.es"
 LABEL description="SaltStack master"
-LABEL version="2018.3.2"
+LABEL version="2018.3.3"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
@@ -27,7 +27,7 @@ ENV SALT_BOOTSTRAP_OPTS='-M -N -X -U'
 
 # Release version to install
 # https://github.com/saltstack/salt/releases
-ENV SALT_GIT_RELEASE="v2018.3.2"
+ENV SALT_GIT_RELEASE="v2018.3.3"
 
 # Set non interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
