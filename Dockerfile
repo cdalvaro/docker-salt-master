@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:xenial-20181005
 
 LABEL maintainer="carlos.alvaro@citelan.es"
 LABEL description="SaltStack master"
