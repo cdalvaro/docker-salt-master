@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:xenial-20181005
 
 LABEL maintainer="carlos.alvaro@citelan.es"
 LABEL description="SaltStack master"
@@ -23,7 +23,9 @@ ENV SALT_CONFS_DIR="${SALT_DATA_DIR}/config" \
 ## -N: Do not install salt-minion
 ## -X: Do not start daemons after installation
 ## -U: Fully upgrade the system prior to bootstrapping Salt
-ENV SALT_BOOTSTRAP_OPTS='-M -N -X -U'
+## -V: Install Salt into virtualenv
+## -a: Pip install all Python pkg dependencies for Salt
+ENV SALT_BOOTSTRAP_OPTS='-M -N -X -U -Va'
 
 # Release version to install
 # https://github.com/saltstack/salt/releases
@@ -35,7 +37,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install packages
 RUN apt-get update
 RUN apt-get install --yes --quiet --no-install-recommends \
-    ca-certificates apt-transport-https curl git vim python3 locales
+    ca-certificates apt-transport-https curl git vim locales \
+    openssh-client python3 python-git
 
 # Configure locales
 RUN update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \

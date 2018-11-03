@@ -16,6 +16,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
   - [Minion Keys](#minion-keys)
   - [Master Signed Keys](#master-signed-keys)
   - [Host Mapping](#host-mapping)
+  - [Git Fileserver](#git-fileserver)
   - [Available Configuration Parameters](#available-configuration-parameters)
 - [Usage](#usage)
 - [Shell Access](#shell-access)
@@ -128,6 +129,16 @@ docker run --name salt_stack -it --rm \
     cdalvaro/saltstack-master:2018.3.3
 ```
 
+### Git Fileserver
+
+This image uses [GitPython](https://github.com/gitpython-developers/GitPython) as gitfs backend to allow Salt to serve files from git repositories.
+
+It can be enabled by adding `gitfs` to the [`fileserver_backend`](https://docs.saltstack.com/en/latest/ref/configuration/master.html#std:conf_master-fileserver_backend) list (see [Available Configuration Parameters](#available-configuration-parameters)), and configuring one or more repositories in [`gitfs_remotes`](https://docs.saltstack.com/en/latest/ref/configuration/master.html#std:conf_master-gitfs_remotes).
+
+As the backend for gitfs is GitPython, then an ssh key is needed. The default name for the ssh key is `gitfs_ssh` but it can be changed with the env variables `SALT_GITFS_SSH_PRIVATE_KEY` and `SALT_GITFS_SSH_PUBLIC_KEY`.
+
+This keys must be placed inside `/home/salt/data/keys` directory.
+
 ### Available Configuration Parameters
 
 Please refer the docker run command options for the `--env-file` flag where you can specify all required environment variables in a single file. This will save you from writing a potentially long docker run command. Alternatively you can use docker-compose.
@@ -143,6 +154,8 @@ Below is the list of available options that can be used to customize your SaltSt
 | `SALT_MASTER_SIGN_KEY_NAME` | The customizable name of the signing-key-pair without suffix. Default: `master_sign` |
 | `SALT_MASTER_PUBKEY_SIGNATURE` | The name of the file in the master's pki-directory that holds the pre-calculated signature of the master's public-key. Default: `master_pubkey_signature` |
 | `SALT_MASTER_ROOT_USER` | Forces `salt-master` to be runned as `root` instead of `salt`. Default: `False` |
+| `SALT_GITFS_SSH_PRIVATE_KEY` | The name of the ssh private key for gitfs. Default: `gitfs_ssh` |
+| `SALT_GITFS_SSH_PUBLIC_KEY` | The name of the ssh public key for gitfs. Default: `gitfs_ssh.pub` |
 | `USERMAP_UID` | Sets the uid for user `salt` to the specified uid. Default: `1000`. |
 | `USERMAP_GID` | Sets the gid for user `salt` to the specified gid. Default: `1000`. |
 
