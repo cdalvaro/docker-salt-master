@@ -75,6 +75,31 @@ EOF
   find ${SALT_HOME} -path ${SALT_KEYS_DIR}/\* -prune -o -print0 | xargs -0 chown -h ${SALT_USER}:
 }
 
+# This function configures ssh settings
+function configure_ssh()
+{
+  echo "Configuring ssh..."
+
+  mkdir -p "/root/.ssh"
+  cat > "/root/.ssh/config" <<EOF
+Host *
+    IdentityFile ${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PRIVATE_KEY}
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+    LogLevel ERROR
+EOF
+
+  chmod 600 "/root/.ssh/config"
+
+  if [[ -f "${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PRIVATE_KEY}" ]]; then
+    chmod 600 "${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PRIVATE_KEY}"
+  fi
+
+  if [[ -f "${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PUBLIC_KEY}" ]]; then
+    chmod 644 "${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PUBLIC_KEY}"
+  fi
+}
+
 # This functions cofigures master service
 function configure_salt_master()
 {
@@ -131,4 +156,5 @@ function initialize_system()
   initialize_datadir
   configure_salt_master
   setup_keys
+  configure_ssh
 }
