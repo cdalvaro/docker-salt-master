@@ -4,6 +4,9 @@ LABEL maintainer="carlos.alvaro@citelan.es"
 LABEL description="SaltStack master"
 LABEL version="2018.3.3"
 
+# https://github.com/saltstack/salt/releases
+ENV SALT_VERSION="2018.3.3"
+
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
     SALT_USER="salt" \
@@ -20,10 +23,13 @@ ENV SALT_CONFS_DIR="${SALT_DATA_DIR}/config" \
 # Set non interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN mkdir -p ${SALT_BUILD_DIR}
+WORKDIR ${SALT_BUILD_DIR}
+
 # Install packages
 RUN apt-get update
 RUN apt-get install --yes --quiet --no-install-recommends \
-    ca-certificates apt-transport-https curl git vim locales \
+    ca-certificates wget apt-transport-https git locales \
     openssh-client python3 python-git
 
 # Configure locales
@@ -32,29 +38,10 @@ RUN update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \
     dpkg-reconfigure locales
 
 # Install saltstack
-RUN mkdir -p ${SALT_BUILD_DIR}
-WORKDIR ${SALT_BUILD_DIR}
+COPY assets/build ${SALT_BUILD_DIR}
+RUN bash ${SALT_BUILD_DIR}/install.sh
 
-# Bootstrap script options:
-# https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html#command-line-options
-## -M: install Salt Master by default
-## -N: Do not install salt-minion
-## -X: Do not start daemons after installation
-## -P: Allow pip based installations
-## -x: Changes the python version used to install a git version of salt
-ENV SALT_BOOTSTRAP_OPTS='-M -N -X -P -x python3'
-
-# Release version to install
-# https://github.com/saltstack/salt/releases
-ENV SALT_VERSION="2018.3.3"
-
-RUN curl -o bootstrap-salt.sh -L https://bootstrap.saltstack.com
-RUN sh bootstrap-salt.sh ${SALT_BOOTSTRAP_OPTS} stable ${SALT_VERSION}
-
-# Salt user
-RUN useradd -d ${SALT_HOME} -ms /bin/bash -U -G root,sudo ${SALT_USER}
-RUN chown -R ${SALT_USER}: ${SALT_ROOT_DIR}
-
+# Shared resources
 EXPOSE 4505/tcp 4506/tcp
 RUN mkdir -p ${SALT_DATA_DIR} ${SALT_BASE_DIR} ${SALT_KEYS_DIR} ${SALT_CONFS_DIR}
 VOLUME [ "${SALT_BASE_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" ]
@@ -65,6 +52,7 @@ RUN chmod -R +x ${SALT_RUNTIME_DIR}
 # Cleaning tasks
 RUN apt-get clean --yes
 RUN rm -rf /var/lib/apt/lists/*
+RUN rm -rf ${SALT_BUILD_DIR}/*
 
 # Entrypoint
 COPY entrypoint.sh /sbin/entrypoint.sh
