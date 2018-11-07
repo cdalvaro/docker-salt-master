@@ -17,20 +17,6 @@ ENV SALT_CONFS_DIR="${SALT_DATA_DIR}/config" \
     SALT_KEYS_DIR="${SALT_DATA_DIR}/keys" \
     SALT_BASE_DIR="${SALT_DATA_DIR}/srv"
 
-# Bootstrap script options:
-# https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html#command-line-options
-## -M: install Salt Master by default
-## -N: Do not install salt-minion
-## -X: Do not start daemons after installation
-## -U: Fully upgrade the system prior to bootstrapping Salt
-## -V: Install Salt into virtualenv
-## -a: Pip install all Python pkg dependencies for Salt
-ENV SALT_BOOTSTRAP_OPTS='-M -N -X -U -Va'
-
-# Release version to install
-# https://github.com/saltstack/salt/releases
-ENV SALT_GIT_RELEASE="v2018.3.3"
-
 # Set non interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -48,6 +34,20 @@ RUN update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \
 # Install saltstack
 RUN mkdir -p ${SALT_BUILD_DIR}
 WORKDIR ${SALT_BUILD_DIR}
+
+# Bootstrap script options:
+# https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html#command-line-options
+## -M: install Salt Master by default
+## -N: Do not install salt-minion
+## -X: Do not start daemons after installation
+## -U: Fully upgrade the system prior to bootstrapping Salt
+## -V: Install Salt into virtualenv
+## -a: Pip install all Python pkg dependencies for Salt
+ENV SALT_BOOTSTRAP_OPTS='-M -N -X -U -Va'
+
+# Release version to install
+# https://github.com/saltstack/salt/releases
+ENV SALT_GIT_RELEASE="v2018.3.3"
 
 RUN curl -o bootstrap-salt.sh -L https://bootstrap.saltstack.com
 RUN sh bootstrap-salt.sh ${SALT_BOOTSTRAP_OPTS} git ${SALT_GIT_RELEASE}
