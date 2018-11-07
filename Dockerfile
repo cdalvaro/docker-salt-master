@@ -5,7 +5,11 @@ LABEL description="SaltStack master"
 LABEL version="2018.3.3"
 
 # https://github.com/saltstack/salt/releases
-ENV SALT_VERSION="2018.3.3"
+ENV SALT_VERSION="2018.3.3" \
+    PYTHON_VERSION="3.5" \
+    LIBSSH2_VERSION="1.8.0" \
+    LIBGIT2_VERSION="0.27.7" \
+    PYGIT2_VERSION="0.27.2"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
@@ -29,8 +33,9 @@ WORKDIR ${SALT_BUILD_DIR}
 # Install packages
 RUN apt-get update
 RUN apt-get install --yes --quiet --no-install-recommends \
-    ca-certificates wget apt-transport-https git locales \
-    openssh-client python3 python-git
+    ca-certificates wget locales pkg-config openssh-client \
+    python${PYTHON_VERSION} python${PYTHON_VERSION}-dev \
+    python3-pip python3-setuptools python3-wheel
 
 # Configure locales
 RUN update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \

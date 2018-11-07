@@ -64,7 +64,7 @@ EOF
     salt-key --gen-signature --auto-create --pub ${SALT_KEYS_DIR}/master.pub --signature-path ${SALT_KEYS_DIR}
   fi
 
-  for pub_key in $(find ${SALT_KEYS_DIR} -type f -maxdepth 2); do
+  for pub_key in $(find ${SALT_KEYS_DIR} -type f -maxdepth 1); do
     if [[ ${pub_key} =~ .*\.pem$ ]]; then
       chmod 400 ${pub_key}
     else
@@ -72,6 +72,7 @@ EOF
     fi
   done
 
+  find ${SALT_KEYS_DIR}/minions* -type f -maxdepth 1 -exec chmod 644 {} \;
   find ${SALT_HOME} -path ${SALT_KEYS_DIR}/\* -prune -o -print0 | xargs -0 chown -h ${SALT_USER}:
 }
 
