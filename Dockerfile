@@ -40,17 +40,16 @@ WORKDIR ${SALT_BUILD_DIR}
 ## -M: install Salt Master by default
 ## -N: Do not install salt-minion
 ## -X: Do not start daemons after installation
-## -U: Fully upgrade the system prior to bootstrapping Salt
-## -V: Install Salt into virtualenv
-## -a: Pip install all Python pkg dependencies for Salt
-ENV SALT_BOOTSTRAP_OPTS='-M -N -X -U -Va'
+## -P: Allow pip based installations
+## -x: Changes the python version used to install a git version of salt
+ENV SALT_BOOTSTRAP_OPTS='-M -N -X -P -x python3'
 
 # Release version to install
 # https://github.com/saltstack/salt/releases
-ENV SALT_GIT_RELEASE="v2018.3.3"
+ENV SALT_VERSION="2018.3.3"
 
 RUN curl -o bootstrap-salt.sh -L https://bootstrap.saltstack.com
-RUN sh bootstrap-salt.sh ${SALT_BOOTSTRAP_OPTS} git ${SALT_GIT_RELEASE}
+RUN sh bootstrap-salt.sh ${SALT_BOOTSTRAP_OPTS} stable ${SALT_VERSION}
 
 # Salt user
 RUN useradd -d ${SALT_HOME} -ms /bin/bash -U -G root,sudo ${SALT_USER}
