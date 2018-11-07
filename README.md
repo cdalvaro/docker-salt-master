@@ -17,6 +17,8 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
   - [Master Signed Keys](#master-signed-keys)
   - [Host Mapping](#host-mapping)
   - [Git Fileserver](#git-fileserver)
+    - [GitPython](#gitpython)
+    - [PyGit2](#pygit2)
   - [Available Configuration Parameters](#available-configuration-parameters)
 - [Usage](#usage)
 - [Shell Access](#shell-access)
@@ -131,13 +133,43 @@ docker run --name salt_stack -it --rm \
 
 ### Git Fileserver
 
-This image uses [GitPython](https://github.com/gitpython-developers/GitPython) as gitfs backend to allow Salt to serve files from git repositories.
+This image uses [GitPython](https://github.com/gitpython-developers/GitPython) and [PyGit2](https://www.pygit2.org) as gitfs backends to allow Salt to serve files from git repositories.
 
 It can be enabled by adding `gitfs` to the [`fileserver_backend`](https://docs.saltstack.com/en/latest/ref/configuration/master.html#std:conf_master-fileserver_backend) list (see [Available Configuration Parameters](#available-configuration-parameters)), and configuring one or more repositories in [`gitfs_remotes`](https://docs.saltstack.com/en/latest/ref/configuration/master.html#std:conf_master-gitfs_remotes).
 
-As the backend for gitfs is GitPython, then an ssh key is needed. The default name for the ssh key is `gitfs_ssh` but it can be changed with the env variables `SALT_GITFS_SSH_PRIVATE_KEY` and `SALT_GITFS_SSH_PUBLIC_KEY`.
+#### GitPython
+
+The default name for the ssh key is `gitfs_ssh` but it can be changed with the env variables `SALT_GITFS_SSH_PRIVATE_KEY` and `SALT_GITFS_SSH_PUBLIC_KEY`.
 
 This keys must be placed inside `/home/salt/data/keys` directory.
+
+#### PyGit2
+
+You can create an ssh key for pygit2 with the following command:
+
+```sh
+ssh-keygen -f gitfs_pygit2 -C 'gitfs@example.com'
+```
+
+Place it wherever you want inside the container and specify its path with the configuration parameters: `gitfs_pubkey`  and `gitfs_privkey`  in your `.conf` file.
+
+For example:
+
+```yml
+gitfs_provider: pygit2
+gitfs_privkey: /home/salt/data/keys/gitfs/gitfs_ssh
+gitfs_pubkey: /home/salt/data/keys/gitfs/gitfs_ssh.pub
+```
+
+**Important Note** 
+
+If you get the following error while using `gitfs` with `pygit2`
+
+```plain
+_pygit2.GitError: Failed to authenticate SSH session: Unable to send userauth-publickey request
+```
+
+look if your private key hash empty lines at the bottom of the file and suppress them for solving the error.
 
 ### Available Configuration Parameters
 
