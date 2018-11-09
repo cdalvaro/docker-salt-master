@@ -8,6 +8,9 @@ Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/deve
 - Upgrade SaltStack Master to `2018.3.3`
 - Change Docker base image to `ubuntu:xenial-20181005`
 - Add `GitPython` support
+- Add `PyGit2` support
+- Expose `/home/salt/data/logs`
+- Run `salt-master` as `salt` user
 
 **2018.3.2**
 

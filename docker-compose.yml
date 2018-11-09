@@ -11,7 +11,7 @@ services:
       - "4506:4506/tcp"
     environment:
       - DEBUG=false
-      - USERMAP_UID=501
-      - USERMAP_GID=20
+      - USERMAP_UID=1000
+      - USERMAP_GID=1000
 
       - SALT_LOG_LEVEL=info

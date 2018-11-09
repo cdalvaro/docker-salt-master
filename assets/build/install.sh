@@ -2,6 +2,8 @@
 
 set -e
 
+source ${SALT_BUILD_DIR}/functions.sh
+
 # Install build dependencies
 echo "Installing dependencies ..."
 BUILD_DEPENDENCIES="gnupg git cmake gcc g++ make \
@@ -9,6 +11,15 @@ BUILD_DEPENDENCIES="gnupg git cmake gcc g++ make \
     libzmq-dev libcurl4-openssl-dev libffi-dev"
 
 apt-get install --yes --quiet --no-install-recommends ${BUILD_DEPENDENCIES}
+
+# Create salt user
+echo "Creating ${SALT_USER} user ..."
+useradd -d ${SALT_HOME} -ms /bin/bash -U -G root,sudo ${SALT_USER}
+
+# Set PATH
+exec_as_salt cat >> ${SALT_HOME}/.profile <<EOF
+PATH=/usr/local/sbin:/usr/local/bin:\$PATH
+EOF
 
 # Compile libssh2
 echo "Building libssh2 v${LIBSSH2_VERSION} ..."
@@ -28,11 +39,13 @@ cmake --build . --target install
 
 # Install python packages
 echo "Installing python packages ..."
-pip3 install "pygit2==v${PYGIT2_VERSION}" gitpython
-
-# Salt user
-echo "Creating ${SALT_USER} user ..."
-useradd -d ${SALT_HOME} -ms /bin/bash -U -G root,sudo ${SALT_USER}
+pip3 install "pygit2==v${PYGIT2_VERSION}" \
+             "gitpython==v${GITPYTHON_VERSION}" \
+             "M2Crypto==v${M2CRYPTO_VERSION}" \
+             "Mako==v${MAKO_VERSION}" \
+             "pycryptodome==v${PYCRYPTODOME_VERSION}" \
+             "libnacl==v${LIBNACL_VERSION}" \
+             "raet==v${RAET_VERSION}"
 
 # Bootstrap script options:
 # https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html#command-line-options
@@ -47,3 +60,10 @@ echo "Installing saltstack ..."
 wget -O bootstrap-salt.sh https://bootstrap.saltstack.com
 sh bootstrap-salt.sh ${SALT_BOOTSTRAP_OPTS} stable ${SALT_VERSION}
 chown -R ${SALT_USER}: ${SALT_ROOT_DIR}
+
+# Configure ssh
+echo "Configuring ssh ..."
+sed -i -e "s|^[# ]*StrictHostKeyChecking.*$|    StrictHostKeyChecking no|" /etc/ssh/ssh_config
+echo "    UserKnownHostsFile /dev/null" >> /etc/ssh/ssh_config
+echo "    LogLevel ERROR" >> /etc/ssh/ssh_config
+echo "#   IdentityFile salt_ssh_key" >> /etc/ssh/ssh_config
