@@ -33,15 +33,15 @@ function gen_signed_keys()
 }
 
 # This function repairs keys permissions and creates keys if neaded
-function setup_keys()
+function setup_salt_keys()
 {
-  echo "Setting up keys..."
+  echo "Setting up keys ..."
 
   sed -i \
-      -e "s|^[#]*master_sign_pubkey:.*$|# master_sign_pubkey -> overrided|" \
-      -e "s|^[#]*master_sign_key_name:.*$|# master_sign_key_name -> overrided|" \
-      -e "s|^[#]*master_pubkey_signature:.*$|# master_pubkey_signature -> overrided|" \
-      -e "s|^[#]*master_use_pubkey_signature:.*$|# master_use_pubkey_signature -> overrided|" \
+      -e "s|^[# ]*master_sign_pubkey:.*$|# master_sign_pubkey -> Overrided, see Custom Settings|" \
+      -e "s|^[# ]*master_sign_key_name:.*$|# master_sign_key_name -> Overrided, see Custom Settings|" \
+      -e "s|^[# ]*master_pubkey_signature:.*$|# master_pubkey_signature -> Overrided, see Custom Settings|" \
+      -e "s|^[# ]*master_use_pubkey_signature:.*$|# master_use_pubkey_signature -> Overrided, see Custom Settings|" \
       ${SALT_ROOT_DIR}/master
 
   cat >> ${SALT_ROOT_DIR}/master <<EOF
@@ -55,12 +55,12 @@ master_use_pubkey_signature: ${SALT_MASTER_USE_PUBKEY_SIGNATURE}
 EOF
 
   if [ ! -f ${SALT_KEYS_DIR}/master.pem ]; then
-    echo "Generating keys..."
+    echo "Generating keys ..."
     salt-key --gen-keys master --gen-keys-dir ${SALT_KEYS_DIR}
   fi
 
   if [ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ] && [ ${SALT_MASTER_SIGN_PUBKEY} == True ]; then
-    echo "Generating signed keys..."
+    echo "Generating signed keys ..."
     salt-key --gen-signature --auto-create --pub ${SALT_KEYS_DIR}/master.pub --signature-path ${SALT_KEYS_DIR}
   fi
 
@@ -76,21 +76,14 @@ EOF
   find ${SALT_HOME} -path ${SALT_KEYS_DIR}/\* -prune -o -print0 | xargs -0 chown -h ${SALT_USER}:
 }
 
-# This function configures ssh settings
-function configure_ssh()
+# This function configures ssh keys
+function setup_ssh_keys()
 {
-  echo "Configuring ssh..."
+  echo "Configuring ssh ..."
 
-  mkdir -p "/root/.ssh"
-  cat > "/root/.ssh/config" <<EOF
-Host *
-    IdentityFile ${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PRIVATE_KEY}
-    StrictHostKeyChecking no
-    UserKnownHostsFile /dev/null
-    LogLevel ERROR
-EOF
-
-  chmod 600 "/root/.ssh/config"
+  sed -i \
+    -e "s|^[# ]*IdentityFile salt_ssh_key$|    IdentityFile ${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PRIVATE_KEY}|" \
+    /etc/ssh/ssh_config
 
   if [[ -f "${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PRIVATE_KEY}" ]]; then
     chmod 600 "${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PRIVATE_KEY}"
@@ -156,6 +149,6 @@ function initialize_system()
   map_uidgid
   initialize_datadir
   configure_salt_master
-  setup_keys
-  configure_ssh
+  setup_salt_keys
+  setup_ssh_keys
 }
