@@ -22,7 +22,8 @@ ENV SALT_BUILD_DIR="${SALT_DOCKER_DIR}/build" \
 
 ENV SALT_CONFS_DIR="${SALT_DATA_DIR}/config" \
     SALT_KEYS_DIR="${SALT_DATA_DIR}/keys" \
-    SALT_BASE_DIR="${SALT_DATA_DIR}/srv"
+    SALT_BASE_DIR="${SALT_DATA_DIR}/srv" \
+    SALT_LOGS_DIR="${SALT_DATA_DIR}/logs"
 
 # Set non interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
@@ -48,8 +49,8 @@ RUN bash ${SALT_BUILD_DIR}/install.sh
 
 # Shared resources
 EXPOSE 4505/tcp 4506/tcp
-RUN mkdir -p ${SALT_DATA_DIR} ${SALT_BASE_DIR} ${SALT_KEYS_DIR} ${SALT_CONFS_DIR}
-VOLUME [ "${SALT_BASE_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" ]
+RUN mkdir -p ${SALT_DATA_DIR} ${SALT_BASE_DIR} ${SALT_KEYS_DIR} ${SALT_CONFS_DIR} ${SALT_LOGS_DIR}
+VOLUME [ "${SALT_BASE_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" "${SALT_LOGS_DIR}" ]
 
 COPY assets/runtime ${SALT_RUNTIME_DIR}
 RUN chmod -R +x ${SALT_RUNTIME_DIR}

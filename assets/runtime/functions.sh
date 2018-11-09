@@ -97,14 +97,14 @@ function setup_ssh_keys()
 # This functions cofigures master service
 function configure_salt_master()
 {
-  echo "Configuring salt-master..."
+  echo "Configuring salt-master ..."
   # https://docs.saltstack.com/en/latest/ref/configuration/master.html
 
   # Backup file
   if [ ! -f ${SALT_ROOT_DIR}/master.backup ]; then
-    cp -p ${SALT_ROOT_DIR}/master ${SALT_ROOT_DIR}/master.backup
+    cp -p ${SALT_ROOT_DIR}/master ${SALT_ROOT_DIR}/master.orig
   else
-    cp -p ${SALT_ROOT_DIR}/master.backup ${SALT_ROOT_DIR}/master
+    cp -p ${SALT_ROOT_DIR}/master.orig ${SALT_ROOT_DIR}/master
   fi
 
   # Set env variables
@@ -113,6 +113,7 @@ function configure_salt_master()
       -e "s|^[#]*log_level_logfile:.*$|log_level_logfile: ${SALT_LEVEL_LOGFILE}|" \
       -e "s|^[#]*default_include:.*$|default_include: ${SALT_CONFS_DIR}/*.conf|" \
       -e "s|^[#]*pki_dir:.*$|pki_dir: ${SALT_KEYS_DIR}/|" \
+      -e "s|/var/log/salt|${SALT_LOGS_DIR}|g" \
       ${SALT_ROOT_DIR}/master
 
   cat >> ${SALT_ROOT_DIR}/master <<EOF
@@ -136,11 +137,17 @@ EOF
 # Initializes main directories
 function initialize_datadir()
 {
-  echo "Configuring directories..."
+  echo "Configuring directories ..."
   
   # This symlink simplifies paths for loading sls files
-  rm -rf /srv
-  ln -sf ${SALT_BASE_DIR} /srv
+  [[ -d /srv ]] && [[ ! -L /srv ]] && rm -rf /srv
+  ln -sfnv ${SALT_BASE_DIR} /srv
+
+  # Logs directory
+  [[ -d /var/log/salt ]] && [[ ! -L /var/log/salt ]] && rm -rf /var/log/salt
+  mkdir -p /var/log
+  ln -sfnv ${SALT_LOGS_DIR} /var/log/salt
+  chown -R ${SALT_USER} ${SALT_LOGS_DIR}
 }
 
 # Initializes the system
