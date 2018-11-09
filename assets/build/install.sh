@@ -2,6 +2,8 @@
 
 set -e
 
+source ${SALT_BUILD_DIR}/functions.sh
+
 # Install build dependencies
 echo "Installing dependencies ..."
 BUILD_DEPENDENCIES="gnupg git cmake gcc g++ make \
@@ -9,6 +11,15 @@ BUILD_DEPENDENCIES="gnupg git cmake gcc g++ make \
     libzmq-dev libcurl4-openssl-dev libffi-dev"
 
 apt-get install --yes --quiet --no-install-recommends ${BUILD_DEPENDENCIES}
+
+# Create salt user
+echo "Creating ${SALT_USER} user ..."
+useradd -d ${SALT_HOME} -ms /bin/bash -U -G root,sudo ${SALT_USER}
+
+# Set PATH
+exec_as_salt cat >> ${SALT_HOME}/.profile <<EOF
+PATH=/usr/local/sbin:/usr/local/bin:\$PATH
+EOF
 
 # Compile libssh2
 echo "Building libssh2 v${LIBSSH2_VERSION} ..."
@@ -35,10 +46,6 @@ pip3 install "pygit2==v${PYGIT2_VERSION}" \
              "pycryptodome==v${PYCRYPTODOME_VERSION}" \
              "libnacl==v${LIBNACL_VERSION}" \
              "raet==v${RAET_VERSION}"
-
-# Salt user
-echo "Creating ${SALT_USER} user ..."
-useradd -d ${SALT_HOME} -ms /bin/bash -U -G root,sudo ${SALT_USER}
 
 # Bootstrap script options:
 # https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html#command-line-options

@@ -13,7 +13,7 @@ case ${1} in
     case ${1} in
       app:start)
         echo "Starting salt-master..."
-        exec salt-master
+        exec sudo -HEu ${SALT_USER} salt-master
         ;;
       app:gen-signed-keys)
         shift 1

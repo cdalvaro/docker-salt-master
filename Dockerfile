@@ -40,7 +40,7 @@ WORKDIR ${SALT_BUILD_DIR}
 # Install packages
 RUN apt-get update
 RUN apt-get install --yes --quiet --no-install-recommends \
-    ca-certificates wget locales pkg-config openssh-client \
+    sudo ca-certificates wget locales pkg-config openssh-client \
     python${PYTHON_VERSION} python${PYTHON_VERSION}-dev \
     python3-pip python3-setuptools python3-wheel
 

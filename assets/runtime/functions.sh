@@ -11,10 +11,10 @@ function map_uidgid()
   USERMAP_GID=${USERMAP_GID:-${USERMAP_UID:-$USERMAP_ORIG_GID}}
   USERMAP_UID=${USERMAP_UID:-$USERMAP_ORIG_UID}
   if [[ ${USERMAP_UID} != ${USERMAP_ORIG_UID} ]] || [[ ${USERMAP_GID} != ${USERMAP_ORIG_GID} ]]; then
-    echo "Mapping UID and GID for ${SALT_USER}:${SALT_USER} to ${USERMAP_UID}:${USERMAP_GID}..."
+    echo "Mapping UID and GID for ${SALT_USER}:${SALT_USER} to ${USERMAP_UID}:${USERMAP_GID} ..."
     groupmod -o -g ${USERMAP_GID} ${SALT_USER}
     sed -i -e "s|:${USERMAP_ORIG_UID}:${USERMAP_GID}:|:${USERMAP_UID}:${USERMAP_GID}:|" /etc/passwd
-    find ${SALT_HOME} -path ${SALT_DATA_DIR}/\* -prune -o -print0 | xargs -0 chown -h ${SALT_USER}:
+    find ${SALT_HOME} -path ${SALT_DATA_DIR}/\* \( ! -uid ${USERMAP_ORIG_UID} -o ! -gid ${USERMAP_ORIG_GID} \) -print0 | xargs -0 chown -h ${SALT_USER}: ${SALT_HOME}
   fi
 }
 
@@ -109,6 +109,7 @@ function configure_salt_master()
 
   # Set env variables
   sed -i \
+      -e "s|^[#]*user:.*$|user: ${SALT_USER}|" \
       -e "s|^[#]*log_level:.*$|log_level: ${SALT_LOG_LEVEL}|" \
       -e "s|^[#]*log_level_logfile:.*$|log_level_logfile: ${SALT_LEVEL_LOGFILE}|" \
       -e "s|^[#]*default_include:.*$|default_include: ${SALT_CONFS_DIR}/*.conf|" \
@@ -142,6 +143,17 @@ function initialize_datadir()
   # This symlink simplifies paths for loading sls files
   [[ -d /srv ]] && [[ ! -L /srv ]] && rm -rf /srv
   ln -sfnv ${SALT_BASE_DIR} /srv
+
+  # Set Slat root permissions
+  chown -R ${SALT_USER} ${SALT_ROOT_DIR}
+
+  # Set Salt run permissions
+  mkdir -p /var/run/salt
+  chown -R ${SALT_USER} /var/run/salt
+
+  # Set cache permissions
+  mkdir -p /var/cache/salt/master
+  chown -R salt /var/cache/salt
 
   # Logs directory
   [[ -d /var/log/salt ]] && [[ ! -L /var/log/salt ]] && rm -rf /var/log/salt
