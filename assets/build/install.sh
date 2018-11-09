@@ -28,7 +28,13 @@ cmake --build . --target install
 
 # Install python packages
 echo "Installing python packages ..."
-pip3 install "pygit2==v${PYGIT2_VERSION}" gitpython
+pip3 install "pygit2==v${PYGIT2_VERSION}" \
+             "gitpython==v${GITPYTHON_VERSION}" \
+             "M2Crypto==v${M2CRYPTO_VERSION}" \
+             "Mako==v${MAKO_VERSION}" \
+             "pycryptodome==v${PYCRYPTODOME_VERSION}" \
+             "libnacl==v${LIBNACL_VERSION}" \
+             "raet==v${RAET_VERSION}"
 
 # Salt user
 echo "Creating ${SALT_USER} user ..."
