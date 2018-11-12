@@ -18,11 +18,11 @@ release: build
 
 quickstart:
 	@echo "Starting saltstack-master container..."
-	@docker run --name='saltstack-master-demo' -d \
+	@docker run --name='saltstack-master-demo' --detach \
 		--publish=4505:4505/tcp --publish=4506:4506/tcp \
-		--env "USERMAP_UID=$(id -u)" --env "USERMAP_GID=$(id -g)" \
+		--env "USERMAP_UID=$(shell id -u)" --env "USERMAP_GID=$(shell id -g)" \
 		--env SALT_LOG_LEVEL=info \
-		--read-only --volume $(pwd)/srv/:/home/salt/data/srv/ \
+		--read-only --volume $(shell pwd)/srv/:/home/salt/data/srv/ \
 		cdalvaro/saltstack-master:latest
 	@echo "Type 'make logs' for the logs"
 
@@ -35,4 +35,4 @@ purge: stop
 	@docker rm saltstack-master-demo > /dev/null
 
 logs:
-	@docker logs -d saltstack-master-demo
+	@docker logs --follow saltstack-master-demo
