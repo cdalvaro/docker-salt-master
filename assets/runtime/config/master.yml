@@ -1,0 +1,134 @@
+##### Primary configuration settings #####
+##########################################
+# This configuration file is used to manage the behavior of the Salt Master.
+# Values that are commented out but have an empty line after the comment are
+# defaults that do not need to be set in the config. If there is no blank line
+# after the comment then the value is presented as an example and is not the
+# default.
+
+# The master will automatically include all config files from:
+default_include: {{SALT_CONFS_DIR}}/*.conf
+
+# The user under which the salt master will run.
+user: {{SALT_USER}}
+
+# Directory used to store public key data:
+pki_dir: {{SALT_KEYS_DIR}}
+
+# Directory to store job and cache data:
+# This directory may contain sensitive data and should be protected accordingly.
+cachedir: {{SALT_CACHE_DIR}}/master
+
+# Directory for custom modules. This directory can contain subdirectories for
+# each of Salt's module types such as "runners", "output", "wheel", "modules",
+# "states", "returners", "engines", "utils", etc.
+extension_modules: {{SALT_CACHE_DIR}}/master/extmods
+
+
+#####        Security settings       #####
+##########################################
+# Enable passphrase protection of the Master signing_key. This only applies if
+# master_sign_pubkey is set to True.  This is disabled by default.
+master_sign_pubkey: {{SALT_MASTER_SIGN_PUBKEY}}
+master_sign_key_name: {{SALT_MASTER_SIGN_KEY_NAME}}
+master_pubkey_signature: {{SALT_MASTER_PUBKEY_SIGNATURE}}
+master_use_pubkey_signature: {{SALT_MASTER_USE_PUBKEY_SIGNATURE}}
+
+# Use TLS/SSL encrypted connection between master and minion.
+# Can be set to a dictionary containing keyword arguments corresponding to Python's
+# 'ssl.wrap_socket' method.
+# Default is None.
+#ssl:
+#    keyfile: <path_to_keyfile>
+#    certfile: <path_to_certfile>
+#    ssl_version: PROTOCOL_TLSv1_2
+
+
+#####     Salt-SSH Configuration     #####
+##########################################
+# The log file of the salt-ssh command:
+ssh_log_file: {{SALT_LOGS_DIR}}/ssh
+
+
+#####      File Server settings      #####
+##########################################
+# Salt runs a lightweight file server written in zeromq to deliver files to
+# minions. This file server is built into the master daemon and does not
+# require a dedicated port.
+
+# The file server works on environments passed to the master, each environment
+# can have multiple root directories, the subdirectories in the multiple file
+# roots cannot match, otherwise the downloaded files will not be able to be
+# reliably ensured. A base environment is required to house the top file.
+file_roots:
+  base:
+    - {{SALT_BASE_DIR}}/salt
+
+# The master_roots setting configures a master-only copy of the file_roots dictionary,
+# used by the state compiler.
+master_roots:
+  base:
+    - {{SALT_BASE_DIR}}/salt-master
+
+
+#####         Pillar settings        #####
+##########################################
+# Salt Pillars allow for the building of global data that can be made selectively
+# available to different minions based on minion grain filtering. The Salt
+# Pillar is laid out in the same fashion as the file server, with environments,
+# a top file and sls files. However, pillar data does not need to be in the
+# highstate format, and is generally just key/value pairs.
+pillar_roots:
+  base:
+    - {{SALT_BASE_DIR}}/pillar
+
+
+#####          Syndic settings       #####
+##########################################
+# The Salt syndic is used to pass commands through a master from a higher
+# master. Using the syndic is simple. If this is a master that will have
+# syndic servers(s) below it, then set the "order_masters" setting to True.
+#
+# If this is a master that will be running a syndic daemon for passthrough, then
+# the "syndic_master" setting needs to be set to the location of the master server
+# to receive commands from.
+
+# The log file of the salt-syndic daemon:
+syndic_log_file: {{SALT_LOGS_DIR}}/syndic
+
+
+#####         Logging settings       #####
+##########################################
+# The location of the master log file
+log_file: {{SALT_LOGS_DIR}}/master
+key_logfile: {{SALT_LOGS_DIR}}/key
+
+# The level of messages to send to the console.
+# One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'.
+#
+# The following log levels are considered INSECURE and may log sensitive data:
+# ['garbage', 'trace', 'debug']
+#
+log_level: {{SALT_LOG_LEVEL}}
+
+# The level of messages to send to the log file.
+# One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'.
+# If using 'log_granular_levels' this must be set to the highest desired level.
+log_level_logfile: {{SALT_LEVEL_LOGFILE}}
+
+
+#####  Windows Software Repo settings #####
+###########################################
+# Location of the repo on the master:
+winrepo_dir_ng: '{{SALT_BASE_DIR}}/salt/win/repo-ng'
+
+
+#####  Windows Software Repo settings - Pre 2015.8 #####
+########################################################
+# Legacy repo settings for pre-2015.8 Windows minions.
+#
+# Location of the repo on the master:
+winrepo_dir: '{{SALT_BASE_DIR}}/salt/win/repo'
+#
+# Location of the master's repo cache file:
+winrepo_mastercachefile: '{{SALT_BASE_DIR}}/salt/win/repo/winrepo.p'

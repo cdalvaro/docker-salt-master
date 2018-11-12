@@ -3,6 +3,16 @@
 set -e
 source ${SALT_RUNTIME_DIR}/env-defaults.sh
 
+# Execute a command as SALT_USER
+function exec_as_salt()
+{
+  if [[ $(whoami) == ${SALT_USER} ]]; then
+    $@
+  else
+    sudo -HEu ${SALT_USER} "$@"
+  fi
+}
+
 # Map salt user with host user
 function map_uidgid()
 {
@@ -16,6 +26,35 @@ function map_uidgid()
     sed -i -e "s|:${USERMAP_ORIG_UID}:${USERMAP_GID}:|:${USERMAP_UID}:${USERMAP_GID}:|" /etc/passwd
     find ${SALT_HOME} -path ${SALT_DATA_DIR}/\* \( ! -uid ${USERMAP_ORIG_UID} -o ! -gid ${USERMAP_ORIG_GID} \) -print0 | xargs -0 chown -h ${SALT_USER}: ${SALT_HOME}
   fi
+}
+
+# This function replaces placeholders with values
+# $1: file with placeholders to replace
+# $x: placeholders to replace
+function update_template()
+{
+  local FILE=${1?missing argument}
+  shift
+
+  [[ ! -f ${FILE} ]] && return 1
+
+  local VARIABLES=($@)
+  local USR=$(stat -c %U ${FILE})
+  local tmp_file=$(mktemp)
+  cp -a "${FILE}" ${tmp_file}
+
+  local variables
+  for variable in ${VARIABLES[@]}; do
+    sed -ri "s|[{}]{2}$variable[}]{2}|\${$variable}|g" ${tmp_file}
+  done
+
+  # Replace placeholders
+  (
+    export ${VARIABLES[@]}
+    local IFS=":"; sudo -HEu ${USR} envsubst "${VARIABLES[*]/#/$}" < ${tmp_file} > ${FILE}
+  )
+
+  rm -f ${tmp_file}
 }
 
 # This function generates a master_sign key pair and its signature
@@ -35,25 +74,7 @@ function gen_signed_keys()
 # This function repairs keys permissions and creates keys if neaded
 function setup_salt_keys()
 {
-  echo "Setting up keys ..."
-
-  sed -i \
-      -e "s|^[# ]*master_sign_pubkey:.*$|# master_sign_pubkey -> Overrided, see Custom Settings|" \
-      -e "s|^[# ]*master_sign_key_name:.*$|# master_sign_key_name -> Overrided, see Custom Settings|" \
-      -e "s|^[# ]*master_pubkey_signature:.*$|# master_pubkey_signature -> Overrided, see Custom Settings|" \
-      -e "s|^[# ]*master_use_pubkey_signature:.*$|# master_use_pubkey_signature -> Overrided, see Custom Settings|" \
-      ${SALT_ROOT_DIR}/master
-
-  cat >> ${SALT_ROOT_DIR}/master <<EOF
-#####         Security settings        #####
-############################################
-master_sign_pubkey: ${SALT_MASTER_SIGN_PUBKEY}
-master_sign_key_name: ${SALT_MASTER_SIGN_KEY_NAME}
-master_pubkey_signature: ${SALT_MASTER_PUBKEY_SIGNATURE}
-master_use_pubkey_signature: ${SALT_MASTER_USE_PUBKEY_SIGNATURE}
-
-EOF
-
+  echo "Setting up salt keys ..."
   if [ ! -f ${SALT_KEYS_DIR}/master.pem ]; then
     echo "Generating keys ..."
     salt-key --gen-keys master --gen-keys-dir ${SALT_KEYS_DIR}
@@ -100,39 +121,25 @@ function configure_salt_master()
   echo "Configuring salt-master ..."
   # https://docs.saltstack.com/en/latest/ref/configuration/master.html
 
-  # Backup file
-  if [ ! -f ${SALT_ROOT_DIR}/master.backup ]; then
-    cp -p ${SALT_ROOT_DIR}/master ${SALT_ROOT_DIR}/master.orig
-  else
-    cp -p ${SALT_ROOT_DIR}/master.orig ${SALT_ROOT_DIR}/master
-  fi
+  exec_as_salt cp -p ${SALT_RUNTIME_DIR}/config/master.yml ${SALT_ROOT_DIR}/master
 
-  # Set env variables
-  sed -i \
-      -e "s|^[#]*user:.*$|user: ${SALT_USER}|" \
-      -e "s|^[#]*log_level:.*$|log_level: ${SALT_LOG_LEVEL}|" \
-      -e "s|^[#]*log_level_logfile:.*$|log_level_logfile: ${SALT_LEVEL_LOGFILE}|" \
-      -e "s|^[#]*default_include:.*$|default_include: ${SALT_CONFS_DIR}/*.conf|" \
-      -e "s|^[#]*pki_dir:.*$|pki_dir: ${SALT_KEYS_DIR}/|" \
-      -e "s|/var/log/salt|${SALT_LOGS_DIR}|g" \
-      ${SALT_ROOT_DIR}/master
+  # Update main configuration
+  update_template ${SALT_ROOT_DIR}/master \
+    SALT_USER \
+    SALT_LOG_LEVEL \
+    SALT_LEVEL_LOGFILE \
+    SALT_LOGS_DIR \
+    SALT_BASE_DIR \
+    SALT_CACHE_DIR \
+    SALT_CONFS_DIR \
+    SALT_KEYS_DIR
 
-  cat >> ${SALT_ROOT_DIR}/master <<EOF
-
-######       Custom Settings          ######
-############################################
-
-######       Base Directories         ######
-############################################
-file_roots:
-  base:
-    - ${SALT_BASE_DIR}/salt
-
-pillar_roots:
-  base:
-    - ${SALT_BASE_DIR}/pillar
-
-EOF
+  # Update keys configuration
+  update_template ${SALT_ROOT_DIR}/master \
+    SALT_MASTER_SIGN_PUBKEY \
+    SALT_MASTER_SIGN_KEY_NAME \
+    SALT_MASTER_PUBKEY_SIGNATURE \
+    SALT_MASTER_USE_PUBKEY_SIGNATURE
 }
 
 # Initializes main directories
