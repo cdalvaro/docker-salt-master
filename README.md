@@ -161,7 +161,7 @@ gitfs_privkey: /home/salt/data/keys/gitfs/gitfs_ssh
 gitfs_pubkey: /home/salt/data/keys/gitfs/gitfs_ssh.pub
 ```
 
-**Important Note** 
+**Important Note**
 
 If you get the following error while using `gitfs` with `pygit2`
 
@@ -178,7 +178,9 @@ Please refer the docker run command options for the `--env-file` flag where you 
 Below is the list of available options that can be used to customize your SaltStack master installation.
 
 | Parameter | Description |
-|-----------|-------------|
+|:----------|:------------|
+| `DEBUG` | Set this to `true` to enable entrypoint debugging. |
+| `TIMEZONE` | Set the container timezone. Defaults to `UTC`. Values are expected to be in Canonical format. Example: `Europe/Madrid`. See the list of [acceptable values](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). |
 | `SALT_LOG_LEVEL` | The level of messages to send to the console. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning` |
 | `SALT_LEVEL_LOGFILE` | The level of messages to send to the log file. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning` |
 | `SALT_MASTER_SIGN_PUBKEY` | Sign the master auth-replies with a cryptographic signature of the master's public key. Possible values: 'True' or 'False'. Default: `False` |

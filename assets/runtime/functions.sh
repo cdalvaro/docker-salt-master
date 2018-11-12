@@ -57,11 +57,31 @@ function update_template()
   rm -f ${tmp_file}
 }
 
+# This function configures containers timezone
+function configure_timezone()
+{
+  echo "Configuring container timezone ..."
+
+  # Perform sanity check of provided timezone value
+  if [ -e /usr/share/zoneinfo/${TIMEZONE} ]; then
+    echo "Setting TimeZone -> ${TIMEZONE} ..."
+
+    # Set localtime
+    ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
+
+    # Set timezone
+    echo ${TIMEZONE} > /etc/timezone
+  else
+    echo "Timezone: '${TIMEZONE}' is not valid. Check available timezones at: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones"
+    return 1
+  fi
+}
+
 # This function generates a master_sign key pair and its signature
 function gen_signed_keys()
 {
   local key_name=${1:-master}
-  
+
   mkdir -p ${SALT_KEYS_DIR}/generated/
   GENERATED_KEYS_DIR=$(mktemp -d -p ${SALT_KEYS_DIR}/generated/ -t ${key_name}.XXXXX)
 
@@ -146,7 +166,7 @@ function configure_salt_master()
 function initialize_datadir()
 {
   echo "Configuring directories ..."
-  
+
   # This symlink simplifies paths for loading sls files
   [[ -d /srv ]] && [[ ! -L /srv ]] && rm -rf /srv
   ln -sfnv ${SALT_BASE_DIR} /srv
@@ -174,6 +194,7 @@ function initialize_system()
 {
   map_uidgid
   initialize_datadir
+  configure_timezone
   configure_salt_master
   setup_salt_keys
   setup_ssh_keys

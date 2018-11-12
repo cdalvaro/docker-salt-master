@@ -4,6 +4,7 @@ services:
   master:
     container_name: salt_master
     image: cdalvaro/saltstack-master:2018.3.3
+    restart: always
     volumes:
       - "./srv/:/home/salt/data/srv"
     ports:
@@ -11,6 +12,7 @@ services:
       - "4506:4506/tcp"
     environment:
       - DEBUG=false
+      - TIMEZONE=Europe/Madrid
       - USERMAP_UID=1000
       - USERMAP_GID=1000
 
