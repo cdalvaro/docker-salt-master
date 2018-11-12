@@ -19,6 +19,7 @@ ENV SALT_VERSION="2018.3.3" \
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
+    SALT_CACHE_DIR='/var/cache/salt' \
     SALT_USER="salt" \
     SALT_HOME="/home/salt"
 
@@ -42,7 +43,7 @@ RUN apt-get update
 RUN apt-get install --yes --quiet --no-install-recommends \
     sudo ca-certificates wget locales pkg-config openssh-client \
     python${PYTHON_VERSION} python${PYTHON_VERSION}-dev \
-    python3-pip python3-setuptools python3-wheel
+    python3-pip python3-setuptools python3-wheel gettext-base
 
 # Configure locales
 RUN update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+DEBUG=${DEBUG:-false}
+TIMEZONE=${TIMEZONE:-UTC}
+
 # https://docs.saltstack.com/en/latest/ref/configuration/master.html
 
 #####         Logging settings       #####

@@ -23,7 +23,7 @@ EOF
 
 # Compile libssh2
 echo "Building libssh2 v${LIBSSH2_VERSION} ..."
-wget https://github.com/libssh2/libssh2/archive/libssh2-${LIBSSH2_VERSION}.tar.gz 
+wget https://github.com/libssh2/libssh2/archive/libssh2-${LIBSSH2_VERSION}.tar.gz
 tar xzf libssh2-${LIBSSH2_VERSION}.tar.gz
 cd libssh2-libssh2-${LIBSSH2_VERSION}/
 cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DENABLE_ZLIB_COMPRESSION=ON .
