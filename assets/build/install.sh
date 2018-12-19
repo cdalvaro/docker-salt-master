@@ -45,7 +45,11 @@ pip3 install "pygit2==v${PYGIT2_VERSION}" \
              "Mako==v${MAKO_VERSION}" \
              "pycryptodome==v${PYCRYPTODOME_VERSION}" \
              "libnacl==v${LIBNACL_VERSION}" \
-             "raet==v${RAET_VERSION}"
+             "raet==v${RAET_VERSION}" \
+             "CherryPy==v${CHERRYPY_VERSION}" \
+             "timelib==v${TIMELIB_VERSION}" \
+             "docker-py==v${DOCKERPY_VERSION}" \
+             "msgpack-pure==v${MSGPACKPURE_VERSION}"
 
 # Bootstrap script options:
 # https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html#command-line-options
