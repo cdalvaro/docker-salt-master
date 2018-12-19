@@ -65,7 +65,8 @@ Alternatively, you can manually launch the `saltstack-master`  container:
 docker run --name salt_master --detach \
     --publish 4505:4505/tcp --publish 4506:4506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
-    --read-only --volume $(pwd)/srv/:/home/salt/data/srv/ \
+    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/saltstack-master:2018.3.3
 ```
 
@@ -73,13 +74,13 @@ docker run --name salt_master --detach \
 
 ### Custom Recipes
 
-This image does not require storing data out of the container.
-
-But it is necessary to mount the `/srv/` volume ir order to provide your custom recipes.
+In order to provide salt with your custom recipes you must mount the volume `/home/salt/data/srv/` with your recipes directory.
 
 ### Minion Keys
 
-Minion keys can be added automatically on startup to SaltStack master by mounting the volume `/home/salt/data/keys` and copying the minion keys inside `keys/minions/` directory:
+Minion keys can be added automatically on startup to SaltStack master by mounting the volume `/home/salt/data/keys` and copying the minion keys inside `keys/minions/` directory.
+
+It is also important to know that, in order to keep your keys after removing the container, the keys directory must be mounted.
 
 ```sh
 mkdir -p keys/minions
@@ -88,7 +89,7 @@ rsync root@minion1:/etc/salt/pki/minion/minion.pub keys/minions/minion1
 docker run --name salt_master -d \
     --publish 4505:4505/tcp --publish 4506:4506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
-    --volume $(pwd)/srv/:/home/salt/data/srv/ \
+    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/saltstack-master:2018.3.3
 ```
@@ -102,7 +103,7 @@ docker run --name salt_stack --detach \
     --publish 4505:4505/tcp --publish 4506:4506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
     --env 'SALT_MASTER_SIGN_PUBKEY=True'
-    --volume $(pwd)/srv/:/home/salt/data/srv/ \
+    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/saltstack-master:2018.3.3
 ```
@@ -128,7 +129,8 @@ Also the container processes seem to be executed as the host's user/group `1000`
 ```sh
 docker run --name salt_stack -it --rm \
     --env "USERMAP_UID=$(id -u)" --env "USERMAP_GID=$(id -g)" \
-    --volume $(pwd)/srv/:/home/salt/data/srv/ \
+    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/saltstack-master:2018.3.3
 ```
 
@@ -226,7 +228,8 @@ EOF
 docker run --name salt_master -d \
     --publish 3505:3505/tcp --publish 3506:3506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
-    --read-only --volume $(pwd)/srv/:/home/salt/data/srv/ \
+    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
     cdalvaro/saltstack-master:2018.3.3
 ```

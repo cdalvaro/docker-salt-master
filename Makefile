@@ -22,7 +22,8 @@ quickstart:
 		--publish=4505:4505/tcp --publish=4506:4506/tcp \
 		--env "USERMAP_UID=$(shell id -u)" --env "USERMAP_GID=$(shell id -g)" \
 		--env SALT_LOG_LEVEL=info \
-		--volume $(shell pwd)/srv/:/home/salt/data/srv/ \
+		--volume $(shell pwd)/recipes/:/home/salt/data/srv/ \
+		--volume $(shell pwd)/keys/:/home/salt/data/keys/ \
 		--volume $(shell pwd)/logs/:/home/salt/data/logs/ \
 		cdalvaro/saltstack-master:latest
 	@echo "Type 'make logs' for the logs"
