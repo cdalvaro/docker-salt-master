@@ -171,22 +171,58 @@ function initialize_datadir()
   [[ -d /srv ]] && [[ ! -L /srv ]] && rm -rf /srv
   ln -sfnv ${SALT_BASE_DIR} /srv
 
-  # Set Slat root permissions
-  chown -R ${SALT_USER} ${SALT_ROOT_DIR}
+  # Set Salt root permissions
+  chown -R ${SALT_USER}: ${SALT_ROOT_DIR}
 
   # Set Salt run permissions
   mkdir -p /var/run/salt
-  chown -R ${SALT_USER} /var/run/salt
+  chown -R ${SALT_USER}: /var/run/salt
 
   # Set cache permissions
   mkdir -p /var/cache/salt/master
-  chown -R salt /var/cache/salt
+  chown -R ${SALT_USER}: /var/cache/salt
 
   # Logs directory
+  mkdir -p ${SALT_LOGS_DIR}/salt ${SALT_LOGS_DIR}/supervisor
+  chmod -R 0755 ${SALT_LOGS_DIR}/supervisor
+  chown -R root: ${SALT_LOGS_DIR}/supervisor
+
   [[ -d /var/log/salt ]] && [[ ! -L /var/log/salt ]] && rm -rf /var/log/salt
-  mkdir -p /var/log
-  ln -sfnv ${SALT_LOGS_DIR} /var/log/salt
-  chown -R ${SALT_USER} ${SALT_LOGS_DIR}
+  mkdir -p ${SALT_LOGS_DIR}/salt /var/log
+  ln -sfnv ${SALT_LOGS_DIR}/salt /var/log/salt
+  chown -R ${SALT_USER}: ${SALT_LOGS_DIR}/salt
+}
+
+# Configures logrotate
+function configure_logrotate()
+{
+  echo "Configuring logrotate ..."
+
+  # configure supervisord log rotation
+  cat > /etc/logrotate.d/supervisord <<EOF
+${SALT_LOGS_DIR}/supervisor/*.log {
+  ${SALT_LOG_ROTATE_FREQUENCY}
+  missingok
+  rotate ${SALT_LOG_ROTATE_RETENTION}
+  compress
+  delaycompress
+  notifempty
+  copytruncate
+}
+EOF
+
+  # configure salt-master log rotation
+  cat > /etc/logrotate.d/salt <<EOF
+${SALT_LOGS_DIR}/salt/* {
+  ${SALT_LOG_ROTATE_FREQUENCY}
+  missingok
+  rotate ${SALT_LOG_ROTATE_RETENTION}
+  compress
+  delaycompress
+  notifempty
+  copytruncate
+}
+EOF
 }
 
 # Initializes the system
@@ -194,8 +230,10 @@ function initialize_system()
 {
   map_uidgid
   initialize_datadir
+  configure_logrotate
   configure_timezone
   configure_salt_master
   setup_salt_keys
   setup_ssh_keys
+  rm -rf /var/run/supervisor.sock
 }

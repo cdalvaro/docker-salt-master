@@ -47,7 +47,8 @@ RUN apt-get update
 RUN apt-get install --yes --quiet --no-install-recommends \
     sudo ca-certificates wget locales pkg-config openssh-client \
     python${PYTHON_VERSION} python${PYTHON_VERSION}-dev \
-    python3-pip python3-setuptools python3-wheel gettext-base
+    python3-pip python3-setuptools python3-wheel gettext-base \
+    supervisor logrotate
 
 # Configure locales
 RUN update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \

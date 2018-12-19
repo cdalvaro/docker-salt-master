@@ -12,6 +12,8 @@ Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/deve
 - Expose `/home/salt/data/logs`
 - Run `salt-master` as `salt` user
 - Add support for setting timezone
+- Add logrotate support
+- Add supervisor support
 
 **2018.3.2**
 
