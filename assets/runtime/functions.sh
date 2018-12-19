@@ -182,6 +182,10 @@ function initialize_datadir()
   mkdir -p /var/cache/salt/master
   chown -R ${SALT_USER}: /var/cache/salt
 
+  # Keys directories
+  mkdir -p ${SALT_KEYS_DIR}/minions
+  chown -R ${SALT_USER}: ${SALT_KEYS_DIR}
+
   # Logs directory
   mkdir -p ${SALT_LOGS_DIR}/salt ${SALT_LOGS_DIR}/supervisor
   chmod -R 0755 ${SALT_LOGS_DIR}/supervisor

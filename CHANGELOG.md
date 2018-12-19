@@ -14,6 +14,7 @@ Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/deve
 - Add support for setting timezone
 - Add logrotate support
 - Add supervisor support
+- Addressed a bug that caused the container to crash when `/home/salt/data/keys/minions` was not present
 
 **2018.3.2**
 
