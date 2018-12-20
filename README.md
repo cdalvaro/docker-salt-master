@@ -19,6 +19,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
   - [Git Fileserver](#git-fileserver)
     - [GitPython](#gitpython)
     - [PyGit2](#pygit2)
+  - [Logs](#logs)
   - [Available Configuration Parameters](#available-configuration-parameters)
 - [Usage](#usage)
 - [Shell Access](#shell-access)
@@ -64,7 +65,8 @@ Alternatively, you can manually launch the `saltstack-master`  container:
 docker run --name salt_master --detach \
     --publish 4505:4505/tcp --publish 4506:4506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
-    --read-only --volume $(pwd)/srv/:/home/salt/data/srv/ \
+    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/saltstack-master:2018.3.3
 ```
 
@@ -72,13 +74,13 @@ docker run --name salt_master --detach \
 
 ### Custom Recipes
 
-This image does not require storing data out of the container.
-
-But it is necessary to mount the `/srv/` volume ir order to provide your custom recipes.
+In order to provide salt with your custom recipes you must mount the volume `/home/salt/data/srv/` with your recipes directory.
 
 ### Minion Keys
 
-Minion keys can be added automatically on startup to SaltStack master by mounting the volume `/home/salt/data/keys` and copying the minion keys inside `keys/minions/` directory:
+Minion keys can be added automatically on startup to SaltStack master by mounting the volume `/home/salt/data/keys` and copying the minion keys inside `keys/minions/` directory.
+
+It is also important to know that, in order to keep your keys after removing the container, the keys directory must be mounted.
 
 ```sh
 mkdir -p keys/minions
@@ -87,7 +89,7 @@ rsync root@minion1:/etc/salt/pki/minion/minion.pub keys/minions/minion1
 docker run --name salt_master -d \
     --publish 4505:4505/tcp --publish 4506:4506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
-    --volume $(pwd)/srv/:/home/salt/data/srv/ \
+    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/saltstack-master:2018.3.3
 ```
@@ -101,7 +103,7 @@ docker run --name salt_stack --detach \
     --publish 4505:4505/tcp --publish 4506:4506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
     --env 'SALT_MASTER_SIGN_PUBKEY=True'
-    --volume $(pwd)/srv/:/home/salt/data/srv/ \
+    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/saltstack-master:2018.3.3
 ```
@@ -127,7 +129,8 @@ Also the container processes seem to be executed as the host's user/group `1000`
 ```sh
 docker run --name salt_stack -it --rm \
     --env "USERMAP_UID=$(id -u)" --env "USERMAP_GID=$(id -g)" \
-    --volume $(pwd)/srv/:/home/salt/data/srv/ \
+    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/saltstack-master:2018.3.3
 ```
 
@@ -171,6 +174,22 @@ _pygit2.GitError: Failed to authenticate SSH session: Unable to send userauth-pu
 
 look if your private key hash empty lines at the bottom of the file and suppress them for solving the error.
 
+### Logs
+
+Salt logs are accessible by mounting the volume `/home/salt/data/logs/`.
+
+Inside that directory you could find `supervisor/` logs and `salt/` logs:
+
+docker run --name salt_master --detach \
+    --publish 4505:4505/tcp --publish 4506:4506/tcp \
+    --env 'SALT_LOG_LEVEL=info' \
+    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
+    cdalvaro/saltstack-master:2018.3.3
+
+Check [Available Configuration Parameters](#available-configuration-parameters) section for configuring logrotate.
+
 ### Available Configuration Parameters
 
 Please refer the docker run command options for the `--env-file` flag where you can specify all required environment variables in a single file. This will save you from writing a potentially long docker run command. Alternatively you can use docker-compose.
@@ -182,6 +201,8 @@ Below is the list of available options that can be used to customize your SaltSt
 | `DEBUG` | Set this to `true` to enable entrypoint debugging. |
 | `TIMEZONE` | Set the container timezone. Defaults to `UTC`. Values are expected to be in Canonical format. Example: `Europe/Madrid`. See the list of [acceptable values](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). |
 | `SALT_LOG_LEVEL` | The level of messages to send to the console. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning` |
+| `SALT_LOG_ROTATE_FREQUENCY` | Logrotate frequency for salt logs. Available options are 'daily', 'weekly', 'monthly', and 'yearly'. Default: `weekly` |
+| `SALT_LOG_ROTATE_RETENTION` | Keep x files before deleting old log files. Defaults: `52` |
 | `SALT_LEVEL_LOGFILE` | The level of messages to send to the log file. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning` |
 | `SALT_MASTER_SIGN_PUBKEY` | Sign the master auth-replies with a cryptographic signature of the master's public key. Possible values: 'True' or 'False'. Default: `False` |
 | `SALT_MASTER_USE_PUBKEY_SIGNATURE` | Instead of computing the signature for each auth-reply, use a pre-calculated signature. This option requires `SALT_MASTER_SIGN_PUBKEY` set to 'True'. Possible values: 'True' or 'False'. Default: `True` |
@@ -207,7 +228,8 @@ EOF
 docker run --name salt_master -d \
     --publish 3505:3505/tcp --publish 3506:3506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
-    --read-only --volume $(pwd)/srv/:/home/salt/data/srv/ \
+    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
     cdalvaro/saltstack-master:2018.3.3
 ```

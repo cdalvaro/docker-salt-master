@@ -47,7 +47,7 @@ master_use_pubkey_signature: {{SALT_MASTER_USE_PUBKEY_SIGNATURE}}
 #####     Salt-SSH Configuration     #####
 ##########################################
 # The log file of the salt-ssh command:
-ssh_log_file: {{SALT_LOGS_DIR}}/ssh
+ssh_log_file: {{SALT_LOGS_DIR}}/salt/ssh
 
 
 #####      File Server settings      #####
@@ -94,14 +94,14 @@ pillar_roots:
 # to receive commands from.
 
 # The log file of the salt-syndic daemon:
-syndic_log_file: {{SALT_LOGS_DIR}}/syndic
+syndic_log_file: {{SALT_LOGS_DIR}}/salt/syndic
 
 
 #####         Logging settings       #####
 ##########################################
 # The location of the master log file
-log_file: {{SALT_LOGS_DIR}}/master
-key_logfile: {{SALT_LOGS_DIR}}/key
+log_file: {{SALT_LOGS_DIR}}/salt/master
+key_logfile: {{SALT_LOGS_DIR}}/salt/key
 
 # The level of messages to send to the console.
 # One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'.

@@ -13,7 +13,7 @@ case ${1} in
     case ${1} in
       app:start)
         echo "Starting salt-master..."
-        exec sudo -HEu ${SALT_USER} salt-master
+        exec /usr/bin/supervisord -nc /etc/supervisor/supervisord.conf
         ;;
       app:gen-signed-keys)
         shift 1

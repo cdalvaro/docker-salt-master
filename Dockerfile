@@ -1,4 +1,4 @@
-FROM ubuntu:xenial-20181005
+FROM ubuntu:xenial-20181113
 
 LABEL maintainer="carlos.alvaro@citelan.es"
 LABEL description="SaltStack master"
@@ -11,11 +11,15 @@ ENV SALT_VERSION="2018.3.3" \
     LIBGIT2_VERSION="0.27.7" \
     PYGIT2_VERSION="0.27.2" \
     GITPYTHON_VERSION="2.1.11" \
-    M2CRYPTO_VERSION="0.30.1" \
+    M2CRYPTO_VERSION="0.31.0" \
     MAKO_VERSION="1.0.7" \
-    PYCRYPTODOME_VERSION="3.7.0" \
+    PYCRYPTODOME_VERSION="3.7.2" \
     LIBNACL_VERSION="1.6.1" \
-    RAET_VERSION="0.6.8"
+    RAET_VERSION="0.6.8" \
+    CHERRYPY_VERSION="18.0.1" \
+    TIMELIB_VERSION="0.2.4" \
+    DOCKERPY_VERSION="1.10.6" \
+    MSGPACKPURE_VERSION="0.1.3"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
@@ -43,7 +47,8 @@ RUN apt-get update
 RUN apt-get install --yes --quiet --no-install-recommends \
     sudo ca-certificates wget locales pkg-config openssh-client \
     python${PYTHON_VERSION} python${PYTHON_VERSION}-dev \
-    python3-pip python3-setuptools python3-wheel gettext-base
+    python3-pip python3-setuptools python3-wheel gettext-base \
+    supervisor logrotate
 
 # Configure locales
 RUN update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \

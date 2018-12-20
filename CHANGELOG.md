@@ -6,12 +6,15 @@ Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/deve
 **2018.3.3**
 
 - Upgrade SaltStack Master to `2018.3.3`
-- Change Docker base image to `ubuntu:xenial-20181005`
+- Change Docker base image to `ubuntu:xenial-20181113`
 - Add `GitPython` support
 - Add `PyGit2` support
 - Expose `/home/salt/data/logs`
 - Run `salt-master` as `salt` user
 - Add support for setting timezone
+- Add logrotate support
+- Add supervisor support
+- Addressed a bug that caused the container to crash when `/home/salt/data/keys/minions` was not present
 
 **2018.3.2**
 

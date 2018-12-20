@@ -3,6 +3,9 @@
 DEBUG=${DEBUG:-false}
 TIMEZONE=${TIMEZONE:-UTC}
 
+SALT_LOG_ROTATE_FREQUENCY=${SALT_LOG_ROTATE_FREQUENCY:-weekly}
+SALT_LOG_ROTATE_RETENTION=${SALT_LOG_ROTATE_RETENTION:-52}
+
 # https://docs.saltstack.com/en/latest/ref/configuration/master.html
 
 #####         Logging settings       #####

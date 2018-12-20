@@ -45,7 +45,11 @@ pip3 install "pygit2==v${PYGIT2_VERSION}" \
              "Mako==v${MAKO_VERSION}" \
              "pycryptodome==v${PYCRYPTODOME_VERSION}" \
              "libnacl==v${LIBNACL_VERSION}" \
-             "raet==v${RAET_VERSION}"
+             "raet==v${RAET_VERSION}" \
+             "CherryPy==v${CHERRYPY_VERSION}" \
+             "timelib==v${TIMELIB_VERSION}" \
+             "docker-py==v${DOCKERPY_VERSION}" \
+             "msgpack-pure==v${MSGPACKPURE_VERSION}"
 
 # Bootstrap script options:
 # https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html#command-line-options
@@ -67,3 +71,30 @@ sed -i -e "s|^[# ]*StrictHostKeyChecking.*$|    StrictHostKeyChecking no|" /etc/
 echo "    UserKnownHostsFile /dev/null" >> /etc/ssh/ssh_config
 echo "    LogLevel ERROR" >> /etc/ssh/ssh_config
 echo "#   IdentityFile salt_ssh_key" >> /etc/ssh/ssh_config
+
+# Configure logrotate
+echo "Configuring logrotate ..."
+
+# move supervisord.log file to ${SALT_LOGS_DIR}/supervisor/
+sed -i "s|^[#]*logfile=.*|logfile=${SALT_LOGS_DIR}/supervisor/supervisord.log ;|" /etc/supervisor/supervisord.conf
+
+# fix "unknown group 'syslog'" error preventing logrotate from functioning
+sed -i "s|^su root syslog$|su root root|" /etc/logrotate.conf
+
+# Configure supervisor
+echo "Configuring supervisor ..."
+
+# configure supervisord to start unicorn
+cat > /etc/supervisor/conf.d/salt-master.conf <<EOF
+[program:salt-master]
+priority=5
+directory=${SALT_HOME}
+environment=HOME=${SALT_HOME}
+command=salt-master
+user=${SALT_USER}
+autostart=true
+autorestart=true
+stopsignal=QUIT
+stdout_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
+stderr_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
+EOF
