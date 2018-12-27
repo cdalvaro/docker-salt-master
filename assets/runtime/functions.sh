@@ -202,6 +202,10 @@ function configure_logrotate()
 {
   echo "Configuring logrotate ..."
 
+  if [[ -f /etc/logrotate.d/salt-common ]]; then
+    rm /etc/logrotate.d/salt-common
+  fi
+
   # configure supervisord log rotation
   cat > /etc/logrotate.d/supervisord <<EOF
 ${SALT_LOGS_DIR}/supervisor/*.log {
