@@ -84,17 +84,30 @@ sed -i "s|^su root syslog$|su root root|" /etc/logrotate.conf
 # Configure supervisor
 echo "Configuring supervisor ..."
 
-# configure supervisord to start unicorn
+# configure supervisord to start salt-master
 cat > /etc/supervisor/conf.d/salt-master.conf <<EOF
 [program:salt-master]
 priority=5
 directory=${SALT_HOME}
 environment=HOME=${SALT_HOME}
-command=salt-master
+command=/usr/bin/salt-master
 user=${SALT_USER}
 autostart=true
 autorestart=true
 stopsignal=QUIT
+stdout_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
+stderr_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
+EOF
+
+# configure supervisord to start crond
+cat > /etc/supervisor/conf.d/cron.conf <<EOF
+[program:cron]
+priority=20
+directory=/tmp
+command=/usr/sbin/cron -f
+user=root
+autostart=true
+autorestart=true
 stdout_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
 stderr_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
 EOF
