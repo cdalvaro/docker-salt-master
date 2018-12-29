@@ -1,8 +1,7 @@
 FROM ubuntu:xenial-20181113
 
-LABEL maintainer="carlos.alvaro@citelan.es"
-LABEL description="SaltStack master"
-LABEL version="2018.3.3"
+ARG BUILD_DATE
+ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
 ENV SALT_VERSION="2018.3.3" \
@@ -75,7 +74,20 @@ RUN rm -rf ${SALT_BUILD_DIR}/*
 # Entrypoint
 COPY entrypoint.sh /sbin/entrypoint.sh
 RUN chmod +x /sbin/entrypoint.sh
-WORKDIR ${SALT_HOME}
 
+LABEL \
+    maintainer="github@cdalvaro.io" \
+    org.label-schema.vendor=cdalvaro \
+    org.label-schema.name="SaltStack Master" \
+    org.label-schema.version=${SALT_VERSION} \
+    org.label-schema.description="Dockerized SaltStack Master" \
+    org.label-schema.url="https://github.com/cdalvaro/saltstack-master" \
+    org.label-schema.vcs-url="https://github.com/cdalvaro/saltstack-master.git" \
+    org.label-schema.vcs-ref=${VCS_REF} \
+    org.label-schema.build-date=${BUILD_DATE} \
+    org.label-schema.docker.schema-version="1.0" \
+    com.cdalvaro.saltstack-master.license=MIT
+
+WORKDIR ${SALT_HOME}
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]
 CMD [ "app:start" ]
