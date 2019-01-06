@@ -105,7 +105,7 @@ function setup_salt_keys()
     salt-key --gen-signature --auto-create --pub ${SALT_KEYS_DIR}/master.pub --signature-path ${SALT_KEYS_DIR}
   fi
 
-  for pub_key in $(find ${SALT_KEYS_DIR} -type f -maxdepth 1); do
+  for pub_key in $(find ${SALT_KEYS_DIR} -maxdepth 1 -type f); do
     if [[ ${pub_key} =~ .*\.pem$ ]]; then
       chmod 400 ${pub_key}
     else
@@ -113,7 +113,7 @@ function setup_salt_keys()
     fi
   done
 
-  find ${SALT_KEYS_DIR}/minions* -type f -maxdepth 1 -exec chmod 644 {} \;
+  find ${SALT_KEYS_DIR}/minions* -maxdepth 1 -type f -exec chmod 644 {} \;
   find ${SALT_HOME} -path ${SALT_KEYS_DIR}/\* -prune -o -print0 | xargs -0 chown -h ${SALT_USER}:
 }
 
@@ -202,9 +202,7 @@ function configure_logrotate()
 {
   echo "Configuring logrotate ..."
 
-  if [[ -f /etc/logrotate.d/salt-common ]]; then
-    rm /etc/logrotate.d/salt-common
-  fi
+  rm -f /etc/logrotate.d/salt-common
 
   # configure supervisord log rotation
   cat > /etc/logrotate.d/supervisord <<EOF
@@ -219,16 +217,30 @@ ${SALT_LOGS_DIR}/supervisor/*.log {
 }
 EOF
 
-  # configure salt-master log rotation
+  # configure salt master, minion and key log rotation
   cat > /etc/logrotate.d/salt <<EOF
-${SALT_LOGS_DIR}/salt/* {
+${SALT_LOGS_DIR}/salt/master {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
   compress
-  delaycompress
   notifempty
-  copytruncate
+}
+
+${SALT_LOGS_DIR}/salt/minion {
+  ${SALT_LOG_ROTATE_FREQUENCY}
+  missingok
+  rotate ${SALT_LOG_ROTATE_RETENTION}
+  compress
+  notifempty
+}
+
+${SALT_LOGS_DIR}/salt/key {
+  ${SALT_LOG_ROTATE_FREQUENCY}
+  missingok
+  rotate ${SALT_LOG_ROTATE_RETENTION}
+  compress
+  notifempty
 }
 EOF
 }

@@ -1,0 +1,64 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1-stretch-browsers-legacy
+        environment:
+          IMAGE_NAME: "cdalvaro/saltstack-master"
+
+    steps:
+      - checkout
+
+      - setup_remote_docker:
+          version: 18.03.1-ce
+
+      - run:
+          name: Docker info
+          command: |
+            docker version
+            docker info
+      - restore_cache:
+          keys:
+            - cache-v2-{{ .Branch }}
+          paths:
+            - /tmp/cache/layers.tar
+
+      - run:
+          name: Loading docker cache
+          command: |
+            if [[ -f /tmp/cache/layers.tar ]]; then
+              echo "Loading cache ..."
+              docker load -i /tmp/cache/layers.tar
+              docker image ls
+            else
+              echo "Couldn't find any caches"
+            fi
+      - run:
+          name: Build docker image
+          command: |
+            docker build \
+              --pull \
+              --cache-from=${IMAGE_NAME} \
+              --build-arg BUILD_DATE="$(date +"%Y-%m-%d %H:%M:%S%:z")" \
+              --build-arg VCS_REF=$(git rev-parse --short HEAD) \
+              -t ${IMAGE_NAME}:$(cat VERSION) .
+      - run:
+          name: Launching container for testing
+          command: |
+            docker run --rm --detach --name saltstack-master ${IMAGE_NAME}:$(cat VERSION)
+            sleep 120
+      - run:
+          name: Generate docker build image cache
+          command: |
+            mkdir -p /tmp/cache/
+            docker save -o /tmp/cache/layers.tar ${IMAGE_NAME}
+      - save_cache:
+          key: cache-v2-{{ .Branch }}
+          paths:
+            - /tmp/cache/layers.tar
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
