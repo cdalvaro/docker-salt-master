@@ -202,9 +202,7 @@ function configure_logrotate()
 {
   echo "Configuring logrotate ..."
 
-  if [[ -f /etc/logrotate.d/salt-common ]]; then
-    rm /etc/logrotate.d/salt-common
-  fi
+  rm -f /etc/logrotate.d/salt-common
 
   # configure supervisord log rotation
   cat > /etc/logrotate.d/supervisord <<EOF
@@ -219,16 +217,30 @@ ${SALT_LOGS_DIR}/supervisor/*.log {
 }
 EOF
 
-  # configure salt-master log rotation
+  # configure salt master, minion and key log rotation
   cat > /etc/logrotate.d/salt <<EOF
-${SALT_LOGS_DIR}/salt/* {
+${SALT_LOGS_DIR}/salt/master {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
   compress
-  delaycompress
   notifempty
-  copytruncate
+}
+
+${SALT_LOGS_DIR}/salt/minion {
+  ${SALT_LOG_ROTATE_FREQUENCY}
+  missingok
+  rotate ${SALT_LOG_ROTATE_RETENTION}
+  compress
+  notifempty
+}
+
+${SALT_LOGS_DIR}/salt/key {
+  ${SALT_LOG_ROTATE_FREQUENCY}
+  missingok
+  rotate ${SALT_LOG_ROTATE_RETENTION}
+  compress
+  notifempty
 }
 EOF
 }
