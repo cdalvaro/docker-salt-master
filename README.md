@@ -236,16 +236,16 @@ docker run --name salt_master -d \
 
 ## Usage
 
-To test which salt minions are listening the following command can be executed from the master service:
+To test which salt minions are listening the following command can be executed directly from the host machine:
 
 ```sh
-docker-compose exec master salt '*' test.ping
+docker exec -it salt_master salt '*' test.ping
 ```
 
 Then, you can apply salt states to your minions:
 
 ```sh
-docker-compose exec master salt '*' state.apply
+docker exec -it salt_master salt '*' state.apply [state]
 ```
 
 ## Shell Access
