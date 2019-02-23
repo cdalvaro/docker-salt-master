@@ -1,7 +1,12 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/develop/topics/releases/2018.3.3.html) for the list of changes in SaltStack.
+Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/develop/topics/releases/2018.3.4.html) for the list of changes in SaltStack.
+
+**2018.3.4**
+
+- Upgrade SaltStack Master to `2018.3.4`
+- Change Docker base image to `ubuntu:xenial-20190122`
 
 **2018.3.3**
 

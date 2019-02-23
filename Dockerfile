@@ -1,10 +1,10 @@
-FROM ubuntu:xenial-20181113
+FROM ubuntu:xenial-20190122
 
 ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
-ENV SALT_VERSION="2018.3.3" \
+ENV SALT_VERSION="2018.3.4" \
     PYTHON_VERSION="3.5" \
     LIBSSH2_VERSION="1.8.0" \
     LIBGIT2_VERSION="0.27.7" \
