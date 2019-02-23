@@ -5,7 +5,7 @@ ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
 ENV SALT_VERSION="2018.3.4" \
-    PYTHON_VERSION="3.5" \
+    PYTHON_VERSION="3.6" \
     LIBSSH2_VERSION="1.8.0" \
     LIBGIT2_VERSION="0.27.7" \
     PYGIT2_VERSION="0.27.2" \
