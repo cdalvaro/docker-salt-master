@@ -65,7 +65,7 @@ Alternatively, you can manually launch the `saltstack-master`  container:
 docker run --name salt_master --detach \
     --publish 4505:4505/tcp --publish 4506:4506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
-    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/saltstack-master:2018.3.3
 ```
@@ -74,7 +74,7 @@ docker run --name salt_master --detach \
 
 ### Custom Recipes
 
-In order to provide salt with your custom recipes you must mount the volume `/home/salt/data/srv/` with your recipes directory.
+In order to provide salt with your custom recipes you must mount the volume `/home/salt/data/srv/` with your `roots` directory.
 
 ### Minion Keys
 
@@ -89,7 +89,7 @@ rsync root@minion1:/etc/salt/pki/minion/minion.pub keys/minions/minion1
 docker run --name salt_master -d \
     --publish 4505:4505/tcp --publish 4506:4506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
-    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/saltstack-master:2018.3.3
 ```
@@ -103,7 +103,7 @@ docker run --name salt_stack --detach \
     --publish 4505:4505/tcp --publish 4506:4506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
     --env 'SALT_MASTER_SIGN_PUBKEY=True'
-    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/saltstack-master:2018.3.3
 ```
@@ -129,7 +129,7 @@ Also the container processes seem to be executed as the host's user/group `1000`
 ```sh
 docker run --name salt_stack -it --rm \
     --env "USERMAP_UID=$(id -u)" --env "USERMAP_GID=$(id -g)" \
-    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/saltstack-master:2018.3.3
 ```
@@ -183,7 +183,7 @@ Inside that directory you could find `supervisor/` logs and `salt/` logs:
 docker run --name salt_master --detach \
     --publish 4505:4505/tcp --publish 4506:4506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
-    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
     cdalvaro/saltstack-master:2018.3.3
@@ -228,7 +228,7 @@ EOF
 docker run --name salt_master -d \
     --publish 3505:3505/tcp --publish 3506:3506/tcp \
     --env 'SALT_LOG_LEVEL=info' \
-    --volume $(pwd)/recipes/:/home/salt/data/srv/ \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
     cdalvaro/saltstack-master:2018.3.3

@@ -6,7 +6,7 @@ services:
     image: cdalvaro/saltstack-master:2018.3.3
     restart: always
     volumes:
-      - "recipes/:/home/salt/data/srv"
+      - "roots/:/home/salt/data/srv"
       - "keys/:/home/salt/data/keys"
       - "logs/:/home/salt/data/logs"
     ports:
