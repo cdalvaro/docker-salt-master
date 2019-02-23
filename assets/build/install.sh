@@ -62,7 +62,7 @@ SALT_BOOTSTRAP_OPTS="-M -N -X -P -x python${PYTHON_VERSION}"
 
 echo "Installing saltstack ..."
 wget -O bootstrap-salt.sh https://bootstrap.saltstack.com
-sh bootstrap-salt.sh ${SALT_BOOTSTRAP_OPTS} stable ${SALT_VERSION}
+sh bootstrap-salt.sh ${SALT_BOOTSTRAP_OPTS} git v${SALT_VERSION}
 chown -R ${SALT_USER}: ${SALT_ROOT_DIR}
 
 # Configure ssh
