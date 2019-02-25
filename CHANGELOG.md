@@ -1,7 +1,15 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/develop/topics/releases/2018.3.4.html) for the list of changes in SaltStack.
+Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/develop/topics/releases/2019.2.0.html) for the list of changes in SaltStack.
+
+**2019.2.0**
+
+- Upgrade SaltStack Master to `2019.2.0`
+- Change Docker base image to `ubuntu:bionic-20190204`
+- Upgrade Python to version `3.6`
+- Upgrade `libgit2` to `0.27.8`
+- Reduce image size by updating, installing and cleaning packages in one single step
 
 **2018.3.4**
 
