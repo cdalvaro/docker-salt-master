@@ -62,7 +62,7 @@ COPY entrypoint.sh /sbin/entrypoint.sh
 RUN chmod +x /sbin/entrypoint.sh
 
 LABEL \
-    maintainer="github@cdalvaro.io" \
+    maintainer="carlos@cdalvaro.io" \
     org.label-schema.vendor=cdalvaro \
     org.label-schema.name="SaltStack Master" \
     org.label-schema.version=${SALT_VERSION} \
