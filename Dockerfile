@@ -6,9 +6,9 @@ ARG VCS_REF
 # https://github.com/saltstack/salt/releases
 ENV SALT_VERSION="2019.2.0" \
     PYTHON_VERSION="3.6" \
-    LIBSSH2_VERSION="1.8.0" \
-    LIBGIT2_VERSION="0.27.8" \
-    PYGIT2_VERSION="0.27.2" \
+    LIBSSH2_VERSION="1.9.0" \
+    LIBGIT2_VERSION="0.28.3" \
+    PYGIT2_VERSION="0.28.2" \
     M2CRYPTO_VERSION="0.31.0"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
