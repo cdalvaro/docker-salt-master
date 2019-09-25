@@ -1,15 +1,15 @@
-FROM ubuntu:bionic-20190204
+FROM ubuntu:bionic-20190912.1
 
 ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
-ENV SALT_VERSION="2019.2.0" \
+ENV SALT_VERSION="2019.2.1" \
     PYTHON_VERSION="3.6" \
-    LIBSSH2_VERSION="1.8.0" \
-    LIBGIT2_VERSION="0.27.8" \
-    PYGIT2_VERSION="0.27.2" \
-    M2CRYPTO_VERSION="0.31.0"
+    LIBSSH2_VERSION="1.9.0" \
+    LIBGIT2_VERSION="0.28.3" \
+    PYGIT2_VERSION="0.28.2" \
+    M2CRYPTO_VERSION="0.35.2"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
@@ -62,7 +62,7 @@ COPY entrypoint.sh /sbin/entrypoint.sh
 RUN chmod +x /sbin/entrypoint.sh
 
 LABEL \
-    maintainer="github@cdalvaro.io" \
+    maintainer="carlos@cdalvaro.io" \
     org.label-schema.vendor=cdalvaro \
     org.label-schema.name="SaltStack Master" \
     org.label-schema.version=${SALT_VERSION} \
