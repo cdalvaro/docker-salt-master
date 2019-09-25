@@ -1,4 +1,4 @@
-FROM ubuntu:bionic-20190204
+FROM ubuntu:bionic-20190912.1
 
 ARG BUILD_DATE
 ARG VCS_REF
