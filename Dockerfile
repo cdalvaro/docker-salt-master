@@ -4,7 +4,7 @@ ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
-ENV SALT_VERSION="2019.2.1" \
+ENV SALT_VERSION="2019.2.2" \
     PYTHON_VERSION="3.6" \
     LIBSSH2_VERSION="1.9.0" \
     LIBGIT2_VERSION="0.28.3" \

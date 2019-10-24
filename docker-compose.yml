@@ -3,7 +3,7 @@ version: '3'
 services:
   master:
     container_name: salt_master
-    image: cdalvaro/saltstack-master:2019.2.1
+    image: cdalvaro/saltstack-master:2019.2.2
     restart: always
     volumes:
       - "roots/:/home/salt/data/srv"

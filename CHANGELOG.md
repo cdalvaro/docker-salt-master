@@ -1,7 +1,12 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/2019.2.1.html) for the list of changes in SaltStack.
+Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/2019.2.2.html) for the list of changes in SaltStack.
+
+**2019.2.2**
+
+- Upgrade SaltStack Master to `2019.2.2`
+- Change Docker base image to `ubuntu:bionic-20191010`
 
 **2019.2.1**
 
