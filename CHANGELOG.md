@@ -1,7 +1,14 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/2019.2.2.html) for the list of changes in SaltStack.
+Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/2019.2.3.html) for the list of changes in SaltStack.
+
+**2019.2.3**
+
+- Upgrade SaltStack Master to `2019.2.3`
+- Change Docker base image to `ubuntu:bionic-20191202`
+- Upgrade `libgit2` to version `0.28.4`
+- Upgrade `pygit2` to version `1.0.2`
 
 **2019.2.2**
 
@@ -12,7 +19,7 @@ Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/late
 
 - Upgrade SaltStack Master to `2019.2.1`
 - Change Docker base image to `ubuntu:bionic-20190912.1`
-- Upgrade `pygit2` to version `1.9.0`
+- Upgrade `libssh2` to version `1.9.0`
 - Upgrade `m2crypto` to version `0.35.2`
 
 **2019.2.0**
