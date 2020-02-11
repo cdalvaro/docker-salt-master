@@ -1,14 +1,14 @@
-FROM ubuntu:bionic-20191202
+FROM ubuntu:bionic-20200112
 
 ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
-ENV SALT_VERSION="2019.2.3" \
+ENV SALT_VERSION="3000" \
     PYTHON_VERSION="3.6" \
     LIBSSH2_VERSION="1.9.0" \
     LIBGIT2_VERSION="0.28.4" \
-    PYGIT2_VERSION="1.0.2" \
+    PYGIT2_VERSION="1.0.3" \
     M2CRYPTO_VERSION="0.35.2"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \

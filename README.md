@@ -1,4 +1,4 @@
-# SaltStack Master v2019.2.3
+# SaltStack Master v3000
 
 Dockerfile to build a [SaltStack](https://www.saltstack.com) Master image for the Docker opensource container platform.
 
@@ -30,7 +30,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
 Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/saltstack-master/) and is the recommended method of installation.
 
 ```sh
-docker pull cdalvaro/saltstack-master:2019.2.3
+docker pull cdalvaro/saltstack-master:3000
 ```
 
 You can also pull the latest tag which is built from the repository HEAD
@@ -67,7 +67,7 @@ docker run --name salt_master --detach \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:2019.2.3
+    cdalvaro/saltstack-master:3000
 ```
 
 ## Configuration
@@ -91,7 +91,7 @@ docker run --name salt_master -d \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:2019.2.3
+    cdalvaro/saltstack-master:3000
 ```
 
 ### Master Signed Keys
@@ -105,7 +105,7 @@ docker run --name salt_stack --detach \
     --env 'SALT_MASTER_SIGN_PUBKEY=True'
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:2019.2.3
+    cdalvaro/saltstack-master:3000
 ```
 
 The container will create the `master_sign` key and its signature. More information about how to configure the minion service can be found [here](https://docs.saltstack.com/en/latest/topics/tutorials/multimaster_pki.html#prepping-the-minion-to-verify-received-public-keys).
@@ -115,7 +115,7 @@ Additionally, you can generate new keys by executing the following command:
 ```sh
 docker run --name salt_stack -it --rm \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:2019.2.3 app:gen-signed-keys other_master_sign
+    cdalvaro/saltstack-master:3000 app:gen-signed-keys other_master_sign
 ```
 
 The newly created keys will appear inside `keys/generated/other_master_sign` directory.
@@ -131,7 +131,7 @@ docker run --name salt_stack -it --rm \
     --env "USERMAP_UID=$(id -u)" --env "USERMAP_GID=$(id -g)" \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:2019.2.3
+    cdalvaro/saltstack-master:3000
 ```
 
 ### Git Fileserver
@@ -187,7 +187,7 @@ docker run --name salt_master --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    cdalvaro/saltstack-master:2019.2.3
+    cdalvaro/saltstack-master:3000
 ```
 
 Check [Available Configuration Parameters](#available-configuration-parameters) section for configuring logrotate.
@@ -233,7 +233,7 @@ docker run --name salt_master -d \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
-    cdalvaro/saltstack-master:2019.2.3
+    cdalvaro/saltstack-master:3000
 ```
 
 ## Usage
