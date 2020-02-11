@@ -88,7 +88,7 @@ cat > /etc/supervisor/conf.d/salt-master.conf <<EOF
 priority=5
 directory=${SALT_HOME}
 environment=HOME=${SALT_HOME}
-command=/usr/bin/salt-master
+command=/usr/local/bin/salt-master
 user=${SALT_USER}
 autostart=true
 autorestart=true
