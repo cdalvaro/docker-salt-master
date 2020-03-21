@@ -3,6 +3,11 @@
 This file only reflects the changes that are made in this image.
 Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3000.html) for the list of changes in SaltStack.
 
+**3000_1**
+
+- Add container healthcheck
+- Change Docker base image to `ubuntu:bionic-20200311`
+
 **3000**
 
 - Upgrade SaltStack Master to `3000` *Neon*
