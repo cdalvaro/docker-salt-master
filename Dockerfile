@@ -46,11 +46,6 @@ RUN apt-get update \
 COPY assets/build ${SALT_BUILD_DIR}
 RUN bash ${SALT_BUILD_DIR}/install.sh
 
-# Shared resources
-EXPOSE 4505/tcp 4506/tcp
-RUN mkdir -p ${SALT_DATA_DIR} ${SALT_BASE_DIR} ${SALT_KEYS_DIR} ${SALT_CONFS_DIR} ${SALT_LOGS_DIR}
-VOLUME [ "${SALT_BASE_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" "${SALT_LOGS_DIR}" ]
-
 COPY assets/runtime ${SALT_RUNTIME_DIR}
 RUN chmod -R +x ${SALT_RUNTIME_DIR}
 
@@ -60,6 +55,14 @@ RUN rm -rf ${SALT_BUILD_DIR}/*
 # Entrypoint
 COPY entrypoint.sh /sbin/entrypoint.sh
 RUN chmod +x /sbin/entrypoint.sh
+
+# Shared resources
+EXPOSE 4505/tcp 4506/tcp
+RUN mkdir -p ${SALT_DATA_DIR} ${SALT_BASE_DIR} ${SALT_KEYS_DIR} ${SALT_CONFS_DIR} ${SALT_LOGS_DIR}
+VOLUME [ "${SALT_BASE_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" "${SALT_LOGS_DIR}" ]
+
+HEALTHCHECK --interval=2m --timeout=30s --start-period=1m --retries=5 \
+    CMD [ "salt-call", "--local", "status.ping_master", "127.0.0.1" ]
 
 LABEL \
     maintainer="carlos@cdalvaro.io" \
