@@ -33,10 +33,16 @@ Automated builds of the image are available on [Dockerhub](https://hub.docker.co
 docker pull cdalvaro/saltstack-master:3000_1
 ```
 
-You can also pull the latest tag which is built from the repository HEAD
+You can also pull the latest tag which is built from the repository `HEAD`
 
 ```sh
 docker pull cdalvaro/saltstack-master:latest
+```
+
+or from [Quay.io](https://quay.io/repository/cdalvaro/saltstack-master) too.
+
+```sh
+docker pull quay.io/cdalvaro/saltstack-master:latest
 ```
 
 Alternatively you can build the image locally.
