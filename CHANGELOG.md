@@ -1,7 +1,13 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3000.html) for the list of changes in SaltStack.
+Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3000.1.html) for the list of changes in SaltStack.
+
+**3000.1**
+
+- Upgrade SaltStack Master to `3000.1`
+- Upgrade `libgit2` to version `1.0.0`
+- Upgrade `pygit2` to version `1.1.1`
 
 **3000_1**
 
