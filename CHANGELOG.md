@@ -1,8 +1,14 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3000.1.html) for the list of changes in SaltStack.
+Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3000.2.html) for the list of changes in SaltStack.
 
+**3000.2**
+
+- Upgrade SaltStack Master to `3000.2`
+- Upgrade `pygit2` to version `1.2.0`
+- Change Docker base image to `ubuntu:bionic-20200403`
+-
 **3000.1**
 
 - Upgrade SaltStack Master to `3000.1`
