@@ -1,3 +1,6 @@
+[![SaltStack][saltstack_badge]][saltstack_release_notes]
+[![Ubuntu Image][ubuntu_badge]][ubuntu_hub_docker]
+
 # SaltStack Master v3000.3_1
 
 Dockerfile to build a [SaltStack](https://www.saltstack.com) Master image for the Docker opensource container platform.
@@ -371,3 +374,9 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 - https://docs.saltstack.com/en/latest/topics/installation/index.html
 - https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html
 - https://github.com/saltstack/salt/releases
+
+[saltstack_badge]: https://img.shields.io/badge/SaltStack-v3000.3-lightgrey.svg?style=flat-square&logo=Saltstack
+[saltstack_release_notes]: https://docs.saltstack.com/en/latest/topics/releases/3000.3.html "SaltStack Release Notes"
+
+[ubuntu_badge]: https://img.shields.io/badge/ubuntu-bionic--20200403-E95420.svg?style=flat-square&logo=Ubuntu
+[ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
