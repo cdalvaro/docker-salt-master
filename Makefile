@@ -11,10 +11,14 @@ help:
 	@echo "   5. make logs         - view logs"
 
 build:
-	@docker build --tag=cdalvaro/saltstack-master .
+	@docker build --tag=cdalvaro/saltstack-master . \
+	        --build-arg=BUILD_DATE="$(shell date +"%Y-%m-%d %H:%M:%S%:z")" \
+		    --build-arg=VCS_REF="$(shell git rev-parse --short HEAD)" \
 
 release: build
-	@docker build --tag=cdalvaro/saltstack-master:$(shell cat VERSION) .
+	@docker build --tag=cdalvaro/saltstack-master:$(shell cat VERSION) . \
+	        --build-arg=BUILD_DATE="$(shell date +"%Y-%m-%d %H:%M:%S%:z")" \
+		    --build-arg=VCS_REF="$(shell git rev-parse --short HEAD)" \
 
 quickstart:
 	@echo "Starting saltstack-master container..."
