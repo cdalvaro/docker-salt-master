@@ -25,6 +25,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
   - [Available Configuration Parameters](#available-configuration-parameters)
 - [Usage](#usage)
 - [Shell Access](#shell-access)
+- [Restart Services](#restart-services)
 - [References](#references)
 
 ## Installation
@@ -354,6 +355,16 @@ For debugging and maintenance purposes you may want access the container shell. 
 ```sh
 docker exec -it salt_master bash
 ```
+
+## Restart Services
+
+You can restart containers services by running the following command:
+
+```sh
+docker exec -it salt_master entrypoint.sh app:restart [salt-service]
+```
+
+Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVICE_ENABLED` is set to `true`)
 
 ## References
 
