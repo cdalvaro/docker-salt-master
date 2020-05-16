@@ -1,5 +1,7 @@
 [![SaltStack][saltstack_badge]][saltstack_release_notes]
 [![Ubuntu Image][ubuntu_badge]][ubuntu_hub_docker]
+[![Docker Build Status][docker_build_badge]][docker_hub]
+[![CodeFactor][codefactor_badge]][codefactor_score]
 
 # SaltStack Master v3000.3_1
 
@@ -380,3 +382,9 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 
 [ubuntu_badge]: https://img.shields.io/badge/ubuntu-bionic--20200403-E95420.svg?style=flat-square&logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
+
+[docker_build_badge]: https://img.shields.io/docker/build/cdalvaro/saltstack-master?logo=docker&style=flat-square
+[docker_hub]: https://hub.docker.com/r/cdalvaro/saltstack-master/builds
+
+[codefactor_badge]: https://www.codefactor.io/repository/github/cdalvaro/saltstack-master/badge?style=flat-square
+[codefactor_score]: https://www.codefactor.io/repository/github/cdalvaro/saltstack-master

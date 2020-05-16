@@ -2,39 +2,41 @@
 
 set -e
 
-source ${SALT_BUILD_DIR}/functions.sh
+source "${SALT_BUILD_DIR}/functions.sh"
 
 # Install build dependencies
 echo "Installing dependencies ..."
-BUILD_DEPENDENCIES="cmake gcc g++ make \
-    libhttp-parser-dev libssl-dev zlib1g-dev \
-    libcurl4-openssl-dev libffi-dev swig"
+BUILD_DEPENDENCIES=(
+  cmake gcc g++ make \
+  libhttp-parser-dev libssl-dev zlib1g-dev \
+  libcurl4-openssl-dev libffi-dev swig \
+)
 
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends ${BUILD_DEPENDENCIES}
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends "${BUILD_DEPENDENCIES[@]}"
 
 # Create salt user
 echo "Creating ${SALT_USER} user ..."
-useradd -d ${SALT_HOME} -ms /bin/bash -U -G root,sudo,shadow ${SALT_USER}
+useradd -d "${SALT_HOME}" -ms /bin/bash -U -G root,sudo,shadow "${SALT_USER}"
 
 # Set PATH
-exec_as_salt cat >> ${SALT_HOME}/.profile <<EOF
+exec_as_salt cat >> "${SALT_HOME}/.profile" <<EOF
 PATH=/usr/local/sbin:/usr/local/bin:\$PATH
 EOF
 
 # Compile libssh2
 echo "Building libssh2 v${LIBSSH2_VERSION} ..."
-wget https://github.com/libssh2/libssh2/archive/libssh2-${LIBSSH2_VERSION}.tar.gz
-tar xzf libssh2-${LIBSSH2_VERSION}.tar.gz
-cd libssh2-libssh2-${LIBSSH2_VERSION}/
+wget "https://github.com/libssh2/libssh2/archive/libssh2-${LIBSSH2_VERSION}.tar.gz"
+tar xzf "libssh2-${LIBSSH2_VERSION}.tar.gz"
+cd "libssh2-libssh2-${LIBSSH2_VERSION}/"
 cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DENABLE_ZLIB_COMPRESSION=ON .
 cmake --build . --target install
 
 # Compile libgit2
 echo "Building libgit2 v${LIBGIT2_VERSION} ..."
-wget https://github.com/libgit2/libgit2/archive/v${LIBGIT2_VERSION}.tar.gz
-tar xzf v${LIBGIT2_VERSION}.tar.gz
-cd libgit2-${LIBGIT2_VERSION}/
+wget "https://github.com/libgit2/libgit2/archive/v${LIBGIT2_VERSION}.tar.gz"
+tar xzf "v${LIBGIT2_VERSION}.tar.gz"
+cd "libgit2-${LIBGIT2_VERSION}/"
 cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DBUILD_CLAR=OFF -DTHREADSAFE=ON .
 cmake --build . --target install
 
@@ -63,15 +65,17 @@ SALT_BOOTSTRAP_OPTS=( -M -N -X -d -P -p salt-api -x "python${PYTHON_VERSION}" )
 echo "Installing saltstack ..."
 echo "Option: ${SALT_BOOTSTRAP_OPTS[@]}"
 wget -O bootstrap-salt.sh https://bootstrap.saltstack.com
-sh bootstrap-salt.sh ${SALT_BOOTSTRAP_OPTS[@]} git v${SALT_VERSION}
-chown -R ${SALT_USER}: ${SALT_ROOT_DIR}
+sh bootstrap-salt.sh ${SALT_BOOTSTRAP_OPTS[@]} git "v${SALT_VERSION}"
+chown -R "${SALT_USER}": "${SALT_ROOT_DIR}"
 
 # Configure ssh
 echo "Configuring ssh ..."
 sed -i -e "s|^[# ]*StrictHostKeyChecking.*$|    StrictHostKeyChecking no|" /etc/ssh/ssh_config
-echo "    UserKnownHostsFile /dev/null" >> /etc/ssh/ssh_config
-echo "    LogLevel ERROR" >> /etc/ssh/ssh_config
-echo "#   IdentityFile salt_ssh_key" >> /etc/ssh/ssh_config
+{
+  echo "    UserKnownHostsFile /dev/null"
+  echo "    LogLevel ERROR"
+  echo "#   IdentityFile salt_ssh_key"
+} >> /etc/ssh/ssh_config
 
 # Configure logrotate
 echo "Configuring logrotate ..."

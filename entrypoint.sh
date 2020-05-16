@@ -5,30 +5,30 @@ set -o pipefail
 
 source "${SALT_RUNTIME_DIR}/functions.sh"
 
-[[ ${DEBUG} == true ]] && set -x
+[[ "${DEBUG}" == true ]] && set -x
 
-case ${1} in
+case "${1}" in
   app:start|app:gen-signed-keys)
 
     initialize_system
 
-    case ${1} in
+    case "${1}" in
       app:start)
         echo "Starting supervisord ..."
         exec /usr/bin/supervisord -nc /etc/supervisor/supervisord.conf
         ;;
       app:gen-signed-keys)
         shift 1
-        gen_signed_keys ${1}
+        gen_signed_keys "${1}"
         ;;
     esac
     ;;
   app:restart)
     shift 1
-    case ${1} in
+    case "${1}" in
       salt-master|salt-api)
         echo "Restarting ${1} service ..."
-        exec pkill ${1}
+        exec pkill "${1}"
         ;;
       *)
         log_error "Unable to restart ${1} serice. Service is unknown"

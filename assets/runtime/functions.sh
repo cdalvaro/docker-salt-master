@@ -1,36 +1,36 @@
 #!/usr/bin/env bash
 
 set -e
-source ${SALT_RUNTIME_DIR}/env-defaults.sh
+source "${SALT_RUNTIME_DIR}/env-defaults.sh"
 
 # Execute a command as SALT_USER
 function exec_as_salt()
 {
-  if [[ $(whoami) == ${SALT_USER} ]]; then
+  if [[ $(whoami) == "${SALT_USER}" ]]; then
     $@
   else
-    sudo -HEu ${SALT_USER} "$@"
+    sudo -HEu "${SALT_USER}" "$@"
   fi
 }
 
 # Log error
 function log_error()
 {
-  (>2& echo "ERROR: $@")
+  (>2& echo "ERROR: $*")
 }
 
 # Map salt user with host user
 function map_uidgid()
 {
-  USERMAP_ORIG_UID=$(id -u ${SALT_USER})
-  USERMAP_ORIG_GID=$(id -g ${SALT_USER})
+  USERMAP_ORIG_UID=$(id -u "${SALT_USER}")
+  USERMAP_ORIG_GID=$(id -g "${SALT_USER}")
   USERMAP_GID=${USERMAP_GID:-${USERMAP_UID:-$USERMAP_ORIG_GID}}
   USERMAP_UID=${USERMAP_UID:-$USERMAP_ORIG_UID}
-  if [[ ${USERMAP_UID} != ${USERMAP_ORIG_UID} ]] || [[ ${USERMAP_GID} != ${USERMAP_ORIG_GID} ]]; then
+  if [[ "${USERMAP_UID}" != "${USERMAP_ORIG_UID}" ]] || [[ "${USERMAP_GID}" != "${USERMAP_ORIG_GID}" ]]; then
     echo "Mapping UID and GID for ${SALT_USER}:${SALT_USER} to ${USERMAP_UID}:${USERMAP_GID} ..."
-    groupmod -o -g ${USERMAP_GID} ${SALT_USER}
+    groupmod -o -g "${USERMAP_GID}" "${SALT_USER}"
     sed -i -e "s|:${USERMAP_ORIG_UID}:${USERMAP_GID}:|:${USERMAP_UID}:${USERMAP_GID}:|" /etc/passwd
-    find ${SALT_HOME} -path ${SALT_DATA_DIR}/\* \( ! -uid ${USERMAP_ORIG_UID} -o ! -gid ${USERMAP_ORIG_GID} \) -print0 | xargs -0 chown -h ${SALT_USER}: ${SALT_HOME}
+    find "${SALT_HOME}" -path "${SALT_DATA_DIR}/*" \( ! -uid "${USERMAP_ORIG_UID}" -o ! -gid "${USERMAP_ORIG_GID}" \) -print0 | xargs -0 chown -h "${SALT_USER}": "${SALT_HOME}"
   fi
 }
 
@@ -42,25 +42,25 @@ function update_template()
   local FILE=${1?missing argument}
   shift
 
-  [[ ! -f ${FILE} ]] && return 1
+  [[ ! -f "${FILE}" ]] && return 1
 
-  local VARIABLES=($@)
-  local USR=$(stat -c %U ${FILE})
+  local VARIABLES=( "$@" )
+  local USR=$(stat -c %U "${FILE}")
   local tmp_file=$(mktemp)
-  cp -a "${FILE}" ${tmp_file}
+  cp -a "${FILE}" "${tmp_file}"
 
   local variables
-  for variable in ${VARIABLES[@]}; do
-    sed -ri "s|[{}]{2}$variable[}]{2}|\${$variable}|g" ${tmp_file}
+  for variable in "${VARIABLES[@]}"; do
+    sed -ri "s|[{}]{2}${variable}[}]{2}|\${${variable}}|g" "${tmp_file}"
   done
 
   # Replace placeholders
   (
-    export ${VARIABLES[@]}
-    local IFS=":"; sudo -HEu ${USR} envsubst "${VARIABLES[*]/#/$}" < ${tmp_file} > ${FILE}
+    export "${VARIABLES[@]}"
+    local IFS=":"; sudo -HEu "${USR}" envsubst "${VARIABLES[*]/#/$}" < "${tmp_file}" > "${FILE}"
   )
 
-  rm -f ${tmp_file}
+  rm -f "${tmp_file}"
 }
 
 # This function configures containers timezone
@@ -69,14 +69,14 @@ function configure_timezone()
   echo "Configuring container timezone ..."
 
   # Perform sanity check of provided timezone value
-  if [ -e /usr/share/zoneinfo/${TIMEZONE} ]; then
+  if [ -e "/usr/share/zoneinfo/${TIMEZONE}" ]; then
     echo "Setting TimeZone -> ${TIMEZONE} ..."
 
     # Set localtime
-    ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
+    ln -snf "/usr/share/zoneinfo/${TIMEZONE}" /etc/localtime
 
     # Set timezone
-    echo ${TIMEZONE} > /etc/timezone
+    echo "${TIMEZONE}" > /etc/timezone
   else
     echo "Timezone: '${TIMEZONE}' is not valid. Check available timezones at: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones"
     return 1
@@ -88,39 +88,40 @@ function gen_signed_keys()
 {
   local key_name=${1:-master}
 
-  mkdir -p ${SALT_KEYS_DIR}/generated/
-  GENERATED_KEYS_DIR=$(mktemp -d -p ${SALT_KEYS_DIR}/generated/ -t ${key_name}.XXXXX)
+  mkdir -p "${SALT_KEYS_DIR}/generated/"
+  GENERATED_KEYS_DIR=$(mktemp -d -p "${SALT_KEYS_DIR}/generated/" -t "${key_name}.XXXXX")
 
-  salt-key --gen-keys ${key_name} --gen-keys-dir ${GENERATED_KEYS_DIR} > /dev/null 2>&1
-  salt-key --gen-signature --auto-create --pub ${GENERATED_KEYS_DIR}/${key_name}.pub --signature-path ${GENERATED_KEYS_DIR} > /dev/null 2>&1
+  salt-key --gen-keys "${key_name}" --gen-keys-dir "${GENERATED_KEYS_DIR}" > /dev/null 2>&1
+  salt-key --gen-signature --auto-create --pub "${GENERATED_KEYS_DIR}/${key_name}.pub" --signature-path "${GENERATED_KEYS_DIR}" > /dev/null 2>&1
 
-  echo -n ${GENERATED_KEYS_DIR}
+  echo -n "${GENERATED_KEYS_DIR}"
 }
 
 # This function repairs keys permissions and creates keys if neaded
 function setup_salt_keys()
 {
   echo "Setting up salt keys ..."
-  if [ ! -f ${SALT_KEYS_DIR}/master.pem ]; then
+  if [ ! -f "${SALT_KEYS_DIR}/master.pem" ]; then
     echo "Generating keys ..."
-    salt-key --gen-keys master --gen-keys-dir ${SALT_KEYS_DIR}
+    salt-key --gen-keys master --gen-keys-dir "${SALT_KEYS_DIR}"
   fi
 
-  if [ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ] && [ ${SALT_MASTER_SIGN_PUBKEY} == True ]; then
+  if [ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ] && [ "${SALT_MASTER_SIGN_PUBKEY}" == True ]; then
     echo "Generating signed keys ..."
-    salt-key --gen-signature --auto-create --pub ${SALT_KEYS_DIR}/master.pub --signature-path ${SALT_KEYS_DIR}
+    salt-key --gen-signature --auto-create --pub "${SALT_KEYS_DIR}/master.pub" --signature-path "${SALT_KEYS_DIR}"
   fi
 
-  for pub_key in $(find ${SALT_KEYS_DIR} -maxdepth 1 -type f); do
-    if [[ ${pub_key} =~ .*\.pem$ ]]; then
-      chmod 400 ${pub_key}
+  while IFS= read -r -d '' pub_key
+  do
+    if [[ "${pub_key}" =~ .*\.pem$ ]]; then
+      chmod 400 "${pub_key}"
     else
-      chmod 644 ${pub_key}
+      chmod 644 "${pub_key}"
     fi
-  done
+  done < <(find "${SALT_KEYS_DIR}" -maxdepth 1 -type f -print0)
 
-  find ${SALT_KEYS_DIR}/minions* -maxdepth 1 -type f -exec chmod 644 {} \;
-  find ${SALT_HOME} -path ${SALT_KEYS_DIR}/\* -prune -o -print0 | xargs -0 chown -h ${SALT_USER}:
+  find "${SALT_KEYS_DIR}/minions"* -maxdepth 1 -type f -exec chmod 644 {} \;
+  find "${SALT_HOME}" -path "${SALT_KEYS_DIR}/*" -prune -o -print0 | xargs -0 chown -h "${SALT_USER}":
 }
 
 # This function configures ssh keys
@@ -147,10 +148,10 @@ function configure_salt_master()
   echo "Configuring salt-master service ..."
   # https://docs.saltstack.com/en/latest/ref/configuration/master.html
 
-  exec_as_salt cp -p ${SALT_RUNTIME_DIR}/config/master.yml ${SALT_ROOT_DIR}/master
+  exec_as_salt cp -p "${SALT_RUNTIME_DIR}/config/master.yml" "${SALT_ROOT_DIR}/master"
 
   # Update main configuration
-  update_template ${SALT_ROOT_DIR}/master \
+  update_template "${SALT_ROOT_DIR}/master" \
     SALT_USER \
     SALT_LOG_LEVEL \
     SALT_LEVEL_LOGFILE \
@@ -161,7 +162,7 @@ function configure_salt_master()
     SALT_KEYS_DIR
 
   # Update keys configuration
-  update_template ${SALT_ROOT_DIR}/master \
+  update_template "${SALT_ROOT_DIR}/master" \
     SALT_MASTER_SIGN_PUBKEY \
     SALT_MASTER_SIGN_KEY_NAME \
     SALT_MASTER_PUBKEY_SIGNATURE \
@@ -175,18 +176,18 @@ function configure_salt_api()
 
   if [[ -n "${SALT_API_USER}" ]]; then
 
-    if [[ ${SALT_API_USER} == ${SALT_USER} ]]; then
-      log_error "SALT_API_USER cannot be the same as ${SALT_USER}"
+    if [[ ${SALT_API_USER} == "${SALT_USER}" ]]; then
+      log_error "SALT_API_USER cannot be the same as '${SALT_USER}'"
       return 1
     fi
 
     if [[ -z "${SALT_API_USER_PASS}" ]]; then
-      log_error "SALT_API_USER_PASS env variable must be set to create ${SALT_API_USER} user"
+      log_error "SALT_API_USER_PASS env variable must be set to create '${SALT_API_USER}' user"
       return 2
     fi
 
-    echo "Creating ${SALT_API_USER} user for salt-api ..."
-    adduser --quiet --disabled-password --gecos "Salt API" ${SALT_API_USER}
+    echo "Creating '${SALT_API_USER}' user for salt-api ..."
+    adduser --quiet --disabled-password --gecos "Salt API" "${SALT_API_USER}"
     echo "${SALT_API_USER}:${SALT_API_USER_PASS}" | chpasswd
     unset SALT_API_USER_PASS
   fi
@@ -194,10 +195,10 @@ function configure_salt_api()
   echo "Configuring salt-api service ..."
 
   CERTS_PATH=/etc/pki
-  rm -rf ${CERTS_PATH}/tls/certs/*
-  salt-call --local tls.create_self_signed_cert cacert_path=${CERTS_PATH} CN=docker-salt-master
+  rm -rf "${CERTS_PATH}/tls/certs/*"
+  salt-call --local tls.create_self_signed_cert cacert_path="${CERTS_PATH}" CN=docker-salt-master
 
-  cat >> ${SALT_ROOT_DIR}/master <<EOF
+  cat >> "${SALT_ROOT_DIR}/master" <<EOF
 
 
 #####        salt-api settings       #####
@@ -235,32 +236,32 @@ function initialize_datadir()
 
   # This symlink simplifies paths for loading sls files
   [[ -d /srv ]] && [[ ! -L /srv ]] && rm -rf /srv
-  ln -sfnv ${SALT_BASE_DIR} /srv
+  ln -sfnv "${SALT_BASE_DIR}" /srv
 
   # Set Salt root permissions
-  chown -R ${SALT_USER}: ${SALT_ROOT_DIR}
+  chown -R "${SALT_USER}": "${SALT_ROOT_DIR}"
 
   # Set Salt run permissions
   mkdir -p /var/run/salt
-  chown -R ${SALT_USER}: /var/run/salt
+  chown -R "${SALT_USER}": /var/run/salt
 
   # Set cache permissions
   mkdir -p /var/cache/salt/master
-  chown -R ${SALT_USER}: /var/cache/salt
+  chown -R "${SALT_USER}": /var/cache/salt
 
   # Keys directories
-  mkdir -p ${SALT_KEYS_DIR}/minions
-  chown -R ${SALT_USER}: ${SALT_KEYS_DIR}
+  mkdir -p "${SALT_KEYS_DIR}/minions"
+  chown -R "${SALT_USER}": "${SALT_KEYS_DIR}"
 
   # Logs directory
-  mkdir -p ${SALT_LOGS_DIR}/salt ${SALT_LOGS_DIR}/supervisor
-  chmod -R 0755 ${SALT_LOGS_DIR}/supervisor
-  chown -R root: ${SALT_LOGS_DIR}/supervisor
+  mkdir -p "${SALT_LOGS_DIR}/salt" "${SALT_LOGS_DIR}/supervisor"
+  chmod -R 0755 "${SALT_LOGS_DIR}/supervisor"
+  chown -R root: "${SALT_LOGS_DIR}/supervisor"
 
   [[ -d /var/log/salt ]] && [[ ! -L /var/log/salt ]] && rm -rf /var/log/salt
-  mkdir -p ${SALT_LOGS_DIR}/salt /var/log
-  ln -sfnv ${SALT_LOGS_DIR}/salt /var/log/salt
-  chown -R ${SALT_USER}: ${SALT_LOGS_DIR}/salt
+  mkdir -p "${SALT_LOGS_DIR}/salt" /var/log
+  ln -sfnv "${SALT_LOGS_DIR}/salt" /var/log/salt
+  chown -R "${SALT_USER}": "${SALT_LOGS_DIR}/salt"
 }
 
 # Configures logrotate
