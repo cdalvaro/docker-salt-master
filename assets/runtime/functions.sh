@@ -13,6 +13,12 @@ function exec_as_salt()
   fi
 }
 
+# Log error
+function log_error()
+{
+  (>2& echo "ERROR: $@")
+}
+
 # Map salt user with host user
 function map_uidgid()
 {
@@ -135,10 +141,10 @@ function setup_ssh_keys()
   fi
 }
 
-# This functions cofigures master service
+# This function cofigures master service
 function configure_salt_master()
 {
-  echo "Configuring salt-master ..."
+  echo "Configuring salt-master service ..."
   # https://docs.saltstack.com/en/latest/ref/configuration/master.html
 
   exec_as_salt cp -p ${SALT_RUNTIME_DIR}/config/master.yml ${SALT_ROOT_DIR}/master
@@ -160,6 +166,66 @@ function configure_salt_master()
     SALT_MASTER_SIGN_KEY_NAME \
     SALT_MASTER_PUBKEY_SIGNATURE \
     SALT_MASTER_USE_PUBKEY_SIGNATURE
+}
+
+# This function configures salt-api if service is set to be enabled
+function configure_salt_api()
+{
+  [[ ${SALT_API_SERVICE_ENABLED} == true ]] || return 0
+
+  if [[ -n "${SALT_API_USER}" ]]; then
+
+    if [[ ${SALT_API_USER} == ${SALT_USER} ]]; then
+      log_error "SALT_API_USER cannot be the same as ${SALT_USER}"
+      return 1
+    fi
+
+    if [[ -z "${SALT_API_USER_PASS}" ]]; then
+      log_error "SALT_API_USER_PASS env variable must be set to create ${SALT_API_USER} user"
+      return 2
+    fi
+
+    echo "Creating ${SALT_API_USER} user for salt-api ..."
+    adduser --quiet --disabled-password --gecos "Salt API" ${SALT_API_USER}
+    echo "${SALT_API_USER}:${SALT_API_USER_PASS}" | chpasswd
+    unset SALT_API_USER_PASS
+  fi
+
+  echo "Configuring salt-api service ..."
+
+  CERTS_PATH=/etc/pki
+  rm -rf ${CERTS_PATH}/tls/certs/*
+  salt-call --local tls.create_self_signed_cert cacert_path=${CERTS_PATH} CN=docker-salt-master
+
+  cat >> ${SALT_ROOT_DIR}/master <<EOF
+
+
+#####        salt-api settings       #####
+##########################################
+# Basic configuration for salt-api
+api_logfile: ${SALT_LOGS_DIR}/salt/api
+
+rest_cherrypy:
+  port: 8000
+  ssl_crt: /etc/pki/tls/certs/docker-salt-master.crt
+  ssl_key: /etc/pki/tls/certs/docker-salt-master.key
+EOF
+
+  # configure supervisord to start salt-api
+  cat > /etc/supervisor/conf.d/salt-api.conf <<EOF
+[program:salt-api]
+priority=5
+directory=${SALT_HOME}
+environment=HOME=${SALT_HOME}
+command=/usr/local/bin/salt-api
+user=root
+autostart=true
+autorestart=true
+stopsignal=QUIT
+stdout_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
+stderr_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
+EOF
+
 }
 
 # Initializes main directories
@@ -253,6 +319,7 @@ function initialize_system()
   configure_logrotate
   configure_timezone
   configure_salt_master
+  configure_salt_api
   setup_salt_keys
   setup_ssh_keys
   rm -rf /var/run/supervisor.sock

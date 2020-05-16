@@ -15,6 +15,8 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
   - [Custom Recipes](#custom-recipes)
   - [Minion Keys](#minion-keys)
   - [Master Signed Keys](#master-signed-keys)
+  - [Salt API](#salt-api)
+    - [Salt Pepper](#salt-pepper)
   - [Host Mapping](#host-mapping)
   - [Git Fileserver](#git-fileserver)
     - [GitPython](#gitpython)
@@ -132,6 +134,86 @@ docker run --name salt_stack -it --rm \
 
 The newly created keys will appear inside `keys/generated/other_master_sign` directory.
 
+### Salt API
+
+You can enable `salt-api` service by setting env variable `SALT_API_SERVICE_ENABLED` to `true`.
+
+A self-signed SSL certificate will be automatically generated and the following configuration
+will be added to the master configuration file:
+
+```yml
+rest_cherrypy:
+  port: 8000
+  ssl_crt: /etc/pki/tls/certs/docker-salt-master.crt
+  ssl_key: /etc/pki/tls/certs/docker-salt-master.key
+```
+
+The container exposes port `8000` by default, although you can map this port to whatever port you like in
+your `docker run` command or in your `docker-compose.yml` file.
+
+```sh
+docker run --name salt_stack --detach \
+    --publish 4505:4505 --publish 4506:4506 --publish 8000:8000 \
+    --env 'SALT_API_SERVICE_ENABLED=true' \
+    --env 'SALT_API_USER_PASS=SuperCool/Password10'
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    cdalvaro/saltstack-master:3000.3_1
+```
+
+By default, user `salt_api` is created and you can set its password by setting the environment variable
+`SALT_API_USER_PASS`.
+
+You can also change the salt-api _username_ by setting `SALT_API_USER`.
+It is possible to disable this user by explicitly setting this variable to an empty string: `SALT_API_USER=''` if you are going to use an `LDAP` server.
+
+As a security measure, if `SALT_API_USER_PASS` is set to `true` and you don't disable `SALT_API_USER`,
+you'll be required to set `SALT_API_USER_PASS`. Otherwise initialization will fail and your Docker image won't work.
+
+With all that set, you'll be able to provide your _salt-api_ custom configuration by creating the `salt-api.conf`
+file inside your `conf` directory:
+
+```yml
+external_auth:
+  pam:
+    salt_api:
+      - .*
+```
+
+More information is available in the following link: [External Authentication System (eAuth)](https://docs.saltstack.com/en/latest/topics/eauth/index.html#acl-eauth).
+
+Now you have your saltstack-master docker image ready to accept external authentications and to connect external tools such as [`saltstack/pepper`](https://github.com/saltstack/pepper).
+
+#### Salt Pepper
+
+The pepper CLI script allows users to execute Salt commands from computers that are external to computers running the salt-master or salt-minion daemons as though they were running Salt locally
+
+##### Installation:
+
+```sh
+pip3 install salt-pepper
+```
+
+##### Configuration
+
+Then configure pepper by filling your `~/.pepperrc` file with your salt-api credentials:
+
+```conf
+[main]
+SALTAPI_URL=https://your.salt-master.hostname:8000/
+SALTAPI_USER=salt_api
+SALTAPI_PASS=SuperCool/Password10
+SALTAPI_EAUTH=pam
+```
+
+##### Usage
+
+Beging executing salt recipes with `pepper`:
+
+```sh
+pepper '*' test.ping
+```
+
 ### Host Mapping
 
 Per default the container is configured to run `salt-master` as user and group `salt` with `uid` and `gid` `1000`. From the host it appears as if the mounted data volumes are owned by the host's user/group `1000` and maybe leading to unfavorable effects.
@@ -218,6 +300,9 @@ Below is the list of available options that can be used to customize your SaltSt
 | `SALT_LOG_ROTATE_FREQUENCY` | Logrotate frequency for salt logs. Available options are 'daily', 'weekly', 'monthly', and 'yearly'. Default: `weekly` |
 | `SALT_LOG_ROTATE_RETENTION` | Keep x files before deleting old log files. Defaults: `52` |
 | `SALT_LEVEL_LOGFILE` | The level of messages to send to the log file. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning` |
+| `SALT_API_SERVICE_ENABLED` | Enable `salt-api` service. Default: `false` |
+| `SALT_API_USER` | Set username for `salt-api` service. Default: `salt_api` |
+| `SALT_API_USER_PASS` | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `true` and `SALT_API_USER` is not empty. _Unset_ by default |
 | `SALT_MASTER_SIGN_PUBKEY` | Sign the master auth-replies with a cryptographic signature of the master's public key. Possible values: 'True' or 'False'. Default: `False` |
 | `SALT_MASTER_USE_PUBKEY_SIGNATURE` | Instead of computing the signature for each auth-reply, use a pre-calculated signature. This option requires `SALT_MASTER_SIGN_PUBKEY` set to 'True'. Possible values: 'True' or 'False'. Default: `True` |
 | `SALT_MASTER_SIGN_KEY_NAME` | The customizable name of the signing-key-pair without suffix. Default: `master_sign` |
