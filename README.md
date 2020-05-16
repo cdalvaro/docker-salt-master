@@ -1,4 +1,4 @@
-# SaltStack Master v3000.3
+# SaltStack Master v3000.3_1
 
 Dockerfile to build a [SaltStack](https://www.saltstack.com) Master image for the Docker opensource container platform.
 
@@ -30,7 +30,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
 Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/saltstack-master/) and is the recommended method of installation.
 
 ```sh
-docker pull cdalvaro/saltstack-master:3000.3
+docker pull cdalvaro/saltstack-master:3000.3_1
 ```
 
 You can also pull the latest tag which is built from the repository `HEAD`
@@ -69,59 +69,65 @@ Alternatively, you can manually launch the `saltstack-master`  container:
 
 ```sh
 docker run --name salt_master --detach \
-    --publish 4505:4505/tcp --publish 4506:4506/tcp \
+    --publish 4505:4505 --publish 4506:4506 \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3000.3
+    cdalvaro/saltstack-master:3000.3_1
 ```
 
 ## Configuration
 
 ### Custom Recipes
 
-In order to provide salt with your custom recipes you must mount the volume `/home/salt/data/srv/` with your `roots` directory.
+In order to provide salt with your custom recipes you must mount the volume `/home/salt/data/srv/`
+with your `roots` directory.
 
 ### Minion Keys
 
-Minion keys can be added automatically on startup to SaltStack master by mounting the volume `/home/salt/data/keys` and copying the minion keys inside `keys/minions/` directory.
+Minion keys can be added automatically on startup to SaltStack master by mounting the volume
+`/home/salt/data/keys` and copying the minion keys inside `keys/minions/` directory.
 
-It is also important to know that, in order to keep your keys after removing the container, the keys directory must be mounted.
+It is also important to know that, in order to keep your keys after removing the container,
+the keys directory must be mounted.
 
 ```sh
 mkdir -p keys/minions
 rsync root@minion1:/etc/salt/pki/minion/minion.pub keys/minions/minion1
 
 docker run --name salt_master -d \
-    --publish 4505:4505/tcp --publish 4506:4506/tcp \
+    --publish 4505:4505 --publish 4506:4506 \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3000.3
+    cdalvaro/saltstack-master:3000.3_1
 ```
 
 ### Master Signed Keys
 
-It is possible to use signed master keys by establishing the environment variable `SALT_MASTER_SIGN_PUBKEY` to `True`.
+It is possible to use signed master keys by establishing the environment variable
+`SALT_MASTER_SIGN_PUBKEY` to `True`.
 
 ```sh
 docker run --name salt_stack --detach \
-    --publish 4505:4505/tcp --publish 4506:4506/tcp \
+    --publish 4505:4505 --publish 4506:4506 \
     --env 'SALT_LOG_LEVEL=info' \
     --env 'SALT_MASTER_SIGN_PUBKEY=True'
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3000.3
+    cdalvaro/saltstack-master:3000.3_1
 ```
 
-The container will create the `master_sign` key and its signature. More information about how to configure the minion service can be found [here](https://docs.saltstack.com/en/latest/topics/tutorials/multimaster_pki.html#prepping-the-minion-to-verify-received-public-keys).
+The container will create the `master_sign` key and its signature.
+More information about how to configure the minion service can be found
+[here](https://docs.saltstack.com/en/latest/topics/tutorials/multimaster_pki.html#prepping-the-minion-to-verify-received-public-keys).
 
 Additionally, you can generate new keys by executing the following command:
 
 ```sh
 docker run --name salt_stack -it --rm \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3000.3 app:gen-signed-keys other_master_sign
+    cdalvaro/saltstack-master:3000.3_1 app:gen-signed-keys other_master_sign
 ```
 
 The newly created keys will appear inside `keys/generated/other_master_sign` directory.
@@ -137,7 +143,7 @@ docker run --name salt_stack -it --rm \
     --env "USERMAP_UID=$(id -u)" --env "USERMAP_GID=$(id -g)" \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3000.3
+    cdalvaro/saltstack-master:3000.3_1
 ```
 
 ### Git Fileserver
@@ -188,12 +194,12 @@ Inside that directory you could find `supervisor/` logs and `salt/` logs:
 
 ```sh
 docker run --name salt_master --detach \
-    --publish 4505:4505/tcp --publish 4506:4506/tcp \
+    --publish 4505:4505 --publish 4506:4506 \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    cdalvaro/saltstack-master:3000.3
+    cdalvaro/saltstack-master:3000.3_1
 ```
 
 Check [Available Configuration Parameters](#available-configuration-parameters) section for configuring logrotate.
@@ -234,12 +240,12 @@ ret_port: 3506
 EOF
 
 docker run --name salt_master -d \
-    --publish 3505:3505/tcp --publish 3506:3506/tcp \
+    --publish 3505:3505 --publish 3506:3506 \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
-    cdalvaro/saltstack-master:3000.3
+    cdalvaro/saltstack-master:3000.3_1
 ```
 
 ## Usage
