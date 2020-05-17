@@ -3,6 +3,13 @@
 This file only reflects the changes that are made in this image.
 Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3000.3.html) for the list of changes in SaltStack.
 
+**3000.3_1**
+
+- Add support for `salt-api` service
+- Add entrypoint support to restart services
+- Use previous image as Docker cache
+- Add `build-arg` to Makefile
+
 **3000.3**
 
 - Upgrade SaltStack Master to `3000.3`

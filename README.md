@@ -1,4 +1,9 @@
-# SaltStack Master v3000.3
+[![SaltStack][saltstack_badge]][saltstack_release_notes]
+[![Ubuntu Image][ubuntu_badge]][ubuntu_hub_docker]
+[![Docker Build Status][docker_build_badge]][docker_hub]
+[![CodeFactor][codefactor_badge]][codefactor_score]
+
+# SaltStack Master v3000.3_1
 
 Dockerfile to build a [SaltStack](https://www.saltstack.com) Master image for the Docker opensource container platform.
 
@@ -15,6 +20,8 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
   - [Custom Recipes](#custom-recipes)
   - [Minion Keys](#minion-keys)
   - [Master Signed Keys](#master-signed-keys)
+  - [Salt API](#salt-api)
+    - [Salt Pepper](#salt-pepper)
   - [Host Mapping](#host-mapping)
   - [Git Fileserver](#git-fileserver)
     - [GitPython](#gitpython)
@@ -23,6 +30,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
   - [Available Configuration Parameters](#available-configuration-parameters)
 - [Usage](#usage)
 - [Shell Access](#shell-access)
+- [Restart Services](#restart-services)
 - [References](#references)
 
 ## Installation
@@ -30,7 +38,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
 Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/saltstack-master/) and is the recommended method of installation.
 
 ```sh
-docker pull cdalvaro/saltstack-master:3000.3
+docker pull cdalvaro/saltstack-master:3000.3_1
 ```
 
 You can also pull the latest tag which is built from the repository `HEAD`
@@ -69,62 +77,148 @@ Alternatively, you can manually launch the `saltstack-master`  container:
 
 ```sh
 docker run --name salt_master --detach \
-    --publish 4505:4505/tcp --publish 4506:4506/tcp \
+    --publish 4505:4505 --publish 4506:4506 \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3000.3
+    cdalvaro/saltstack-master:3000.3_1
 ```
 
 ## Configuration
 
 ### Custom Recipes
 
-In order to provide salt with your custom recipes you must mount the volume `/home/salt/data/srv/` with your `roots` directory.
+In order to provide salt with your custom recipes you must mount the volume `/home/salt/data/srv/`
+with your `roots` directory.
 
 ### Minion Keys
 
-Minion keys can be added automatically on startup to SaltStack master by mounting the volume `/home/salt/data/keys` and copying the minion keys inside `keys/minions/` directory.
+Minion keys can be added automatically on startup to SaltStack master by mounting the volume
+`/home/salt/data/keys` and copying the minion keys inside `keys/minions/` directory.
 
-It is also important to know that, in order to keep your keys after removing the container, the keys directory must be mounted.
+It is also important to know that, in order to keep your keys after removing the container,
+the keys directory must be mounted.
 
 ```sh
 mkdir -p keys/minions
 rsync root@minion1:/etc/salt/pki/minion/minion.pub keys/minions/minion1
 
 docker run --name salt_master -d \
-    --publish 4505:4505/tcp --publish 4506:4506/tcp \
+    --publish 4505:4505 --publish 4506:4506 \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3000.3
+    cdalvaro/saltstack-master:3000.3_1
 ```
 
 ### Master Signed Keys
 
-It is possible to use signed master keys by establishing the environment variable `SALT_MASTER_SIGN_PUBKEY` to `True`.
+It is possible to use signed master keys by establishing the environment variable
+`SALT_MASTER_SIGN_PUBKEY` to `True`.
 
 ```sh
 docker run --name salt_stack --detach \
-    --publish 4505:4505/tcp --publish 4506:4506/tcp \
+    --publish 4505:4505 --publish 4506:4506 \
     --env 'SALT_LOG_LEVEL=info' \
     --env 'SALT_MASTER_SIGN_PUBKEY=True'
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3000.3
+    cdalvaro/saltstack-master:3000.3_1
 ```
 
-The container will create the `master_sign` key and its signature. More information about how to configure the minion service can be found [here](https://docs.saltstack.com/en/latest/topics/tutorials/multimaster_pki.html#prepping-the-minion-to-verify-received-public-keys).
+The container will create the `master_sign` key and its signature.
+More information about how to configure the minion service can be found
+[here](https://docs.saltstack.com/en/latest/topics/tutorials/multimaster_pki.html#prepping-the-minion-to-verify-received-public-keys).
 
 Additionally, you can generate new keys by executing the following command:
 
 ```sh
 docker run --name salt_stack -it --rm \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3000.3 app:gen-signed-keys other_master_sign
+    cdalvaro/saltstack-master:3000.3_1 app:gen-signed-keys other_master_sign
 ```
 
 The newly created keys will appear inside `keys/generated/other_master_sign` directory.
+
+### Salt API
+
+You can enable `salt-api` service by setting env variable `SALT_API_SERVICE_ENABLED` to `true`.
+
+A self-signed SSL certificate will be automatically generated and the following configuration
+will be added to the master configuration file:
+
+```yml
+rest_cherrypy:
+  port: 8000
+  ssl_crt: /etc/pki/tls/certs/docker-salt-master.crt
+  ssl_key: /etc/pki/tls/certs/docker-salt-master.key
+```
+
+The container exposes port `8000` by default, although you can map this port to whatever port you like in
+your `docker run` command or in your `docker-compose.yml` file.
+
+```sh
+docker run --name salt_stack --detach \
+    --publish 4505:4505 --publish 4506:4506 --publish 8000:8000 \
+    --env 'SALT_API_SERVICE_ENABLED=true' \
+    --env 'SALT_API_USER_PASS=SuperCool/Password10'
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    cdalvaro/saltstack-master:3000.3_1
+```
+
+By default, user `salt_api` is created and you can set its password by setting the environment variable
+`SALT_API_USER_PASS`.
+
+You can also change the salt-api _username_ by setting `SALT_API_USER`.
+It is possible to disable this user by explicitly setting this variable to an empty string: `SALT_API_USER=''` if you are going to use an `LDAP` server.
+
+As a security measure, if `SALT_API_USER_PASS` is set to `true` and you don't disable `SALT_API_USER`,
+you'll be required to set `SALT_API_USER_PASS`. Otherwise initialization will fail and your Docker image won't work.
+
+With all that set, you'll be able to provide your _salt-api_ custom configuration by creating the `salt-api.conf`
+file inside your `conf` directory:
+
+```yml
+external_auth:
+  pam:
+    salt_api:
+      - .*
+```
+
+More information is available in the following link: [External Authentication System (eAuth)](https://docs.saltstack.com/en/latest/topics/eauth/index.html#acl-eauth).
+
+Now you have your saltstack-master docker image ready to accept external authentications and to connect external tools such as [`saltstack/pepper`](https://github.com/saltstack/pepper).
+
+#### Salt Pepper
+
+The pepper CLI script allows users to execute Salt commands from computers that are external to computers running the salt-master or salt-minion daemons as though they were running Salt locally
+
+##### Installation:
+
+```sh
+pip3 install salt-pepper
+```
+
+##### Configuration
+
+Then configure pepper by filling your `~/.pepperrc` file with your salt-api credentials:
+
+```conf
+[main]
+SALTAPI_URL=https://your.salt-master.hostname:8000/
+SALTAPI_USER=salt_api
+SALTAPI_PASS=SuperCool/Password10
+SALTAPI_EAUTH=pam
+```
+
+##### Usage
+
+Beging executing salt recipes with `pepper`:
+
+```sh
+pepper '*' test.ping
+```
 
 ### Host Mapping
 
@@ -137,7 +231,7 @@ docker run --name salt_stack -it --rm \
     --env "USERMAP_UID=$(id -u)" --env "USERMAP_GID=$(id -g)" \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3000.3
+    cdalvaro/saltstack-master:3000.3_1
 ```
 
 ### Git Fileserver
@@ -188,12 +282,12 @@ Inside that directory you could find `supervisor/` logs and `salt/` logs:
 
 ```sh
 docker run --name salt_master --detach \
-    --publish 4505:4505/tcp --publish 4506:4506/tcp \
+    --publish 4505:4505 --publish 4506:4506 \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    cdalvaro/saltstack-master:3000.3
+    cdalvaro/saltstack-master:3000.3_1
 ```
 
 Check [Available Configuration Parameters](#available-configuration-parameters) section for configuring logrotate.
@@ -212,6 +306,9 @@ Below is the list of available options that can be used to customize your SaltSt
 | `SALT_LOG_ROTATE_FREQUENCY` | Logrotate frequency for salt logs. Available options are 'daily', 'weekly', 'monthly', and 'yearly'. Default: `weekly` |
 | `SALT_LOG_ROTATE_RETENTION` | Keep x files before deleting old log files. Defaults: `52` |
 | `SALT_LEVEL_LOGFILE` | The level of messages to send to the log file. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning` |
+| `SALT_API_SERVICE_ENABLED` | Enable `salt-api` service. Default: `false` |
+| `SALT_API_USER` | Set username for `salt-api` service. Default: `salt_api` |
+| `SALT_API_USER_PASS` | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `true` and `SALT_API_USER` is not empty. _Unset_ by default |
 | `SALT_MASTER_SIGN_PUBKEY` | Sign the master auth-replies with a cryptographic signature of the master's public key. Possible values: 'True' or 'False'. Default: `False` |
 | `SALT_MASTER_USE_PUBKEY_SIGNATURE` | Instead of computing the signature for each auth-reply, use a pre-calculated signature. This option requires `SALT_MASTER_SIGN_PUBKEY` set to 'True'. Possible values: 'True' or 'False'. Default: `True` |
 | `SALT_MASTER_SIGN_KEY_NAME` | The customizable name of the signing-key-pair without suffix. Default: `master_sign` |
@@ -234,12 +331,12 @@ ret_port: 3506
 EOF
 
 docker run --name salt_master -d \
-    --publish 3505:3505/tcp --publish 3506:3506/tcp \
+    --publish 3505:3505 --publish 3506:3506 \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
-    cdalvaro/saltstack-master:3000.3
+    cdalvaro/saltstack-master:3000.3_1
 ```
 
 ## Usage
@@ -264,8 +361,30 @@ For debugging and maintenance purposes you may want access the container shell. 
 docker exec -it salt_master bash
 ```
 
+## Restart Services
+
+You can restart containers services by running the following command:
+
+```sh
+docker exec -it salt_master entrypoint.sh app:restart [salt-service]
+```
+
+Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVICE_ENABLED` is set to `true`)
+
 ## References
 
 - https://docs.saltstack.com/en/latest/topics/installation/index.html
 - https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html
 - https://github.com/saltstack/salt/releases
+
+[saltstack_badge]: https://img.shields.io/badge/SaltStack-v3000.3-lightgrey.svg?style=flat-square&logo=Saltstack
+[saltstack_release_notes]: https://docs.saltstack.com/en/latest/topics/releases/3000.3.html "SaltStack Release Notes"
+
+[ubuntu_badge]: https://img.shields.io/badge/ubuntu-bionic--20200403-E95420.svg?style=flat-square&logo=Ubuntu
+[ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
+
+[docker_build_badge]: https://img.shields.io/docker/build/cdalvaro/saltstack-master?logo=docker&style=flat-square
+[docker_hub]: https://hub.docker.com/r/cdalvaro/saltstack-master/builds
+
+[codefactor_badge]: https://www.codefactor.io/repository/github/cdalvaro/saltstack-master/badge?style=flat-square
+[codefactor_score]: https://www.codefactor.io/repository/github/cdalvaro/saltstack-master

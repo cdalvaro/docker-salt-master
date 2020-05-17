@@ -1,0 +1,23 @@
+# Check shellcheck wiki at:
+# https://github.com/koalaman/shellcheck/wiki/SCXXXX
+
+# Redirections are performed by the current shell before sudo is started.
+disable=SC2024
+
+# foo appears unused. Verify it or export it.
+disable=SC2034
+
+# Double quote array expansions to avoid re-splitting elements.
+disable=SC2068
+
+# Argument mixes string and array.
+disable=SC2145
+
+# Declare and assign separately to avoid masking return values.
+disable=SC2155
+
+# This redirection doesn't have a command.
+disable=SC2188
+
+# This is a file redirection.
+disable=SC2210
