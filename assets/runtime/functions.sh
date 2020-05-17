@@ -310,6 +310,21 @@ ${SALT_LOGS_DIR}/salt/key {
   notifempty
 }
 EOF
+
+  if [[ "${SALT_API_SERVICE_ENABLED}" == true ]]; then
+    # configure salt-api log rotation
+    cat >> /etc/logrotate.d/salt <<EOF
+
+${SALT_LOGS_DIR}/salt/api {
+  ${SALT_LOG_ROTATE_FREQUENCY}
+  missingok
+  rotate ${SALT_LOG_ROTATE_RETENTION}
+  compress
+  notifempty
+}
+EOF
+  fi
+
 }
 
 # Initializes the system
