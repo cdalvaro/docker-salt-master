@@ -3,6 +3,9 @@
 set -e
 source "${SALT_RUNTIME_DIR}/env-defaults.sh"
 
+# cdalvaro managed block string
+SELF_MANAGED_BLOCK_STRING="## cdalvaro managed block"
+
 # Execute a command as SALT_USER
 function exec_as_salt()
 {
@@ -51,7 +54,7 @@ function update_template()
 
   local variables
   for variable in "${VARIABLES[@]}"; do
-    sed -ri "s|[{}]{2}${variable}[}]{2}|\${${variable}}|g" "${tmp_file}"
+    sed -ri "s|[{]{2}${variable}[}]{2}|\${${variable}}|g" "${tmp_file}"
   done
 
   # Replace placeholders
@@ -229,6 +232,26 @@ EOF
 
 }
 
+# This function configures salt-formulas
+function configure_salt_formulas()
+{
+  echo "Configuring 3rd-party salt-formulas ..."
+  local master_yml_id="${SELF_MANAGED_BLOCK_STRING} - file_roots-base"
+  local begin_delim="${master_yml_id} - begin"
+  local end_delim="${master_yml_id} - end"
+
+  tmp_file="$(mktemp /tmp/file_roots-base.XXXXXX)"
+  {
+    while IFS= read -r -d '' directory
+    do
+      echo "    - ${directory}"
+    done < <(find "${SALT_FORMULAS_DIR}/" -mindepth 1 -maxdepth 1 -type d -print0)
+  } > "${tmp_file}"
+
+  sed -i "/${begin_delim}/,/${end_delim}/!b;//!d;/${begin_delim}/r ${tmp_file}" "${SALT_ROOT_DIR}/master"
+  rm "${tmp_file}"
+}
+
 # Initializes main directories
 function initialize_datadir()
 {
@@ -257,6 +280,9 @@ function initialize_datadir()
   mkdir -p "${SALT_LOGS_DIR}/salt" "${SALT_LOGS_DIR}/supervisor"
   chmod -R 0755 "${SALT_LOGS_DIR}/supervisor"
   chown -R root: "${SALT_LOGS_DIR}/supervisor"
+
+  # Salt formulas
+  chown -R "${SALT_USER}": "${SALT_FORMULAS_DIR}"
 
   [[ -d /var/log/salt ]] && [[ ! -L /var/log/salt ]] && rm -rf /var/log/salt
   mkdir -p "${SALT_LOGS_DIR}/salt" /var/log
@@ -336,6 +362,7 @@ function initialize_system()
   configure_timezone
   configure_salt_master
   configure_salt_api
+  configure_salt_formulas
   setup_salt_keys
   setup_ssh_keys
   rm -rf /var/run/supervisor.sock

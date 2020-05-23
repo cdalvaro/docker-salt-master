@@ -1,9 +1,10 @@
 [![SaltStack][saltstack_badge]][saltstack_release_notes]
 [![Ubuntu Image][ubuntu_badge]][ubuntu_hub_docker]
-[![Docker Build Status][docker_build_badge]][docker_hub]
+[![Docker Build Status][docker_build_badge]][docker_hub_builds]
+[![Docker Image Size][docker_size_badge]][docker_hub_tags]
 [![CodeFactor][codefactor_badge]][codefactor_score]
 
-# SaltStack Master v3000.3_1
+# Dockerized SaltStack Master v3000.3
 
 Dockerfile to build a [SaltStack](https://www.saltstack.com) Master image for the Docker opensource container platform.
 
@@ -26,6 +27,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
   - [Git Fileserver](#git-fileserver)
     - [GitPython](#gitpython)
     - [PyGit2](#pygit2)
+  - [3rd Party Formulas](#3rd-party-formulas)
   - [Logs](#logs)
   - [Healthcheck](#healthcheck)
   - [Available Configuration Parameters](#available-configuration-parameters)
@@ -39,7 +41,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
 Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/saltstack-master/) and is the recommended method of installation.
 
 ```sh
-docker pull cdalvaro/saltstack-master:3000.3_1
+docker pull cdalvaro/saltstack-master:3000.3_2
 ```
 
 You can also pull the latest tag which is built from the repository `HEAD`
@@ -82,7 +84,7 @@ docker run --name salt_master --detach \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3000.3_1
+    cdalvaro/saltstack-master:3000.3_2
 ```
 
 ## Configuration
@@ -109,7 +111,7 @@ docker run --name salt_master -d \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3000.3_1
+    cdalvaro/saltstack-master:3000.3_2
 ```
 
 ### Master Signed Keys
@@ -124,7 +126,7 @@ docker run --name salt_stack --detach \
     --env 'SALT_MASTER_SIGN_PUBKEY=True'
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3000.3_1
+    cdalvaro/saltstack-master:3000.3_2
 ```
 
 The container will create the `master_sign` key and its signature.
@@ -136,10 +138,10 @@ Additionally, you can generate new keys by executing the following command:
 ```sh
 docker run --name salt_stack -it --rm \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3000.3_1 app:gen-signed-keys other_master_sign
+    cdalvaro/saltstack-master:3000.3_2 app:gen-signed-keys new_master_sign
 ```
 
-The newly created keys will appear inside `keys/generated/other_master_sign` directory.
+The newly created keys will appear inside `keys/generated/new_master_sign` directory.
 
 ### Salt API
 
@@ -165,7 +167,7 @@ docker run --name salt_stack --detach \
     --env 'SALT_API_USER_PASS=SuperCool/Password10'
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3000.3_1
+    cdalvaro/saltstack-master:3000.3_2
 ```
 
 By default, user `salt_api` is created and you can set its password by setting the environment variable
@@ -229,10 +231,11 @@ Also the container processes seem to be executed as the host's user/group `1000`
 
 ```sh
 docker run --name salt_stack -it --rm \
+    --publish 4505:4505 --publish 4506:4506 \
     --env "USERMAP_UID=$(id -u)" --env "USERMAP_GID=$(id -g)" \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3000.3_1
+    cdalvaro/saltstack-master:3000.3_2
 ```
 
 ### Git Fileserver
@@ -275,6 +278,62 @@ _pygit2.GitError: Failed to authenticate SSH session: Unable to send userauth-pu
 
 look if your private key hash empty lines at the bottom of the file and suppress them for solving the error.
 
+### 3rd Party Formulas
+
+You can add third party formulas to your configuration simply by adding them to your `gitfs_remotes`:
+
+```yml
+# fileserver.conf
+fileserver_backend:
+  - roots
+  - gitfs
+
+# gitfs.conf
+gitfs_provider: pygit2
+gitfs_remotes:
+  - https://github.com/saltstack-formulas/apache-formula
+  - https://github.com/aokiji/salt-formula-helm.git
+```
+
+This is the [SaltStack recommended](https://docs.saltstack.com/en/latest/topics/development/conventions/formulas.html#adding-a-formula-as-a-gitfs-remote) way of doing it, and you can go to the [Git Fileserver](#git-fileserver) section on this document if you need help configuring this service.
+
+You can find a great set of formulas on the following GitHub repositories:
+
+- [Official SaltStack Formulas](https://github.com/saltstack-formulas)
+- [Unofficial SaltStack Formulas](https://github.com/salt-formulas)
+
+Although, as mention in [SaltStack documentation](https://docs.saltstack.com/en/latest/topics/development/conventions/formulas.html#adding-a-formula-as-a-gitfs-remote), you are encouraged to fork desired formulas to avoid unexpected changes to your infrastructure.
+
+However, sometimes you may need to load some formulas that are not available on a git repository and you want to have them separated from your main `srv` directory.
+
+For that case, you can mount a volume containing all your third party formulas separeted in subdirectories into `/home/salt/data/3pfs/`, and they will be automatically added to the master configuration when your container starts.
+
+```sh
+# 3pfs directory content
+3pfs
+├── custom-formula
+├── golang-formula
+└── vim-formula
+```
+
+```sh
+docker run --name salt_stack -it --rm \
+    --publish 4505:4505 --publish 4506:4506 \
+    --env "USERMAP_UID=$(id -u)" --env "USERMAP_GID=$(id -g)" \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/3pfs/:/home/salt/data/3pfs/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    cdalvaro/saltstack-master:3000.3_2
+```
+
+If you need to add more third party formulas, you can restart the container, or you can type the following command:
+
+```sh
+docker exec -it salt_stack /sbin/entrypoint.sh app:reload-3rd-formulas
+```
+
+`file_roots` base configuration file will be updated with current existing formulas and `salt-master` service will be restarted to reload the new configuration.
+
 ### Logs
 
 Salt logs are accessible by mounting the volume `/home/salt/data/logs/`.
@@ -288,7 +347,7 @@ docker run --name salt_master --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    cdalvaro/saltstack-master:3000.3_1
+    cdalvaro/saltstack-master:3000.3_2
 ```
 
 Check [Available Configuration Parameters](#available-configuration-parameters) section for configuring logrotate.
@@ -326,7 +385,7 @@ docker run --name salt_master --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    cdalvaro/saltstack-master:3000.3_1
+    cdalvaro/saltstack-master:3000.3_2
 ```
 
 Then you can manually check this info by running the following command:
@@ -396,7 +455,7 @@ docker run --name salt_master -d \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
-    cdalvaro/saltstack-master:3000.3_1
+    cdalvaro/saltstack-master:3000.3_2
 ```
 
 ## Usage
@@ -437,14 +496,17 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 - https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html
 - https://github.com/saltstack/salt/releases
 
-[saltstack_badge]: https://img.shields.io/badge/SaltStack-v3000.3-lightgrey.svg?style=flat-square&logo=Saltstack
+[saltstack_badge]: https://img.shields.io/badge/SaltStack-v3000.3-lightgrey.svg?style=flat&logo=Saltstack
 [saltstack_release_notes]: https://docs.saltstack.com/en/latest/topics/releases/3000.3.html "SaltStack Release Notes"
 
-[ubuntu_badge]: https://img.shields.io/badge/ubuntu-bionic--20200403-E95420.svg?style=flat-square&logo=Ubuntu
+[ubuntu_badge]: https://img.shields.io/badge/ubuntu-bionic--20200403-E95420.svg?style=flat&logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
 
-[docker_build_badge]: https://img.shields.io/docker/build/cdalvaro/saltstack-master?logo=docker&style=flat-square
-[docker_hub]: https://hub.docker.com/r/cdalvaro/saltstack-master/builds
+[docker_build_badge]: https://img.shields.io/docker/build/cdalvaro/saltstack-master?logo=docker&style=flat
+[docker_hub_builds]: https://hub.docker.com/r/cdalvaro/saltstack-master/builds
 
-[codefactor_badge]: https://www.codefactor.io/repository/github/cdalvaro/saltstack-master/badge?style=flat-square
+[docker_size_badge]: https://img.shields.io/docker/image-size/cdalvaro/saltstack-master/latest?logo=docker&color=2496ED
+[docker_hub_tags]: https://hub.docker.com/repository/docker/cdalvaro/saltstack-master/tags
+
+[codefactor_badge]: https://img.shields.io/codefactor/grade/github/cdalvaro/saltstack-master?logo=CodeFactor
 [codefactor_score]: https://www.codefactor.io/repository/github/cdalvaro/saltstack-master

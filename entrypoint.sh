@@ -36,10 +36,15 @@ case "${1}" in
         ;;
     esac
     ;;
+  app:reload-3rd-formulas)
+    configure_salt_formulas
+    exec "$0" app:restart salt-master
+    ;;
   app:help)
     echo "Available options:"
     echo "  app:start                         - Start configured services. (default)"
     echo "  app:restart                       - Restart the specified service on a running container. Choices: salt-master, salt-api"
+    echo "  app:reload-3rd-formulas           - Update master.yml with available 3rd-formulas and restart salt-master service"
     echo "  app:gen-signed-keys <key_name>    - Create a master_sign key pair and its signature inside ${SALT_KEYS_DIR}/generated/"
     echo "  app:help                          - Displays this help."
     echo "  [command]                         - Execute the specified command, eg. bash."
