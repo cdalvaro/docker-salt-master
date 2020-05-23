@@ -1,3 +1,6 @@
-# Keys
+# development
+roots/
 keys/
-
+logs/
+3pfs/
+.vscode/

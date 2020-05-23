@@ -63,6 +63,8 @@ ssh_log_file: {{SALT_LOGS_DIR}}/salt/ssh
 file_roots:
   base:
     - {{SALT_BASE_DIR}}/salt
+## cdalvaro managed block - file_roots-base - begin
+## cdalvaro managed block - file_roots-base - end
 
 # The master_roots setting configures a master-only copy of the file_roots dictionary,
 # used by the state compiler.

@@ -24,12 +24,14 @@ ENV SALT_BUILD_DIR="${SALT_DOCKER_DIR}/build" \
 ENV SALT_CONFS_DIR="${SALT_DATA_DIR}/config" \
     SALT_KEYS_DIR="${SALT_DATA_DIR}/keys" \
     SALT_BASE_DIR="${SALT_DATA_DIR}/srv" \
-    SALT_LOGS_DIR="${SALT_DATA_DIR}/logs"
+    SALT_LOGS_DIR="${SALT_DATA_DIR}/logs" \
+    SALT_FORMULAS_DIR="${SALT_DATA_DIR}/3pfs"
 
 RUN mkdir -p ${SALT_BUILD_DIR}
 WORKDIR ${SALT_BUILD_DIR}
 
 # Install packages
+# hadolint ignore=DL3008
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
     sudo ca-certificates apt-transport-https wget locales pkg-config openssh-client \
@@ -49,8 +51,10 @@ RUN bash ${SALT_BUILD_DIR}/install.sh
 COPY assets/runtime ${SALT_RUNTIME_DIR}
 RUN chmod -R +x ${SALT_RUNTIME_DIR}
 
+COPY assets/bin/* /usr/local/bin
+
 # Cleaning tasks
-RUN rm -rf ${SALT_BUILD_DIR}/*
+RUN rm -rf "${SALT_BUILD_DIR:?}"/*
 
 # Entrypoint
 COPY entrypoint.sh /sbin/entrypoint.sh
@@ -58,11 +62,8 @@ RUN chmod +x /sbin/entrypoint.sh
 
 # Shared resources
 EXPOSE 4505 4506 8000
-RUN mkdir -p ${SALT_DATA_DIR} ${SALT_BASE_DIR} ${SALT_KEYS_DIR} ${SALT_CONFS_DIR} ${SALT_LOGS_DIR}
-VOLUME [ "${SALT_BASE_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" "${SALT_LOGS_DIR}" ]
-
-HEALTHCHECK --interval=2m --timeout=30s --start-period=1m --retries=5 \
-    CMD [ "salt-call", "--local", "status.ping_master", "127.0.0.1" ]
+RUN mkdir -p "${SALT_BASE_DIR}" "${SALT_FORMULAS_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" "${SALT_LOGS_DIR}"
+VOLUME [ "${SALT_BASE_DIR}" "${SALT_FORMULAS_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" "${SALT_LOGS_DIR}" ]
 
 LABEL \
     maintainer="carlos@cdalvaro.io" \
