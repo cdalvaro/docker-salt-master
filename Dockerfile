@@ -61,9 +61,6 @@ EXPOSE 4505 4506 8000
 RUN mkdir -p ${SALT_DATA_DIR} ${SALT_BASE_DIR} ${SALT_KEYS_DIR} ${SALT_CONFS_DIR} ${SALT_LOGS_DIR}
 VOLUME [ "${SALT_BASE_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" "${SALT_LOGS_DIR}" ]
 
-HEALTHCHECK --interval=2m --timeout=30s --start-period=1m --retries=5 \
-    CMD [ "salt-call", "--local", "status.ping_master", "127.0.0.1" ]
-
 LABEL \
     maintainer="carlos@cdalvaro.io" \
     org.label-schema.vendor=cdalvaro \
