@@ -1,0 +1,3 @@
+#!/bin/bash
+
+salt-call --local status.ping_master 127.0.0.1

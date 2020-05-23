@@ -60,7 +60,7 @@ pip3 install "pygit2==v${PYGIT2_VERSION}" \
 ## -P: Allow pip based installations
 ## -p: Extra-package to install
 ## -x: Changes the python version used to install a git version of salt
-SALT_BOOTSTRAP_OPTS=( -M -N -X -d -P -p salt-api -x "python${PYTHON_VERSION}" )
+SALT_BOOTSTRAP_OPTS=( -M -N -X -d -P -p salt-api -p salt-call -x "python${PYTHON_VERSION}" )
 
 echo "Installing saltstack ..."
 echo "Option: ${SALT_BOOTSTRAP_OPTS[@]}"

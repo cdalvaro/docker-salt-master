@@ -27,6 +27,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
     - [GitPython](#gitpython)
     - [PyGit2](#pygit2)
   - [Logs](#logs)
+  - [Healthcheck](#healthcheck)
   - [Available Configuration Parameters](#available-configuration-parameters)
 - [Usage](#usage)
 - [Shell Access](#shell-access)
@@ -291,6 +292,65 @@ docker run --name salt_master --detach \
 ```
 
 Check [Available Configuration Parameters](#available-configuration-parameters) section for configuring logrotate.
+
+### Healthcheck
+
+This image includes a [health check](https://docs.docker.com/engine/reference/builder/#healthcheck) script: `/usr/local/bin/healthcheck` (although it is disable by default). It is useful to check if the `salt-master` service is alive and responding.
+
+If you are running this image under k8s, you can define a _liveness command_ as explained [here](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command).
+
+If you use `docker-compose` as your container orchestrator, you can add the following entries to your compose file:
+
+```yml
+version: '3'
+
+services:
+  master:
+    container_name: salt_master
+    image: cdalvaro/saltstack-master:3000.3_2
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/healthcheck"]
+      start_period: 30s
+```
+
+(More info available at [compose file](https://docs.docker.com/compose/compose-file/#healthcheck) official documentation)
+
+Or, if you launch your container [with docker](https://docs.docker.com/engine/reference/run/#healthcheck):
+
+```sh
+docker run --name salt_master --detach \
+    --publish 4505:4505 --publish 4506:4506 \
+    --health-cmd='/usr/local/bin/healthcheck' \
+    --health-start-period=30s \
+    --env 'SALT_LOG_LEVEL=info' \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
+    cdalvaro/saltstack-master:3000.3_1
+```
+
+Then you can manually check this info by running the following command:
+
+```sh
+docker inspect --format "{{json .State.Health }}" salt_master | jq
+```
+
+Then, the output will be something similar to this:
+
+```json
+{
+  "Status": "healthy",
+  "FailingStreak": 0,
+  "Log": [
+    {
+      "Start": "2020-05-23T16:47:55.1046568Z",
+      "End": "2020-05-23T16:48:02.3381442Z",
+      "ExitCode": 0,
+      "Output": "local:\n    True\n"
+    }
+  ]
+}
+```
 
 ### Available Configuration Parameters
 
