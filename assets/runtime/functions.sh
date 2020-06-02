@@ -189,8 +189,10 @@ function configure_salt_api()
       return 2
     fi
 
-    echo "Creating '${SALT_API_USER}' user for salt-api ..."
-    adduser --quiet --disabled-password --gecos "Salt API" "${SALT_API_USER}"
+    if ! id -u "${SALT_API_USER}" &>/dev/null; then
+      echo "Creating '${SALT_API_USER}' user for salt-api ..."
+      adduser --quiet --disabled-password --gecos "Salt API" "${SALT_API_USER}"
+    fi
     echo "${SALT_API_USER}:${SALT_API_USER_PASS}" | chpasswd
     unset SALT_API_USER_PASS
   fi
