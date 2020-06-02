@@ -197,7 +197,7 @@ jobs:
           command: sleep 60
       - run:
           name: Test image bootup
-          command: docker exec -it salt_master /usr/local/bin/healthcheck
+          command: docker exec -it salt_master /usr/local/sbin/healthcheck
 
 workflows:
   build-and-test:

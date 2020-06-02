@@ -354,7 +354,7 @@ Check [Available Configuration Parameters](#available-configuration-parameters) 
 
 ### Healthcheck
 
-This image includes a [health check](https://docs.docker.com/engine/reference/builder/#healthcheck) script: `/usr/local/bin/healthcheck` (although it is disable by default). It is useful to check if the `salt-master` service is alive and responding.
+This image includes a [health check](https://docs.docker.com/engine/reference/builder/#healthcheck) script: `/usr/local/sbin/healthcheck` (although it is disable by default). It is useful to check if the `salt-master` service is alive and responding.
 
 If you are running this image under k8s, you can define a _liveness command_ as explained [here](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command).
 
@@ -368,7 +368,7 @@ services:
     container_name: salt_master
     image: cdalvaro/saltstack-master:3000.3_2
     healthcheck:
-      test: ["CMD", "/usr/local/bin/healthcheck"]
+      test: ["CMD", "/usr/local/sbin/healthcheck"]
       start_period: 30s
 ```
 
@@ -379,7 +379,7 @@ Or, if you launch your container [with docker](https://docs.docker.com/engine/re
 ```sh
 docker run --name salt_master --detach \
     --publish 4505:4505 --publish 4506:4506 \
-    --health-cmd='/usr/local/bin/healthcheck' \
+    --health-cmd='/usr/local/sbin/healthcheck' \
     --health-start-period=30s \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
