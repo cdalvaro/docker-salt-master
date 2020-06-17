@@ -499,7 +499,7 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 [saltstack_badge]: https://img.shields.io/badge/SaltStack-v3000.3-lightgrey.svg?style=flat&logo=Saltstack
 [saltstack_release_notes]: https://docs.saltstack.com/en/latest/topics/releases/3000.3.html "SaltStack Release Notes"
 
-[ubuntu_badge]: https://img.shields.io/badge/ubuntu-bionic--20200403-E95420.svg?style=flat&logo=Ubuntu
+[ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20200606-E95420.svg?style=flat&logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
 
 [github_publish_badge]: https://github.com/cdalvaro/saltstack-master/workflows/Publish/badge.svg
