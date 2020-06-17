@@ -15,6 +15,10 @@ BUILD_DEPENDENCIES=(
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends "${BUILD_DEPENDENCIES[@]}"
 
+# Mute sudo RLIMIT_CORE message -> Fixed in sudo 1.8.31p1
+echo "Muted sudo RLIMIT_CORE message"
+echo "Set disable_coredump false" >> /etc/sudo.conf
+
 # Create salt user
 echo "Creating ${SALT_USER} user ..."
 useradd -d "${SALT_HOME}" -ms /bin/bash -U -G root,sudo,shadow "${SALT_USER}"

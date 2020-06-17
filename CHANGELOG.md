@@ -1,7 +1,14 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3000.3.html) for the list of changes in SaltStack.
+Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3001.html) for the list of changes in SaltStack.
+
+**3001**
+
+- Upgrade SaltStack Master to `3001` *Sodium*
+- Upgrade Python to version `3.8`
+- Upgrade `libgit2` to version `1.0.1`
+- Change Docker base image to `ubuntu:focal-20200606`
 
 **3000.3_2**
 

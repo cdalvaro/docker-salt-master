@@ -1,13 +1,13 @@
-FROM ubuntu:bionic-20200403
+FROM ubuntu:focal-20200606
 
 ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
-ENV SALT_VERSION="3000.3" \
-    PYTHON_VERSION="3.6" \
+ENV SALT_VERSION="3001" \
+    PYTHON_VERSION="3.8" \
     LIBSSH2_VERSION="1.9.0" \
-    LIBGIT2_VERSION="1.0.0" \
+    LIBGIT2_VERSION="1.0.1" \
     PYGIT2_VERSION="1.2.1" \
     M2CRYPTO_VERSION="0.35.2"
 
