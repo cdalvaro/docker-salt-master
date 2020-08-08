@@ -30,7 +30,7 @@ EOF
 
 # Compile libssh2
 echo "Building libssh2 v${LIBSSH2_VERSION} ..."
-wget "https://github.com/libssh2/libssh2/archive/libssh2-${LIBSSH2_VERSION}.tar.gz" --no-check-certificate
+wget "https://github.com/libssh2/libssh2/archive/libssh2-${LIBSSH2_VERSION}.tar.gz"
 tar xzf "libssh2-${LIBSSH2_VERSION}.tar.gz"
 cd "libssh2-libssh2-${LIBSSH2_VERSION}/"
 cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DENABLE_ZLIB_COMPRESSION=ON .
@@ -38,7 +38,7 @@ cmake --build . --target install
 
 # Compile libgit2
 echo "Building libgit2 v${LIBGIT2_VERSION} ..."
-wget "https://github.com/libgit2/libgit2/archive/v${LIBGIT2_VERSION}.tar.gz" --no-check-certificate
+wget "https://github.com/libgit2/libgit2/archive/v${LIBGIT2_VERSION}.tar.gz"
 tar xzf "v${LIBGIT2_VERSION}.tar.gz"
 cd "libgit2-${LIBGIT2_VERSION}/"
 cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DBUILD_CLAR=OFF -DTHREADSAFE=ON .
@@ -68,7 +68,7 @@ SALT_BOOTSTRAP_OPTS=( -M -N -X -d -P -p salt-api -p salt-call -x "python${PYTHON
 
 echo "Installing saltstack ..."
 echo "Option: ${SALT_BOOTSTRAP_OPTS[@]}"
-wget -O bootstrap-salt.sh https://bootstrap.saltstack.com --no-check-certificate
+wget -O bootstrap-salt.sh https://bootstrap.saltstack.com
 sh bootstrap-salt.sh ${SALT_BOOTSTRAP_OPTS[@]} git "v${SALT_VERSION}"
 chown -R "${SALT_USER}": "${SALT_ROOT_DIR}"
 
