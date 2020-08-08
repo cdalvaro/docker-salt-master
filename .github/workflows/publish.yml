@@ -36,6 +36,7 @@ jobs:
           docker buildx inspect --bootstrap
 
       - name: Cache latest images
+        continue-on-error: true
         run: |
           for PLATFORM in ${PLATFORMS}; do
             docker pull --platform "${PLATFORM}" "${IMAGE_NAME}:latest"
