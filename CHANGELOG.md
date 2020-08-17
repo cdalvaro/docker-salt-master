@@ -8,7 +8,6 @@ Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/late
 - Upgrade SaltStack Master to `3001.1` *Sodium*
 - Upgrade `m2crypto` to version `0.36.0`
 - Change Docker base image to `ubuntu:focal-20200720`
-- Bring back support for ARM v7
 
 **3001**
 

@@ -38,28 +38,28 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
 
 ## Installation
 
-Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/saltstack-master/) and is the recommended method of installation.
+Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/docker-salt-master/) and is the recommended method of installation.
 
 ```sh
-docker pull cdalvaro/saltstack-master:3001.1
+docker pull cdalvaro/docker-salt-master:3001.1
 ```
 
 You can also pull the latest tag which is built from the repository `HEAD`
 
 ```sh
-docker pull cdalvaro/saltstack-master:latest
+docker pull cdalvaro/docker-salt-master:latest
 ```
 
-or from [Quay.io](https://quay.io/repository/cdalvaro/saltstack-master) too.
+or from [Quay.io](https://quay.io/repository/cdalvaro/docker-salt-master) too.
 
 ```sh
-docker pull quay.io/cdalvaro/saltstack-master:latest
+docker pull quay.io/cdalvaro/docker-salt-master:latest
 ```
 
 Alternatively you can build the image locally.
 
 ```sh
-docker build -t cdalvaro/saltstack-master github.com/cdalvaro/saltstack-master
+docker build -t cdalvaro/docker-salt-master github.com/cdalvaro/docker-salt-master
 ```
 
 ## Quick Start
@@ -67,7 +67,7 @@ docker build -t cdalvaro/saltstack-master github.com/cdalvaro/saltstack-master
 The quickest way to get started is using [docker-compose](https://docs.docker.com/compose/).
 
 ```sh
-wget https://raw.githubusercontent.com/cdalvaro/saltstack-master/master/docker-compose.yml
+wget https://raw.githubusercontent.com/cdalvaro/docker-salt-master/master/docker-compose.yml
 ```
 
 Start SaltStack master using:
@@ -76,7 +76,7 @@ Start SaltStack master using:
 docker-compose up --detach
 ```
 
-Alternatively, you can manually launch the `saltstack-master`  container:
+Alternatively, you can manually launch the `docker-salt-master`  container:
 
 ```sh
 docker run --name salt_master --detach \
@@ -84,7 +84,7 @@ docker run --name salt_master --detach \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3001.1
+    cdalvaro/docker-salt-master:3001.1
 ```
 
 ## Configuration
@@ -111,7 +111,7 @@ docker run --name salt_master -d \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3001.1
+    cdalvaro/docker-salt-master:3001.1
 ```
 
 ### Master Signed Keys
@@ -126,7 +126,7 @@ docker run --name salt_stack --detach \
     --env 'SALT_MASTER_SIGN_PUBKEY=True'
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3001.1
+    cdalvaro/docker-salt-master:3001.1
 ```
 
 The container will create the `master_sign` key and its signature.
@@ -138,7 +138,7 @@ Additionally, you can generate new keys by executing the following command:
 ```sh
 docker run --name salt_stack -it --rm \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3001.1 \
+    cdalvaro/docker-salt-master:3001.1 \
     app:gen-signed-keys new_master_sign
 ```
 
@@ -168,7 +168,7 @@ docker run --name salt_stack --detach \
     --env 'SALT_API_USER_PASS=SuperCool/Password10'
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3001.1
+    cdalvaro/docker-salt-master:3001.1
 ```
 
 By default, user `salt_api` is created and you can set its password by setting the environment variable
@@ -192,7 +192,7 @@ external_auth:
 
 More information is available in the following link: [External Authentication System (eAuth)](https://docs.saltstack.com/en/latest/topics/eauth/index.html#acl-eauth).
 
-Now you have your saltstack-master docker image ready to accept external authentications and to connect external tools such as [`saltstack/pepper`](https://github.com/saltstack/pepper).
+Now you have your docker-salt-master docker image ready to accept external authentications and to connect external tools such as [`saltstack/pepper`](https://github.com/saltstack/pepper).
 
 #### Salt Pepper
 
@@ -236,7 +236,7 @@ docker run --name salt_stack -it --rm \
     --env "USERMAP_UID=$(id -u)" --env "USERMAP_GID=$(id -g)" \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3001.1
+    cdalvaro/docker-salt-master:3001.1
 ```
 
 ### Git Fileserver
@@ -324,7 +324,7 @@ docker run --name salt_stack -it --rm \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/3pfs/:/home/salt/data/3pfs/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/saltstack-master:3001.1
+    cdalvaro/docker-salt-master:3001.1
 ```
 
 If you need to add more third party formulas, you can restart the container, or you can type the following command:
@@ -348,7 +348,7 @@ docker run --name salt_master --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    cdalvaro/saltstack-master:3001.1
+    cdalvaro/docker-salt-master:3001.1
 ```
 
 Check [Available Configuration Parameters](#available-configuration-parameters) section for configuring logrotate.
@@ -367,7 +367,7 @@ version: '3'
 services:
   master:
     container_name: salt_master
-    image: cdalvaro/saltstack-master:3001.1
+    image: cdalvaro/docker-salt-master:3001.1
     healthcheck:
       test: ["CMD", "/usr/local/sbin/healthcheck"]
       start_period: 30s
@@ -386,7 +386,7 @@ docker run --name salt_master --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    cdalvaro/saltstack-master:3001.1
+    cdalvaro/docker-salt-master:3001.1
 ```
 
 Then you can manually check this info by running the following command:
@@ -456,7 +456,7 @@ docker run --name salt_master -d \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
-    cdalvaro/saltstack-master:3001.1
+    cdalvaro/docker-salt-master:3001.1
 ```
 
 ## Usage
@@ -503,11 +503,11 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 [ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20200720-E95420.svg?style=flat&logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
 
-[github_publish_badge]: https://github.com/cdalvaro/saltstack-master/workflows/Publish/badge.svg
-[github_publish_workflow]: https://github.com/cdalvaro/saltstack-master/actions?query=workflow%3A%22Publish%22
+[github_publish_badge]: https://github.com/cdalvaro/docker-salt-master/workflows/Publish/badge.svg
+[github_publish_workflow]: https://github.com/cdalvaro/docker-salt-master/actions?query=workflow%3A%22Publish%22
 
-[docker_size_badge]: https://img.shields.io/docker/image-size/cdalvaro/saltstack-master/latest?logo=docker&color=2496ED
-[docker_hub_tags]: https://hub.docker.com/repository/docker/cdalvaro/saltstack-master/tags
+[docker_size_badge]: https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED
+[docker_hub_tags]: https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags
 
-[codefactor_badge]: https://img.shields.io/codefactor/grade/github/cdalvaro/saltstack-master?logo=CodeFactor
-[codefactor_score]: https://www.codefactor.io/repository/github/cdalvaro/saltstack-master
+[codefactor_badge]: https://img.shields.io/codefactor/grade/github/cdalvaro/docker-salt-master?logo=CodeFactor
+[codefactor_score]: https://www.codefactor.io/repository/github/cdalvaro/docker-salt-master

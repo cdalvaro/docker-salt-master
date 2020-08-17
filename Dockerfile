@@ -71,12 +71,12 @@ LABEL \
     org.label-schema.name="SaltStack Master" \
     org.label-schema.version=${SALT_VERSION} \
     org.label-schema.description="Dockerized SaltStack Master" \
-    org.label-schema.url="https://github.com/cdalvaro/saltstack-master" \
-    org.label-schema.vcs-url="https://github.com/cdalvaro/saltstack-master.git" \
+    org.label-schema.url="https://github.com/cdalvaro/docker-salt-master" \
+    org.label-schema.vcs-url="https://github.com/cdalvaro/docker-salt-master.git" \
     org.label-schema.vcs-ref=${VCS_REF} \
     org.label-schema.build-date=${BUILD_DATE} \
     org.label-schema.docker.schema-version="1.0" \
-    com.cdalvaro.saltstack-master.license=MIT
+    com.cdalvaro.docker-salt-master.license=MIT
 
 WORKDIR ${SALT_HOME}
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]

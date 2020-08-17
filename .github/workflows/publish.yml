@@ -10,7 +10,7 @@ on:
 
 env:
   GITHUB_REF_NAME: ${{ github.event.release.tag_name }}
-  IMAGE_NAME: cdalvaro/saltstack-master
+  IMAGE_NAME: cdalvaro/docker-salt-master
   PLATFORMS: linux/amd64 linux/arm64
   DOCKER_CLI_EXPERIMENTAL: enabled
 

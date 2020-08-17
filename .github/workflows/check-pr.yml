@@ -6,7 +6,7 @@ on:
       - master
 
 env:
-  IMAGE_NAME: cdalvaro/saltstack-master
+  IMAGE_NAME: cdalvaro/docker-salt-master
   IMAGE_TAG: ci
 
 jobs:
