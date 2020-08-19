@@ -18,7 +18,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
   - [Changelog](CHANGELOG.md)
 - [Quick Start](#quick-start)
 - [Configuration](#configuration)
-  - [Custom Recipes](#custom-recipes)
+  - [Custom States](#custom-states)
   - [Minion Keys](#minion-keys)
   - [Master Signed Keys](#master-signed-keys)
   - [Salt API](#salt-api)
@@ -50,13 +50,19 @@ You can also pull the latest tag which is built from the repository `HEAD`
 docker pull cdalvaro/docker-salt-master:latest
 ```
 
-or from [Quay.io](https://quay.io/repository/cdalvaro/docker-salt-master) too.
+These images are also available from [Quay.io](https://quay.io/repository/cdalvaro/docker-salt-master):
 
 ```sh
 docker pull quay.io/cdalvaro/docker-salt-master:latest
 ```
 
-Alternatively you can build the image locally.
+and from [GitHub Packages](https://github.com/cdalvaro/docker-salt-master/packages):
+
+```sh
+docker pull docker.pkg.github.com/cdalvaro/docker-salt-master/docker-salt-master:latest
+```
+
+Alternatively, you can build the image locally.
 
 ```sh
 docker build -t cdalvaro/docker-salt-master github.com/cdalvaro/docker-salt-master
@@ -89,9 +95,9 @@ docker run --name salt_master --detach \
 
 ## Configuration
 
-### Custom Recipes
+### Custom States
 
-In order to provide salt with your custom recipes you must mount the volume `/home/salt/data/srv/`
+In order to provide salt with your custom states you must mount the volume `/home/salt/data/srv/`
 with your `roots` directory.
 
 ### Minion Keys
@@ -218,7 +224,7 @@ SALTAPI_EAUTH=pam
 
 ##### Usage
 
-Beging executing salt recipes with `pepper`:
+Beging executing salt states with `pepper`:
 
 ```sh
 pepper '*' test.ping
