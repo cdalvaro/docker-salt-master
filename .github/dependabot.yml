@@ -5,3 +5,11 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+
+  # Configuration for Dockerfile
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      # Disable all pull requests for Docker dependencies
+    open-pull-requests-limit: 0
