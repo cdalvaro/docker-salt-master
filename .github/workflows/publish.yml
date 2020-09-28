@@ -63,7 +63,7 @@ jobs:
           # Tags
           DOCKER_IMAGE="${IMAGE_NAME}:${GITHUB_REF_NAME:-latest}"
           TAGS="${DOCKER_IMAGE}"
-          for registry in ${EXTRA_REGISTRIES}: do
+          for registry in ${EXTRA_REGISTRIES}; do
             TAGS="${TAGS},${registry}/${DOCKER_IMAGE}"
           done
 
