@@ -56,10 +56,10 @@ These images are also available from [Quay.io](https://quay.io/repository/cdalva
 docker pull quay.io/cdalvaro/docker-salt-master:latest
 ```
 
-and from [GitHub Packages](https://github.com/cdalvaro/docker-salt-master/packages):
+and from [GitHub Container Registry](https://github.com/cdalvaro/docker-salt-master/packages):
 
 ```sh
-docker pull docker.pkg.github.com/cdalvaro/docker-salt-master/docker-salt-master:latest
+docker pull ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
 Alternatively, you can build the image locally.
@@ -509,7 +509,7 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 [ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20200720-E95420.svg?style=flat&logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
 
-[github_publish_badge]: https://github.com/cdalvaro/docker-salt-master/workflows/Publish/badge.svg
+[github_publish_badge]: https://github.com/cdalvaro/docker-salt-master/workflows/Publish%20Docker%20image/badge.svg
 [github_publish_workflow]: https://github.com/cdalvaro/docker-salt-master/actions?query=workflow%3A%22Publish%22
 
 [docker_size_badge]: https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED
