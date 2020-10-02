@@ -69,7 +69,10 @@ jobs:
         platform: [linux/amd64, linux/arm64]
     env:
       DOCKER_CLI_EXPERIMENTAL: enabled
-      SALT_API_PASSWORD: 4wesome-Pass0rd
+      SALTAPI_URL: https://localhost:8000/
+      SALTAPI_USER: salt_api
+      SALTAPI_PASS: 4wesome-Pass0rd
+      SALTAPI_EAUTH: pam
     steps:
       - name: Download Docker registry data from build job
         uses: actions/download-artifact@v2
@@ -101,8 +104,8 @@ jobs:
           mkdir -p config/
           cat > config/salt-api.conf <<EOF
           external_auth:
-            pam:
-              salt_api:
+            ${SALTAPI_EAUTH}:
+              ${SALTAPI_USER}:
                 - .*
                 - '@runner'
                 - '@wheel'
@@ -113,7 +116,7 @@ jobs:
           docker run --rm --detach --name saltstack_master \
             --publish 4505:4505 --publish 4506:4506 --publish 8000:8000 \
             --env 'SALT_API_SERVICE_ENABLED=true' \
-            --env "SALT_API_USER_PASS='${SALT_API_PASSWORD}'" \
+            --env 'SALT_API_USER_PASS=${{ env.SALTAPI_PASS }}' \
             --volume $(pwd)/config/:/home/salt/data/config/ \
              ${IMAGE_NAME}
 
@@ -132,13 +135,13 @@ jobs:
       - name: Test salt-api authentication
         id: salt_api_auth
         run: |
-          SALT_API_TOKEN=$(curl -sSk https://localhost:8000/login \
+          SALTAPI_TOKEN=$(curl -sSk https://localhost:8000/login \
             -H 'Accept: application/x-yaml' \
-            -d username=salt_api \
-            -d password="'${SALT_API_PASSWORD}'" \
-            -d eauth=pam | grep 'token:' | cut -d' ' -f 4)
-          [ -n "${SALT_API_TOKEN}" ] || exit 1
-          echo "::set-output name=token::${SALT_API_TOKEN}"
+            -d username=${{ env.SALTAPI_USER }} \
+            -d password=${{ env.SALTAPI_PASS }} \
+            -d eauth=${{ env.SALTAPI_EAUTH }} | grep 'token:' | cut -d' ' -f 4)
+          [ -n "${SALTAPI_TOKEN}" ] || exit 1
+          echo "::set-output name=token::${SALTAPI_TOKEN}"
 
       - name: Test salt-api command
         run: |
@@ -148,6 +151,17 @@ jobs:
             -d client=runner \
             -d tgt='*' \
             -d fun=test.stream
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install salt-pepper
+        run: pip install salt-pepper
+
+      - name: Test salt-pepper
+        run:  pepper --client runner test.stream
 
       - name: Cleanup
         run: |
@@ -178,7 +192,13 @@ jobs:
           docker run -d -p 5000:5000 -v ${REGISTRY_PATH}:/var/lib/registry --name registry registry:2
 
       - name: Import Docker images
-        run: docker pull --platform linux/amd64 ${IMAGE_NAME}
+        run: |
+          RETRY_MAX=5
+          for i in $(seq 1 $RETRY_MAX); do
+            [ "$i" != "1" ] && echo "Retrying docker pull"
+            docker pull --platform linux/amd64 ${IMAGE_NAME} && break
+            echo "Command failed with code $?"
+          done
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
