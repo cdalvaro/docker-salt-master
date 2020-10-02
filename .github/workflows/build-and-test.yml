@@ -69,6 +69,7 @@ jobs:
         platform: [linux/amd64, linux/arm64]
     env:
       DOCKER_CLI_EXPERIMENTAL: enabled
+      SALT_API_PASSWORD: 4wesome-Pass0rd
     steps:
       - name: Download Docker registry data from build job
         uses: actions/download-artifact@v2
@@ -95,7 +96,26 @@ jobs:
         run: docker pull --platform ${{ matrix.platform }} ${IMAGE_NAME}
 
       - name: Launch docker container
-        run: docker run --rm -d --name saltstack_master ${IMAGE_NAME}
+        run: |
+          # Create configuration files
+          mkdir -p config/
+          cat > config/salt-api.conf <<EOF
+          external_auth:
+            pam:
+              salt_api:
+                - .*
+                - '@runner'
+                - '@wheel'
+                - '@jobs'
+          EOF
+
+          # Run test instance
+          docker run --rm --detach --name saltstack_master \
+            --publish 4505:4505 --publish 4506:4506 --publish 8000:8000 \
+            --env 'SALT_API_SERVICE_ENABLED=true' \
+            --env "SALT_API_USER_PASS='${SALT_API_PASSWORD}'" \
+            --volume $(pwd)/config/:/home/salt/data/config/ \
+             ${IMAGE_NAME}
 
       - name: Show container info
         run: docker container ls
@@ -108,6 +128,26 @@ jobs:
 
       - name: Test image calling healthcheck
         run: docker exec saltstack_master /usr/local/sbin/healthcheck
+
+      - name: Test salt-api authentication
+        id: salt_api_auth
+        run: |
+          SALT_API_TOKEN=$(curl -sSk https://localhost:8000/login \
+            -H 'Accept: application/x-yaml' \
+            -d username=salt_api \
+            -d password="'${SALT_API_PASSWORD}'" \
+            -d eauth=pam | grep 'token:' | cut -d' ' -f 4)
+          [ -n "${SALT_API_TOKEN}" ] || exit 1
+          echo "::set-output name=token::${SALT_API_TOKEN}"
+
+      - name: Test salt-api command
+        run: |
+          curl -sSk https://localhost:8000 \
+            -H 'Accept: application/x-yaml' \
+            -H 'X-Auth-Token: ${{ steps.salt_api_auth.outputs.token }}' \
+            -d client=runner \
+            -d tgt='*' \
+            -d fun=test.stream
 
       - name: Cleanup
         run: |
