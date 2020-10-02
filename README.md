@@ -171,9 +171,10 @@ your `docker run` command or in your `docker-compose.yml` file.
 docker run --name salt_stack --detach \
     --publish 4505:4505 --publish 4506:4506 --publish 8000:8000 \
     --env 'SALT_API_SERVICE_ENABLED=true' \
-    --env 'SALT_API_USER_PASS=SuperCool/Password10'
+    --env 'SALT_API_USER_PASS=SuperCool/Password10' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/config/:/home/salt/data/config/ \
     cdalvaro/docker-salt-master:3001.1
 ```
 
@@ -194,6 +195,9 @@ external_auth:
   pam:
     salt_api:
       - .*
+      - '@runner'
+      - '@wheel'
+      - '@jobs'
 ```
 
 More information is available in the following link: [External Authentication System (eAuth)](https://docs.saltstack.com/en/latest/topics/eauth/index.html#acl-eauth).
