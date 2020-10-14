@@ -6,7 +6,7 @@ on:
       - master
 
 env:
-  IMAGE_NAME: localhost:5000/cdalvaro/docker-salt-master:ci
+  IMAGE_NAME: localhost:5000/cdalvaro/docker-salt-master:${{ github.sha }}
   REGISTRY_PATH: ${{ github.workspace }}/registry
   CACHE_PATH: /tmp/.buildx-cache
 

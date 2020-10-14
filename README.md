@@ -3,6 +3,7 @@
 [![Publish Workflow][github_publish_badge]][github_publish_workflow]
 [![Docker Image Size][docker_size_badge]][docker_hub_tags]
 [![CodeFactor][codefactor_badge]][codefactor_score]
+[![StackOverflow Community][stackoverflow_badge]][stackoverflow_community]
 
 # Dockerized SaltStack Master Sodium v3001.1
 
@@ -129,7 +130,7 @@ It is possible to use signed master keys by establishing the environment variabl
 docker run --name salt_stack --detach \
     --publish 4505:4505 --publish 4506:4506 \
     --env 'SALT_LOG_LEVEL=info' \
-    --env 'SALT_MASTER_SIGN_PUBKEY=True'
+    --env 'SALT_MASTER_SIGN_PUBKEY=True' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/docker-salt-master:3001.1
@@ -171,7 +172,7 @@ your `docker run` command or in your `docker-compose.yml` file.
 docker run --name salt_stack --detach \
     --publish 4505:4505 --publish 4506:4506 --publish 8000:8000 \
     --env 'SALT_API_SERVICE_ENABLED=true' \
-    --env 'SALT_API_USER_PASS=SuperCool/Password10' \
+    --env 'SALT_API_USER_PASS=4wesome-Pass0rd' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
@@ -222,7 +223,7 @@ Then configure pepper by filling your `~/.pepperrc` file with your salt-api cred
 [main]
 SALTAPI_URL=https://your.salt-master.hostname:8000/
 SALTAPI_USER=salt_api
-SALTAPI_PASS=SuperCool/Password10
+SALTAPI_PASS=4wesome-Pass0rd
 SALTAPI_EAUTH=pam
 ```
 
@@ -507,17 +508,20 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 - https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html
 - https://github.com/saltstack/salt/releases
 
-[saltstack_badge]: https://img.shields.io/badge/SaltStack-v3001.1-lightgrey.svg?style=flat&logo=Saltstack
+[saltstack_badge]: https://img.shields.io/badge/SaltStack-v3001.1-lightgrey.svg?style=flat-square&logo=Saltstack
 [saltstack_release_notes]: https://docs.saltstack.com/en/latest/topics/releases/3001.1.html "SaltStack Release Notes"
 
-[ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20200720-E95420.svg?style=flat&logo=Ubuntu
+[ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20200720-E95420.svg?style=flat-square&logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
 
-[github_publish_badge]: https://img.shields.io/github/workflow/status/cdalvaro/docker-salt-master/Publish%20Docker%20image?label=publish&logo=GitHub&logoColor=%23181717
+[github_publish_badge]: https://img.shields.io/github/workflow/status/cdalvaro/docker-salt-master/Publish%20Docker%20image?style=flat-square&label=build&logo=GitHub&logoColor=%23181717
 [github_publish_workflow]: https://github.com/cdalvaro/docker-salt-master/actions?query=workflow%3A%22Publish+Docker+image%22
 
-[docker_size_badge]: https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED
+[docker_size_badge]: https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?style=flat-square&logo=docker&color=2496ED
 [docker_hub_tags]: https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags
 
-[codefactor_badge]: https://img.shields.io/codefactor/grade/github/cdalvaro/docker-salt-master?logo=CodeFactor
+[codefactor_badge]: https://img.shields.io/codefactor/grade/github/cdalvaro/docker-salt-master?style=flat-square&logo=CodeFactor
 [codefactor_score]: https://www.codefactor.io/repository/github/cdalvaro/docker-salt-master
+
+[stackoverflow_badge]: https://img.shields.io/badge/stackoverflow-community-orange?style=flat-square&logo=stackoverflow&color=FE7A16
+[stackoverflow_community]: https://stackoverflow.com/tags/salt-stack

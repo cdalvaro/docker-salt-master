@@ -1,0 +1,29 @@
+name: "Code Scanning"
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'
+
+jobs:
+  code-scan:
+    name: Trivy scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download and tag latest image
+        run: |
+          docker pull ghcr.io/cdalvaro/docker-salt-master:latest
+          docker tag ghcr.io/cdalvaro/docker-salt-master:latest ghcr.io/cdalvaro/docker-salt-master:${{ github.sha }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'ghcr.io/cdalvaro/docker-salt-master:${{ github.sha }}'
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: 'trivy-results.sarif'
