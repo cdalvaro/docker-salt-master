@@ -31,6 +31,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
   - [3rd Party Formulas](#3rd-party-formulas)
   - [Logs](#logs)
   - [Healthcheck](#healthcheck)
+    - [Autoheal](#autoheal)
   - [Available Configuration Parameters](#available-configuration-parameters)
 - [Usage](#usage)
 - [Shell Access](#shell-access)
@@ -425,6 +426,21 @@ Then, the output will be something similar to this:
   ]
 }
 ```
+
+#### Autoheal
+
+If you run your _docker-salt-master_ instance with healthcheck enabled, you can use [willfarrell/autoheal](https://github.com/willfarrell/docker-autoheal) image to restart your service when healthcheck fails:
+
+```sh
+docker run -d \
+  --name autoheal \
+  --restart=always \
+  -e AUTOHEAL_CONTAINER_LABEL=all \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  willfarrell/autoheal
+```
+
+This container will watch your containers and restart your failing instances.
 
 ### Available Configuration Parameters
 
