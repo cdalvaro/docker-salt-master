@@ -166,7 +166,7 @@ rest_cherrypy:
 ```
 
 The container exposes port `8000` by default, although you can map this port to whatever port you like in
-your `docker run` command or in your `docker-compose.yml` file.
+your `docker run` command:
 
 ```sh
 docker run --name salt_stack --detach \
@@ -179,13 +179,16 @@ docker run --name salt_stack --detach \
     cdalvaro/docker-salt-master:3001.1
 ```
 
+If you choose using the [docker-compose.yml](docker-compose.yml) to manage your salt-master instance,
+uncomment salt-api settings to enable and configure the service.
+
 By default, user `salt_api` is created and you can set its password by setting the environment variable
 `SALT_API_USER_PASS`.
 
 You can also change the salt-api _username_ by setting `SALT_API_USER`.
 It is possible to disable this user by explicitly setting this variable to an empty string: `SALT_API_USER=''` if you are going to use an `LDAP` server.
 
-As a security measure, if `SALT_API_USER_PASS` is set to `true` and you don't disable `SALT_API_USER`,
+As a security measure, if `SALT_API_SERVICE_ENABLED` is set to `true` and you don't disable `SALT_API_USER`,
 you'll be required to set `SALT_API_USER_PASS`. Otherwise initialization will fail and your Docker image won't work.
 
 With all that set, you'll be able to provide your _salt-api_ custom configuration by creating the `salt-api.conf`
