@@ -92,7 +92,7 @@ docker run --name salt_master --detach \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 ## Configuration
@@ -119,7 +119,7 @@ docker run --name salt_master -d \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 ### Master Signed Keys
@@ -134,7 +134,7 @@ docker run --name salt_stack --detach \
     --env 'SALT_MASTER_SIGN_PUBKEY=True' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 The container will create the `master_sign` key and its signature.
@@ -146,7 +146,7 @@ Additionally, you can generate new keys by executing the following command:
 ```sh
 docker run --name salt_stack -it --rm \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:3001.1 \
+    cdalvaro/docker-salt-master:latest \
     app:gen-signed-keys new_master_sign
 ```
 
@@ -177,7 +177,7 @@ docker run --name salt_stack --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 If you choose using the [docker-compose.yml](docker-compose.yml) to manage your salt-master instance,
@@ -251,7 +251,7 @@ docker run --name salt_stack -it --rm \
     --env "USERMAP_UID=$(id -u)" --env "USERMAP_GID=$(id -g)" \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 ### Git Fileserver
@@ -339,7 +339,7 @@ docker run --name salt_stack -it --rm \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/3pfs/:/home/salt/data/3pfs/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 If you need to add more third party formulas, you can restart the container, or you can type the following command:
@@ -363,7 +363,7 @@ docker run --name salt_master --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 Check [Available Configuration Parameters](#available-configuration-parameters) section for configuring logrotate.
@@ -382,7 +382,7 @@ version: "3"
 services:
   master:
     container_name: salt_master
-    image: cdalvaro/docker-salt-master:3001.1
+    image: cdalvaro/docker-salt-master:latest
     healthcheck:
       test: ["CMD", "/usr/local/sbin/healthcheck"]
       start_period: 30s
@@ -401,7 +401,7 @@ docker run --name salt_master --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 Then you can manually check this info by running the following command:
@@ -486,7 +486,7 @@ docker run --name salt_master -d \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 ## Usage
