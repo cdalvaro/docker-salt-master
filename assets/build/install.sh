@@ -28,32 +28,12 @@ exec_as_salt cat >> "${SALT_HOME}/.profile" <<EOF
 PATH=/usr/local/sbin:/usr/local/bin:\$PATH
 EOF
 
-# Compile libssh2
-echo "Building libssh2 v${LIBSSH2_VERSION} ..."
-wget "https://github.com/libssh2/libssh2/archive/libssh2-${LIBSSH2_VERSION}.tar.gz"
-tar xzf "libssh2-${LIBSSH2_VERSION}.tar.gz"
-cd "libssh2-libssh2-${LIBSSH2_VERSION}/"
-cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DENABLE_ZLIB_COMPRESSION=ON .
-cmake --build . --target install
-
-# Compile libgit2
-echo "Building libgit2 v${LIBGIT2_VERSION} ..."
-wget "https://github.com/libgit2/libgit2/archive/v${LIBGIT2_VERSION}.tar.gz"
-tar xzf "v${LIBGIT2_VERSION}.tar.gz"
-cd "libgit2-${LIBGIT2_VERSION}/"
-cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DBUILD_CLAR=OFF -DTHREADSAFE=ON .
-cmake --build . --target install
-
 # Install python3 packages
 echo "Installing python3 packages ..."
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
 python3-mako python3-pycryptodome python3-cherrypy3 python3-git python3-u-msgpack \
-python3-redis python3-gnupg python3-mysqldb python3-dateutil python3-libnacl python3-openssl
-
-# Install pip3 python packages
-echo "Installing pip3 python packages ..."
-pip3 install "pygit2==v${PYGIT2_VERSION}" \
-             "M2Crypto==v${M2CRYPTO_VERSION}"
+python3-redis python3-gnupg python3-mysqldb python3-dateutil python3-libnacl python3-openssl \
+python3-pygit2 python3-m2crypto
 
 # Bootstrap script options:
 # https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html#command-line-options

@@ -5,11 +5,7 @@ ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
 ENV SALT_VERSION="3001.1" \
-    PYTHON_VERSION="3.8" \
-    LIBSSH2_VERSION="1.9.0" \
-    LIBGIT2_VERSION="1.0.1" \
-    PYGIT2_VERSION="1.2.1" \
-    M2CRYPTO_VERSION="0.36.0"
+    PYTHON_VERSION="3.8"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
