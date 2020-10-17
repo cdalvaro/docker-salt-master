@@ -7,7 +7,7 @@ on:
 
 jobs:
   lint:
-    name: Lint code
+    name: Super Linter
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
