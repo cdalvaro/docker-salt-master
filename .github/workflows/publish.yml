@@ -96,7 +96,6 @@ jobs:
     name: Security analysis
     runs-on: ubuntu-latest
     needs: publish
-    if: github.event_name == 'release'
     steps:
       - name: Prepare metadata
         id: metadata

@@ -1,6 +1,9 @@
 # Check shellcheck wiki at:
 # https://github.com/koalaman/shellcheck/wiki/SCXXXX
 
+# Allow following non-constant source
+disable=SC1090
+
 # Redirections are performed by the current shell before sudo is started.
 disable=SC2024
 
