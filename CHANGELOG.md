@@ -3,6 +3,10 @@
 This file only reflects the changes that are made in this image.
 Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3001.1.html) for the list of changes in SaltStack.
 
+**3002**
+
+- Change Docker base image to `ubuntu:focal-20200925`
+
 **3001.1**
 
 - Upgrade SaltStack Master to `3001.1` *Sodium*
