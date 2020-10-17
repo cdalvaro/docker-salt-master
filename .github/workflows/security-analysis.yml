@@ -1,11 +1,11 @@
-name: "Code Scanning"
+name: Security analysis
 
 on:
   schedule:
     - cron: '0 0 * * 1'
 
 jobs:
-  code-scan:
+  security-analysis:
     name: Trivy scan
     runs-on: ubuntu-latest
 
