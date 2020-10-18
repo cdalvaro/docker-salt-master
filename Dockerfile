@@ -7,6 +7,8 @@ ARG VCS_REF
 ENV SALT_VERSION="3001.1" \
     PYTHON_VERSION="3.8"
 
+ENV IMAGE_VERSION="${SALT_VERSION}"
+
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
     SALT_CACHE_DIR='/var/cache/salt' \
@@ -65,7 +67,7 @@ LABEL \
     maintainer="carlos@cdalvaro.io" \
     org.label-schema.vendor=cdalvaro \
     org.label-schema.name="SaltStack Master" \
-    org.label-schema.version=${SALT_VERSION} \
+    org.label-schema.version=${IMAGE_VERSION} \
     org.label-schema.description="Dockerized SaltStack Master" \
     org.label-schema.url="https://github.com/cdalvaro/docker-salt-master" \
     org.label-schema.vcs-url="https://github.com/cdalvaro/docker-salt-master.git" \
