@@ -5,6 +5,7 @@ Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/late
 
 **3002**
 
+- Bring back support for Linux ARMv7 platform
 - Remove patch for muting sudo `RLIMIT_CORE` message
 - Install `pygit2` and `m2crypto` from ubuntu repositories
 - Change Docker base image to `ubuntu:focal-20200925`

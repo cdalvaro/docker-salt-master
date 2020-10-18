@@ -4,16 +4,16 @@ set -e
 
 source "${SALT_BUILD_DIR}/functions.sh"
 
-# Install build dependencies
-echo "Installing dependencies ..."
-BUILD_DEPENDENCIES=(
-  cmake gcc g++ make \
-  libhttp-parser-dev libssl-dev zlib1g-dev \
-  libcurl4-openssl-dev libffi-dev swig \
-)
-
+echo "Updating repositories ..."
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends "${BUILD_DEPENDENCIES[@]}"
+
+# Install arm build dependencies
+if [[ "$(uname -i)" =~ ^(arm|aarch64) ]]; then
+  echo "Installing arm dependencies ..."
+  DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
+    make gcc g++ cmake libzmq3-dev \
+    libhttp-parser-dev libssl-dev libcurl4-openssl-dev
+fi
 
 # Create salt user
 echo "Creating ${SALT_USER} user ..."
@@ -27,9 +27,9 @@ EOF
 # Install python3 packages
 echo "Installing python3 packages ..."
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
-python3-mako python3-pycryptodome python3-cherrypy3 python3-git python3-u-msgpack \
-python3-redis python3-gnupg python3-mysqldb python3-dateutil python3-libnacl python3-openssl \
-python3-pygit2 python3-m2crypto
+  python3-mako python3-pycryptodome python3-cherrypy3 python3-git python3-u-msgpack \
+  python3-redis python3-gnupg python3-mysqldb python3-dateutil python3-libnacl python3-openssl \
+  python3-pygit2 python3-m2crypto
 
 # Bootstrap script options:
 # https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html#command-line-options
@@ -41,10 +41,17 @@ python3-pygit2 python3-m2crypto
 ## -p: Extra-package to install
 ## -x: Changes the python version used to install a git version of salt
 SALT_BOOTSTRAP_OPTS=( -M -N -X -d -P -p salt-api -p salt-call -x "python${PYTHON_VERSION}" )
+_WGET_ARGS=()
+
+if [[ "$(uname -i)" == 'armv7l' ]]; then
+  ## -I: allow insecure connections while downloading any files
+  SALT_BOOTSTRAP_OPTS+=( -I )
+  _WGET_ARGS+=( --no-check-certificate )
+fi
 
 echo "Installing saltstack ..."
 echo "Option: ${SALT_BOOTSTRAP_OPTS[@]}"
-wget -O bootstrap-salt.sh https://bootstrap.saltstack.com
+wget ${_WGET_ARGS[@]} -O bootstrap-salt.sh https://bootstrap.saltstack.com
 sh bootstrap-salt.sh ${SALT_BOOTSTRAP_OPTS[@]} git "v${SALT_VERSION}"
 chown -R "${SALT_USER}": "${SALT_ROOT_DIR}"
 
@@ -97,6 +104,6 @@ stdout_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
 stderr_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
 EOF
 
-# purge build dependencies and cleanup apt
+# Purge build dependencies and cleanup apt
 DEBIAN_FRONTEND=noninteractive apt-get clean --yes
 rm -rf /var/lib/apt/lists/*

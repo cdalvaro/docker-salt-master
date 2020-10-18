@@ -14,7 +14,7 @@ on:
 env:
   GITHUB_REF_NAME: ${{ github.event.release.tag_name }}
   IMAGE_NAME: cdalvaro/docker-salt-master
-  PLATFORMS: linux/amd64,linux/arm64
+  PLATFORMS: linux/amd64,linux/arm64,linux/arm/v7
   CACHE_PATH: /tmp/.buildx-docker-salt-master-cache
   EXTRA_REGISTRIES: ghcr.io quay.io
 
