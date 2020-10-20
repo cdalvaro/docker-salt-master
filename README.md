@@ -31,6 +31,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
   - [3rd Party Formulas](#3rd-party-formulas)
   - [Logs](#logs)
   - [Healthcheck](#healthcheck)
+    - [Autoheal](#autoheal)
   - [Available Configuration Parameters](#available-configuration-parameters)
 - [Usage](#usage)
 - [Shell Access](#shell-access)
@@ -83,7 +84,7 @@ Start SaltStack master using:
 docker-compose up --detach
 ```
 
-Alternatively, you can manually launch the `docker-salt-master`  container:
+Alternatively, you can manually launch the `docker-salt-master` container:
 
 ```sh
 docker run --name salt_master --detach \
@@ -166,7 +167,7 @@ rest_cherrypy:
 ```
 
 The container exposes port `8000` by default, although you can map this port to whatever port you like in
-your `docker run` command or in your `docker-compose.yml` file.
+your `docker run` command:
 
 ```sh
 docker run --name salt_stack --detach \
@@ -179,13 +180,16 @@ docker run --name salt_stack --detach \
     cdalvaro/docker-salt-master:3001.1
 ```
 
+If you choose using the [docker-compose.yml](docker-compose.yml) to manage your salt-master instance,
+uncomment salt-api settings to enable and configure the service.
+
 By default, user `salt_api` is created and you can set its password by setting the environment variable
 `SALT_API_USER_PASS`.
 
 You can also change the salt-api _username_ by setting `SALT_API_USER`.
 It is possible to disable this user by explicitly setting this variable to an empty string: `SALT_API_USER=''` if you are going to use an `LDAP` server.
 
-As a security measure, if `SALT_API_USER_PASS` is set to `true` and you don't disable `SALT_API_USER`,
+As a security measure, if `SALT_API_SERVICE_ENABLED` is set to `true` and you don't disable `SALT_API_USER`,
 you'll be required to set `SALT_API_USER_PASS`. Otherwise initialization will fail and your Docker image won't work.
 
 With all that set, you'll be able to provide your _salt-api_ custom configuration by creating the `salt-api.conf`
@@ -196,9 +200,9 @@ external_auth:
   pam:
     salt_api:
       - .*
-      - '@runner'
-      - '@wheel'
-      - '@jobs'
+      - "@runner"
+      - "@wheel"
+      - "@jobs"
 ```
 
 More information is available in the following link: [External Authentication System (eAuth)](https://docs.saltstack.com/en/latest/topics/eauth/index.html#acl-eauth).
@@ -270,7 +274,7 @@ You can create an ssh key for pygit2 with the following command:
 ssh-keygen -f gitfs_pygit2 -C 'gitfs@example.com'
 ```
 
-Place it wherever you want inside the container and specify its path with the configuration parameters: `gitfs_pubkey`  and `gitfs_privkey`  in your `.conf` file.
+Place it wherever you want inside the container and specify its path with the configuration parameters: `gitfs_pubkey` and `gitfs_privkey` in your `.conf` file.
 
 For example:
 
@@ -373,7 +377,7 @@ If you are running this image under k8s, you can define a _liveness command_ as 
 If you use `docker-compose` as your container orchestrator, you can add the following entries to your compose file:
 
 ```yml
-version: '3'
+version: "3"
 
 services:
   master:
@@ -423,32 +427,47 @@ Then, the output will be something similar to this:
 }
 ```
 
+#### Autoheal
+
+If you run your _docker-salt-master_ instance with healthcheck enabled, you can use [willfarrell/autoheal](https://github.com/willfarrell/docker-autoheal) image to restart your service when healthcheck fails:
+
+```sh
+docker run -d \
+  --name autoheal \
+  --restart=always \
+  -e AUTOHEAL_CONTAINER_LABEL=all \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  willfarrell/autoheal
+```
+
+This container will watch your containers and restart your failing instances.
+
 ### Available Configuration Parameters
 
 Please refer the docker run command options for the `--env-file` flag where you can specify all required environment variables in a single file. This will save you from writing a potentially long docker run command. Alternatively you can use docker-compose.
 
 Below is the list of available options that can be used to customize your SaltStack master installation.
 
-| Parameter | Description |
-|:----------|:------------|
-| `DEBUG` | Set this to `true` to enable entrypoint debugging. |
-| `TIMEZONE` | Set the container timezone. Defaults to `UTC`. Values are expected to be in Canonical format. Example: `Europe/Madrid`. See the list of [acceptable values](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). |
-| `SALT_LOG_LEVEL` | The level of messages to send to the console. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning` |
-| `SALT_LOG_ROTATE_FREQUENCY` | Logrotate frequency for salt logs. Available options are 'daily', 'weekly', 'monthly', and 'yearly'. Default: `weekly` |
-| `SALT_LOG_ROTATE_RETENTION` | Keep x files before deleting old log files. Defaults: `52` |
-| `SALT_LEVEL_LOGFILE` | The level of messages to send to the log file. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning` |
-| `SALT_API_SERVICE_ENABLED` | Enable `salt-api` service. Default: `false` |
-| `SALT_API_USER` | Set username for `salt-api` service. Default: `salt_api` |
-| `SALT_API_USER_PASS` | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `true` and `SALT_API_USER` is not empty. _Unset_ by default |
-| `SALT_MASTER_SIGN_PUBKEY` | Sign the master auth-replies with a cryptographic signature of the master's public key. Possible values: 'True' or 'False'. Default: `False` |
-| `SALT_MASTER_USE_PUBKEY_SIGNATURE` | Instead of computing the signature for each auth-reply, use a pre-calculated signature. This option requires `SALT_MASTER_SIGN_PUBKEY` set to 'True'. Possible values: 'True' or 'False'. Default: `True` |
-| `SALT_MASTER_SIGN_KEY_NAME` | The customizable name of the signing-key-pair without suffix. Default: `master_sign` |
-| `SALT_MASTER_PUBKEY_SIGNATURE` | The name of the file in the master's pki-directory that holds the pre-calculated signature of the master's public-key. Default: `master_pubkey_signature` |
-| `SALT_MASTER_ROOT_USER` | Forces `salt-master` to be runned as `root` instead of `salt`. Default: `False` |
-| `SALT_GITFS_SSH_PRIVATE_KEY` | The name of the ssh private key for gitfs. Default: `gitfs_ssh` |
-| `SALT_GITFS_SSH_PUBLIC_KEY` | The name of the ssh public key for gitfs. Default: `gitfs_ssh.pub` |
-| `USERMAP_UID` | Sets the uid for user `salt` to the specified uid. Default: `1000`. |
-| `USERMAP_GID` | Sets the gid for user `salt` to the specified gid. Default: `1000`. |
+| Parameter                          | Description                                                                                                                                                                                                                |
+| :--------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DEBUG`                            | Set this to `true` to enable entrypoint debugging.                                                                                                                                                                         |
+| `TIMEZONE`                         | Set the container timezone. Defaults to `UTC`. Values are expected to be in Canonical format. Example: `Europe/Madrid`. See the list of [acceptable values](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). |
+| `SALT_LOG_LEVEL`                   | The level of messages to send to the console. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning`                                                                                |
+| `SALT_LOG_ROTATE_FREQUENCY`        | Logrotate frequency for salt logs. Available options are 'daily', 'weekly', 'monthly', and 'yearly'. Default: `weekly`                                                                                                     |
+| `SALT_LOG_ROTATE_RETENTION`        | Keep x files before deleting old log files. Defaults: `52`                                                                                                                                                                 |
+| `SALT_LEVEL_LOGFILE`               | The level of messages to send to the log file. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning`                                                                               |
+| `SALT_API_SERVICE_ENABLED`         | Enable `salt-api` service. Default: `false`                                                                                                                                                                                |
+| `SALT_API_USER`                    | Set username for `salt-api` service. Default: `salt_api`                                                                                                                                                                   |
+| `SALT_API_USER_PASS`               | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `true` and `SALT_API_USER` is not empty. _Unset_ by default                                                                                            |
+| `SALT_MASTER_SIGN_PUBKEY`          | Sign the master auth-replies with a cryptographic signature of the master's public key. Possible values: 'True' or 'False'. Default: `False`                                                                               |
+| `SALT_MASTER_USE_PUBKEY_SIGNATURE` | Instead of computing the signature for each auth-reply, use a pre-calculated signature. This option requires `SALT_MASTER_SIGN_PUBKEY` set to 'True'. Possible values: 'True' or 'False'. Default: `True`                  |
+| `SALT_MASTER_SIGN_KEY_NAME`        | The customizable name of the signing-key-pair without suffix. Default: `master_sign`                                                                                                                                       |
+| `SALT_MASTER_PUBKEY_SIGNATURE`     | The name of the file in the master's pki-directory that holds the pre-calculated signature of the master's public-key. Default: `master_pubkey_signature`                                                                  |
+| `SALT_MASTER_ROOT_USER`            | Forces `salt-master` to be runned as `root` instead of `salt`. Default: `False`                                                                                                                                            |
+| `SALT_GITFS_SSH_PRIVATE_KEY`       | The name of the ssh private key for gitfs. Default: `gitfs_ssh`                                                                                                                                                            |
+| `SALT_GITFS_SSH_PUBLIC_KEY`        | The name of the ssh public key for gitfs. Default: `gitfs_ssh.pub`                                                                                                                                                         |
+| `USERMAP_UID`                      | Sets the uid for user `salt` to the specified uid. Default: `1000`.                                                                                                                                                        |
+| `USERMAP_GID`                      | Sets the gid for user `salt` to the specified gid. Default: `1000`.                                                                                                                                                        |
 
 Any parameter not listed in the above table and available in the following [link](https://docs.saltstack.com/en/latest/ref/configuration/examples.html#configuration-examples-master), can be set by creating the directory `config` and adding into it a `.conf` file with the desired parameters:
 
@@ -510,18 +529,13 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 
 [saltstack_badge]: https://img.shields.io/badge/SaltStack-v3001.1-lightgrey.svg?style=flat-square&logo=Saltstack
 [saltstack_release_notes]: https://docs.saltstack.com/en/latest/topics/releases/3001.1.html "SaltStack Release Notes"
-
 [ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20200720-E95420.svg?style=flat-square&logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
-
 [github_publish_badge]: https://img.shields.io/github/workflow/status/cdalvaro/docker-salt-master/Publish%20Docker%20image?style=flat-square&label=build&logo=GitHub&logoColor=%23181717
 [github_publish_workflow]: https://github.com/cdalvaro/docker-salt-master/actions?query=workflow%3A%22Publish+Docker+image%22
-
 [docker_size_badge]: https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?style=flat-square&logo=docker&color=2496ED
 [docker_hub_tags]: https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags
-
 [codefactor_badge]: https://img.shields.io/codefactor/grade/github/cdalvaro/docker-salt-master?style=flat-square&logo=CodeFactor
 [codefactor_score]: https://www.codefactor.io/repository/github/cdalvaro/docker-salt-master
-
 [stackoverflow_badge]: https://img.shields.io/badge/stackoverflow-community-orange?style=flat-square&logo=stackoverflow&color=FE7A16
 [stackoverflow_community]: https://stackoverflow.com/tags/salt-stack
