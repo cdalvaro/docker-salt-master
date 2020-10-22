@@ -1,11 +1,12 @@
 [![SaltStack][saltstack_badge]][saltstack_release_notes]
 [![Ubuntu Image][ubuntu_badge]][ubuntu_hub_docker]
+[![StackOverflow Community][stackoverflow_badge]][stackoverflow_community]
+[![Slack Community][slack_badge]][slack_community]
 [![Publish Workflow][github_publish_badge]][github_publish_workflow]
 [![Docker Image Size][docker_size_badge]][docker_hub_tags]
 [![CodeFactor][codefactor_badge]][codefactor_score]
-[![StackOverflow Community][stackoverflow_badge]][stackoverflow_community]
 
-# Dockerized SaltStack Master Sodium v3001.1
+# Dockerized SaltStack Master Magnesium v3002
 
 Dockerfile to build a [SaltStack](https://www.saltstack.com) Master image for the Docker opensource container platform.
 
@@ -43,7 +44,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
 Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/docker-salt-master/) and is the recommended method of installation.
 
 ```sh
-docker pull cdalvaro/docker-salt-master:3001.1
+docker pull cdalvaro/docker-salt-master:3002
 ```
 
 You can also pull the latest tag which is built from the repository `HEAD`
@@ -92,7 +93,7 @@ docker run --name salt_master --detach \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 ## Configuration
@@ -119,7 +120,7 @@ docker run --name salt_master -d \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 ### Master Signed Keys
@@ -134,7 +135,7 @@ docker run --name salt_stack --detach \
     --env 'SALT_MASTER_SIGN_PUBKEY=True' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 The container will create the `master_sign` key and its signature.
@@ -146,7 +147,7 @@ Additionally, you can generate new keys by executing the following command:
 ```sh
 docker run --name salt_stack -it --rm \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:3001.1 \
+    cdalvaro/docker-salt-master:latest \
     app:gen-signed-keys new_master_sign
 ```
 
@@ -177,7 +178,7 @@ docker run --name salt_stack --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 If you choose using the [docker-compose.yml](docker-compose.yml) to manage your salt-master instance,
@@ -251,7 +252,7 @@ docker run --name salt_stack -it --rm \
     --env "USERMAP_UID=$(id -u)" --env "USERMAP_GID=$(id -g)" \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 ### Git Fileserver
@@ -339,7 +340,7 @@ docker run --name salt_stack -it --rm \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/3pfs/:/home/salt/data/3pfs/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 If you need to add more third party formulas, you can restart the container, or you can type the following command:
@@ -363,7 +364,7 @@ docker run --name salt_master --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 Check [Available Configuration Parameters](#available-configuration-parameters) section for configuring logrotate.
@@ -382,7 +383,7 @@ version: "3"
 services:
   master:
     container_name: salt_master
-    image: cdalvaro/docker-salt-master:3001.1
+    image: cdalvaro/docker-salt-master:latest
     healthcheck:
       test: ["CMD", "/usr/local/sbin/healthcheck"]
       start_period: 30s
@@ -401,7 +402,7 @@ docker run --name salt_master --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 Then you can manually check this info by running the following command:
@@ -486,7 +487,7 @@ docker run --name salt_master -d \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
-    cdalvaro/docker-salt-master:3001.1
+    cdalvaro/docker-salt-master:latest
 ```
 
 ## Usage
@@ -527,9 +528,9 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 - https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html
 - https://github.com/saltstack/salt/releases
 
-[saltstack_badge]: https://img.shields.io/badge/SaltStack-v3001.1-lightgrey.svg?style=flat-square&logo=Saltstack
-[saltstack_release_notes]: https://docs.saltstack.com/en/latest/topics/releases/3001.1.html "SaltStack Release Notes"
-[ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20200720-E95420.svg?style=flat-square&logo=Ubuntu
+[saltstack_badge]: https://img.shields.io/badge/SaltStack-v3002-lightgrey.svg?style=flat-square&logo=Saltstack
+[saltstack_release_notes]: https://docs.saltstack.com/en/latest/topics/releases/3002.html "SaltStack Release Notes"
+[ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20200925-E95420.svg?style=flat-square&logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
 [github_publish_badge]: https://img.shields.io/github/workflow/status/cdalvaro/docker-salt-master/Publish%20Docker%20image?style=flat-square&label=build&logo=GitHub&logoColor=%23181717
 [github_publish_workflow]: https://github.com/cdalvaro/docker-salt-master/actions?query=workflow%3A%22Publish+Docker+image%22
@@ -539,3 +540,5 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 [codefactor_score]: https://www.codefactor.io/repository/github/cdalvaro/docker-salt-master
 [stackoverflow_badge]: https://img.shields.io/badge/stackoverflow-community-orange?style=flat-square&logo=stackoverflow&color=FE7A16
 [stackoverflow_community]: https://stackoverflow.com/tags/salt-stack
+[slack_badge]: https://img.shields.io/badge/slack-@saltstackcommunity-blue.svg?style=flat-square&logo=slack&logoColor=4A154B&color=4A154B
+[slack_community]: https://saltstackcommunity.herokuapp.com

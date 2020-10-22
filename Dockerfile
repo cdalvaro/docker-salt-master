@@ -1,15 +1,13 @@
-FROM ubuntu:focal-20200720
+FROM ubuntu:focal-20200925
 
 ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
-ENV SALT_VERSION="3001.1" \
-    PYTHON_VERSION="3.8" \
-    LIBSSH2_VERSION="1.9.0" \
-    LIBGIT2_VERSION="1.0.1" \
-    PYGIT2_VERSION="1.2.1" \
-    M2CRYPTO_VERSION="0.36.0"
+ENV SALT_VERSION="3002" \
+    PYTHON_VERSION="3.8"
+
+ENV IMAGE_VERSION="${SALT_VERSION}"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
@@ -69,7 +67,7 @@ LABEL \
     maintainer="carlos@cdalvaro.io" \
     org.label-schema.vendor=cdalvaro \
     org.label-schema.name="SaltStack Master" \
-    org.label-schema.version=${SALT_VERSION} \
+    org.label-schema.version=${IMAGE_VERSION} \
     org.label-schema.description="Dockerized SaltStack Master" \
     org.label-schema.url="https://github.com/cdalvaro/docker-salt-master" \
     org.label-schema.vcs-url="https://github.com/cdalvaro/docker-salt-master.git" \

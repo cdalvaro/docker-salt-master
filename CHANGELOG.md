@@ -1,17 +1,25 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3001.1.html) for the list of changes in SaltStack.
+Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3002.html) for the list of changes in SaltStack.
+
+**3002**
+
+- Upgrade `salt-master` to `3002` *Magnesium*
+- Bring back support for Linux ARMv7 platform
+- Remove patch for muting sudo `RLIMIT_CORE` message
+- Install `pygit2` and `m2crypto` from ubuntu repositories
+- Change Docker base image to `ubuntu:focal-20200925`
 
 **3001.1**
 
-- Upgrade SaltStack Master to `3001.1` *Sodium*
+- Upgrade `salt-master` to `3001.1` *Sodium*
 - Upgrade `m2crypto` to version `0.36.0`
 - Change Docker base image to `ubuntu:focal-20200720`
 
 **3001**
 
-- Upgrade SaltStack Master to `3001` *Sodium*
+- Upgrade `salt-master` to `3001` *Sodium*
 - Upgrade Python to version `3.8`
 - Upgrade `libgit2` to version `1.0.1`
 - Change Docker base image to `ubuntu:focal-20200606`
@@ -31,18 +39,18 @@ Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/late
 
 **3000.3**
 
-- Upgrade SaltStack Master to `3000.3`
+- Upgrade `salt-master` to `3000.3`
 - Upgrade `pygit2` to version `1.2.1`
 
 **3000.2**
 
-- Upgrade SaltStack Master to `3000.2`
+- Upgrade `salt-master` to `3000.2`
 - Upgrade `pygit2` to version `1.2.0`
 - Change Docker base image to `ubuntu:bionic-20200403`
 
 **3000.1**
 
-- Upgrade SaltStack Master to `3000.1`
+- Upgrade `salt-master` to `3000.1`
 - Upgrade `libgit2` to version `1.0.0`
 - Upgrade `pygit2` to version `1.1.1`
 
@@ -53,32 +61,32 @@ Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/late
 
 **3000**
 
-- Upgrade SaltStack Master to `3000` *Neon*
+- Upgrade `salt-master` to `3000` *Neon*
 - Change Docker base image to `ubuntu:bionic-20200112`
 - Upgrade pygit2 to version `1.0.3`
 
 **2019.2.3**
 
-- Upgrade SaltStack Master to `2019.2.3`
+- Upgrade `salt-master` to `2019.2.3`
 - Change Docker base image to `ubuntu:bionic-20191202`
 - Upgrade `libgit2` to version `0.28.4`
 - Upgrade `pygit2` to version `1.0.2`
 
 **2019.2.2**
 
-- Upgrade SaltStack Master to `2019.2.2`
+- Upgrade `salt-master` to `2019.2.2`
 - Change Docker base image to `ubuntu:bionic-20191010`
 
 **2019.2.1**
 
-- Upgrade SaltStack Master to `2019.2.1`
+- Upgrade `salt-master` to `2019.2.1`
 - Change Docker base image to `ubuntu:bionic-20190912.1`
 - Upgrade `libssh2` to version `1.9.0`
 - Upgrade `m2crypto` to version `0.35.2`
 
 **2019.2.0**
 
-- Upgrade SaltStack Master to `2019.2.0`
+- Upgrade `salt-master` to `2019.2.0`
 - Change Docker base image to `ubuntu:bionic-20190204`
 - Upgrade Python to version `3.6`
 - Upgrade `libgit2` to `0.27.8`
@@ -86,12 +94,12 @@ Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/late
 
 **2018.3.4**
 
-- Upgrade SaltStack Master to `2018.3.4`
+- Upgrade `salt-master` to `2018.3.4`
 - Change Docker base image to `ubuntu:xenial-20190122`
 
 **2018.3.3**
 
-- Upgrade SaltStack Master to `2018.3.3`
+- Upgrade `salt-master` to `2018.3.3`
 - Change Docker base image to `ubuntu:xenial-20181113`
 - Add `GitPython` support
 - Add `PyGit2` support
@@ -106,4 +114,4 @@ Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/late
 
 **2018.3.2**
 
-- First version: SaltStack Master `2018.3.2`
+- First version: `salt-master` `2018.3.2`
