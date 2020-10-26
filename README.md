@@ -378,7 +378,7 @@ If you are running this image under k8s, you can define a _liveness command_ as 
 If you use `docker-compose` as your container orchestrator, you can add the following entries to your compose file:
 
 ```yml
-version: "3"
+version: "3.4"
 
 services:
   master:
