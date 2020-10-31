@@ -1,7 +1,11 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3000.3.html) for the list of changes in SaltStack.
+Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3000.5.html) for the list of changes in SaltStack.
+
+**3000.5**
+
+- Upgrade SaltStack Master to `3000.5`
 
 **3000.3_2**
 
