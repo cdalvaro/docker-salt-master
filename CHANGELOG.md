@@ -1,10 +1,11 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3002.html) for the list of changes in SaltStack.
+Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3002.1.html) for the list of changes in SaltStack.
 
 **3002.1**
 
+- Upgrade `salt-master` to `3002.1` *Magnesium*
 - Change Docker base image to `ubuntu:focal-20201008`
 
 **3002**
