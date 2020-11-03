@@ -313,7 +313,7 @@ function initialize_datadir()
 
   # Salt formulas
   if [[ -w "${SALT_FORMULAS_DIR}" ]]; then
-    chown -R "${SALT_USER}": "${SALT_FORMULAS_DIR}" || log_error "Unable to change '${SALT_CONFS_DIR}' ownership"
+    chown -R "${SALT_USER}": "${SALT_FORMULAS_DIR}" || log_error "Unable to change '${SALT_FORMULAS_DIR}' ownership"
   else
     echo "${SALT_FORMULAS_DIR} is mounted as a read-only volume. Ownership won't be changed."
   fi
