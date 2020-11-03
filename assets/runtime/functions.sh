@@ -208,8 +208,10 @@ function configure_salt_api()
   echo "Configuring salt-api service ..."
 
   CERTS_PATH=/etc/pki
+  SALT_API_KEY_FILE='docker-salt-master'
   rm -rf "${CERTS_PATH}/tls/certs/*"
-  salt-call --local tls.create_self_signed_cert cacert_path="${CERTS_PATH}" CN=docker-salt-master
+  salt-call --local tls.create_self_signed_cert cacert_path="${CERTS_PATH}" CN="${SALT_API_KEY_FILE}"
+  chown "${SALT_USER}": "${CERTS_PATH}/tls/certs/${SALT_API_KEY_FILE}".{crt,key}
 
   cat >> "${SALT_ROOT_DIR}/master" <<EOF
 
@@ -221,8 +223,8 @@ api_logfile: ${SALT_LOGS_DIR}/salt/api
 
 rest_cherrypy:
   port: 8000
-  ssl_crt: /etc/pki/tls/certs/docker-salt-master.crt
-  ssl_key: /etc/pki/tls/certs/docker-salt-master.key
+  ssl_crt: ${CERTS_PATH}/tls/certs/${SALT_API_KEY_FILE}.crt
+  ssl_key: ${CERTS_PATH}/tls/certs/${SALT_API_KEY_FILE}.key
 EOF
 
   # configure supervisord to start salt-api
