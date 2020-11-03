@@ -33,7 +33,15 @@ function map_uidgid()
     echo "Mapping UID and GID for ${SALT_USER}:${SALT_USER} to ${USERMAP_UID}:${USERMAP_GID} ..."
     groupmod -o -g "${USERMAP_GID}" "${SALT_USER}"
     sed -i -e "s|:${USERMAP_ORIG_UID}:${USERMAP_GID}:|:${USERMAP_UID}:${USERMAP_GID}:|" /etc/passwd
-    find "${SALT_HOME}" -path "${SALT_DATA_DIR}/*" \( ! -uid "${USERMAP_ORIG_UID}" -o ! -gid "${USERMAP_ORIG_GID}" \) -print0 | xargs -0 chown -h "${SALT_USER}": "${SALT_HOME}"
+    find "${SALT_HOME}" \
+        -not -path "${SALT_CONFS_DIR}*" \
+        -not -path "${SALT_KEYS_DIR}*" \
+        -not -path "${SALT_BASE_DIR}*" \
+        -not -path "${SALT_LOGS_DIR}*" \
+        -not -path "${SALT_FORMULAS_DIR}*" \
+        -path "${SALT_DATA_DIR}/*" \
+        \( ! -uid "${USERMAP_ORIG_UID}" -o ! -gid "${USERMAP_ORIG_GID}" \) \
+        -print0 | xargs -0 chown -h "${SALT_USER}": "${SALT_HOME}"
   fi
 }
 
@@ -124,7 +132,7 @@ function setup_salt_keys()
   done < <(find "${SALT_KEYS_DIR}" -maxdepth 1 -type f -print0)
 
   find "${SALT_KEYS_DIR}/minions"* -maxdepth 1 -type f -exec chmod 644 {} \;
-  find "${SALT_HOME}" -path "${SALT_KEYS_DIR}/*" -prune -o -print0 | xargs -0 chown -h "${SALT_USER}":
+  find "${SALT_HOME}" -path "${SALT_KEYS_DIR}/*" -print0 | xargs -0 chown -h "${SALT_USER}":
 }
 
 # This function configures ssh keys
@@ -262,6 +270,18 @@ function initialize_datadir()
   # This symlink simplifies paths for loading sls files
   [[ -d /srv ]] && [[ ! -L /srv ]] && rm -rf /srv
   ln -sfnv "${SALT_BASE_DIR}" /srv
+  if [[ -w "${SALT_BASE_DIR}" ]]; then
+    chown -R "${SALT_USER}": "${SALT_BASE_DIR}" || log_error "Unable to change '${SALT_BASE_DIR}' ownership"
+  else
+    echo "${SALT_BASE_DIR} is mounted as a read-only volume. Ownership won't be changed."
+  fi
+
+  # Salt configuration directory
+  if [[ -w "${SALT_CONFS_DIR}" ]]; then
+    chown -R "${SALT_USER}": "${SALT_CONFS_DIR}" || log_error "Unable to change '${SALT_CONFS_DIR}' ownership"
+  else
+    echo "${SALT_CONFS_DIR} is mounted as a read-only volume. Ownership won't be changed."
+  fi
 
   # Set Salt root permissions
   chown -R "${SALT_USER}": "${SALT_ROOT_DIR}"
@@ -275,16 +295,28 @@ function initialize_datadir()
   chown -R "${SALT_USER}": /var/cache/salt
 
   # Keys directories
+  if [[ ! -w "${SALT_KEYS_DIR}" ]]; then
+    log_error "Keys directory: '${SALT_KEYS_DIR}' must be mounted as a read-write volume"
+    exit 1
+  fi
   mkdir -p "${SALT_KEYS_DIR}/minions"
   chown -R "${SALT_USER}": "${SALT_KEYS_DIR}"
 
   # Logs directory
+  if [[ ! -w "${SALT_LOGS_DIR}" ]]; then
+    log_error "Logs directory: '${SALT_LOGS_DIR}' must be mounted as a read-write volume"
+    exit 1
+  fi
   mkdir -p "${SALT_LOGS_DIR}/salt" "${SALT_LOGS_DIR}/supervisor"
   chmod -R 0755 "${SALT_LOGS_DIR}/supervisor"
   chown -R root: "${SALT_LOGS_DIR}/supervisor"
 
   # Salt formulas
-  chown -R "${SALT_USER}": "${SALT_FORMULAS_DIR}"
+  if [[ -w "${SALT_FORMULAS_DIR}" ]]; then
+    chown -R "${SALT_USER}": "${SALT_FORMULAS_DIR}" || log_error "Unable to change '${SALT_FORMULAS_DIR}' ownership"
+  else
+    echo "${SALT_FORMULAS_DIR} is mounted as a read-only volume. Ownership won't be changed."
+  fi
 
   [[ -d /var/log/salt ]] && [[ ! -L /var/log/salt ]] && rm -rf /var/log/salt
   mkdir -p "${SALT_LOGS_DIR}/salt" /var/log
