@@ -271,14 +271,14 @@ function initialize_datadir()
   [[ -d /srv ]] && [[ ! -L /srv ]] && rm -rf /srv
   ln -sfnv "${SALT_BASE_DIR}" /srv
   if [[ -w "${SALT_BASE_DIR}" ]]; then
-    chown -R "${SALT_USER}": "${SALT_BASE_DIR}"
+    chown -R "${SALT_USER}": "${SALT_BASE_DIR}" || log_error "Unable to change '${SALT_CONFS_DIR}' ownership"
   else
     echo "${SALT_BASE_DIR} is mounted as a read-only volume. Ownership won't be changed."
   fi
-  
+
   # Salt configuration directory
   if [[ -w "${SALT_CONFS_DIR}" ]]; then
-    chown -R "${SALT_USER}": "${SALT_CONFS_DIR}"
+    chown -R "${SALT_USER}": "${SALT_CONFS_DIR}" || log_error "Unable to change '${SALT_CONFS_DIR}' ownership"
   else
     echo "${SALT_CONFS_DIR} is mounted as a read-only volume. Ownership won't be changed."
   fi
@@ -313,7 +313,7 @@ function initialize_datadir()
 
   # Salt formulas
   if [[ -w "${SALT_FORMULAS_DIR}" ]]; then
-    chown -R "${SALT_USER}": "${SALT_FORMULAS_DIR}"
+    chown -R "${SALT_USER}": "${SALT_FORMULAS_DIR}" || log_error "Unable to change '${SALT_CONFS_DIR}' ownership"
   else
     echo "${SALT_FORMULAS_DIR} is mounted as a read-only volume. Ownership won't be changed."
   fi
