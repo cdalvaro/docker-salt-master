@@ -7,6 +7,7 @@ Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/late
 
 - Upgrade `salt-master` to `3002.1` *Magnesium*
 - Change Docker base image to `ubuntu:focal-20201008`
+- Fix issue changing _read-only_ directories ownership ([@Kidswiss](https://github.com/Kidswiss) - [#47](https://github.com/cdalvaro/docker-salt-master/pull/47))
 
 **3002**
 
