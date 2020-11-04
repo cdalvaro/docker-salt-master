@@ -1,7 +1,13 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3002.html) for the list of changes in SaltStack.
+Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3002.1.html) for the list of changes in SaltStack.
+
+**3002.1**
+
+- Upgrade `salt-master` to `3002.1` *Magnesium*
+- Change Docker base image to `ubuntu:focal-20201008`
+- Fix issue changing _read-only_ directories ownership ([@Kidswiss](https://github.com/Kidswiss) - [#47](https://github.com/cdalvaro/docker-salt-master/pull/47))
 
 **3002**
 

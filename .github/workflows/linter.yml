@@ -18,6 +18,7 @@ jobs:
       - name: Lint code base
         uses: github/super-linter@v3
         env:
+          VALIDATE_ALL_CODEBASE: false
           VALIDATE_DOCKERFILE_HADOLINT: true
           VALIDATE_BASH: true
           DEFAULT_BRANCH: master
