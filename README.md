@@ -6,7 +6,7 @@
 [![Docker Image Size][docker_size_badge]][docker_hub_tags]
 [![CodeFactor][codefactor_badge]][codefactor_score]
 
-# Dockerized SaltStack Master Magnesium v3002.1
+# Dockerized SaltStack Master v3002.2 _Magnesium_
 
 Dockerfile to build a [SaltStack](https://www.saltstack.com) Master image for the Docker opensource container platform.
 
@@ -44,7 +44,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
 Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/docker-salt-master/) and is the recommended method of installation.
 
 ```sh
-docker pull cdalvaro/docker-salt-master:3002.1
+docker pull cdalvaro/docker-salt-master:3002.2
 ```
 
 You can also pull the latest tag which is built from the repository `HEAD`
@@ -528,9 +528,9 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 - https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html
 - https://github.com/saltstack/salt/releases
 
-[saltstack_badge]: https://img.shields.io/badge/SaltStack-v3002.1-lightgrey.svg?style=flat-square&logo=Saltstack
-[saltstack_release_notes]: https://docs.saltstack.com/en/latest/topics/releases/3002.1.html "SaltStack Release Notes"
-[ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20200925-E95420.svg?style=flat-square&logo=Ubuntu
+[saltstack_badge]: https://img.shields.io/badge/SaltStack-v3002.2-lightgrey.svg?style=flat-square&logo=Saltstack
+[saltstack_release_notes]: https://docs.saltstack.com/en/latest/topics/releases/3002.2.html "SaltStack Release Notes"
+[ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20201008-E95420.svg?style=flat-square&logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
 [github_publish_badge]: https://img.shields.io/github/workflow/status/cdalvaro/docker-salt-master/Publish%20Docker%20image?style=flat-square&label=build&logo=GitHub&logoColor=%23181717
 [github_publish_workflow]: https://github.com/cdalvaro/docker-salt-master/actions?query=workflow%3A%22Publish+Docker+image%22

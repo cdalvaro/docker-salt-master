@@ -24,9 +24,9 @@ A clear and concise description of what you expected to happen.
 The full log with the outputted error.
 
 **Version report (please complete the following information):**
- - OS: [e.g. `uname -a`]
+ - Host OS: [e.g. `uname -a`]
  - Docker: [`docker --version`]
- - Image tag: [e.g. 3002.1]
+ - Image tag: [e.g. 3002.2]
 
 **Additional context**
 Add any other context about the problem here.
