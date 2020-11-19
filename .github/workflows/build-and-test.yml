@@ -127,7 +127,7 @@ jobs:
         run: docker container ls
 
       - name: Wait for salt-master bootup
-        run: sleep 20
+        run: sleep 90
 
       - name: Show salt versions
         run: docker exec saltstack_master salt --versions
