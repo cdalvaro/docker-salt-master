@@ -1,6 +1,7 @@
 # development
-roots/
-keys/
-logs/
-3pfs/
+/config/
+/roots/
+/keys/
+/logs/
+/3pfs/
 .vscode/
