@@ -3,7 +3,7 @@ name: Build and test Docker image
 on:
   pull_request:
     branches:
-      - master
+      - main
     paths-ignore:
       - './**/*.md'
       - 'LICENSE'

@@ -3,7 +3,7 @@ name: Lint Code
 on:
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   lint:
@@ -21,5 +21,5 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_DOCKERFILE_HADOLINT: true
           VALIDATE_BASH: true
-          DEFAULT_BRANCH: master
+          DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
