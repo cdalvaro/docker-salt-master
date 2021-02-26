@@ -1,7 +1,11 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3002.4.html) for the list of changes in SaltStack.
+Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3002.5.html) for the list of changes in SaltStack.
+
+**3002.5**
+
+- Upgrade `salt-master` to `3002.5` *Magnesium*
 
 **3002.4**
 
