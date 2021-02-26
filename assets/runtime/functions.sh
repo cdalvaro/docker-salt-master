@@ -19,7 +19,7 @@ function exec_as_salt()
 # Log error
 function log_error()
 {
-  (>2& echo "ERROR: $*")
+  (>&2 echo "ERROR: $*")
 }
 
 # Map salt user with host user
