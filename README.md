@@ -1,12 +1,15 @@
 [![SaltStack][saltstack_badge]][saltstack_release_notes]
 [![Ubuntu Image][ubuntu_badge]][ubuntu_hub_docker]
-[![StackOverflow Community][stackoverflow_badge]][stackoverflow_community]
-[![Slack Community][slack_badge]][slack_community]
+[![Architecture AMD64][arch_amd64_badge]][arch_link]
+[![Architecture ARM64][arch_arm64_badge]][arch_link]
+[![Architecture ARM/v7][arch_arm_badge]][arch_link]
 [![Publish Workflow][github_publish_badge]][github_publish_workflow]
 [![Docker Image Size][docker_size_badge]][docker_hub_tags]
-[![CodeFactor][codefactor_badge]][codefactor_score]
 
-# Dockerized SaltStack Master v3002.2 _Magnesium_
+[![StackOverflow Community][stackoverflow_badge]][stackoverflow_community]
+[![Slack Community][slack_badge]][slack_community]
+
+# Dockerized SaltStack Master v3002.3 _Magnesium_
 
 Dockerfile to build a [SaltStack](https://www.saltstack.com) Master image for the Docker opensource container platform.
 
@@ -44,7 +47,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
 Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/docker-salt-master/) and is the recommended method of installation.
 
 ```sh
-docker pull cdalvaro/docker-salt-master:3002.2
+docker pull cdalvaro/docker-salt-master:3002.3
 ```
 
 You can also pull the latest tag which is built from the repository `HEAD`
@@ -528,17 +531,19 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 - https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html
 - https://github.com/saltstack/salt/releases
 
-[saltstack_badge]: https://img.shields.io/badge/SaltStack-v3002.2-lightgrey.svg?style=flat-square&logo=Saltstack
-[saltstack_release_notes]: https://docs.saltstack.com/en/latest/topics/releases/3002.2.html "SaltStack Release Notes"
+[saltstack_badge]: https://img.shields.io/badge/SaltStack-v3002.3-lightgrey.svg?style=flat-square&logo=Saltstack
+[saltstack_release_notes]: https://docs.saltstack.com/en/latest/topics/releases/3002.3.html "SaltStack Release Notes"
 [ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20201008-E95420.svg?style=flat-square&logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
 [github_publish_badge]: https://img.shields.io/github/workflow/status/cdalvaro/docker-salt-master/Publish%20Docker%20image?style=flat-square&label=build&logo=GitHub&logoColor=%23181717
 [github_publish_workflow]: https://github.com/cdalvaro/docker-salt-master/actions?query=workflow%3A%22Publish+Docker+image%22
 [docker_size_badge]: https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?style=flat-square&logo=docker&color=2496ED
 [docker_hub_tags]: https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags
-[codefactor_badge]: https://img.shields.io/codefactor/grade/github/cdalvaro/docker-salt-master?style=flat-square&logo=CodeFactor
-[codefactor_score]: https://www.codefactor.io/repository/github/cdalvaro/docker-salt-master
 [stackoverflow_badge]: https://img.shields.io/badge/stackoverflow-community-orange?style=flat-square&logo=stackoverflow&color=FE7A16
 [stackoverflow_community]: https://stackoverflow.com/tags/salt-stack
 [slack_badge]: https://img.shields.io/badge/slack-@saltstackcommunity-blue.svg?style=flat-square&logo=slack&logoColor=4A154B&color=4A154B
 [slack_community]: https://saltstackcommunity.herokuapp.com
+[arch_amd64_badge]: https://img.shields.io/badge/arch-amd64-inactive.svg?style=flat-square
+[arch_arm_badge]: https://img.shields.io/badge/arch-arm/v7-inactive.svg?style=flat-square
+[arch_arm64_badge]: https://img.shields.io/badge/arch-arm64-inactive.svg?style=flat-square
+[arch_link]: https://github.com/users/cdalvaro/packages/container/package/docker-salt-master
