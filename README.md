@@ -1,21 +1,19 @@
-[![SaltStack][saltstack_badge]][saltstack_release_notes]
+[![Salt Project][saltproject_badge]][saltproject_release_notes]
 [![Ubuntu Image][ubuntu_badge]][ubuntu_hub_docker]
+[![Publish Workflow][github_publish_badge]][github_publish_workflow]
+
+[![Docker Image Size][docker_size_badge]][docker_hub_tags]
 [![Architecture AMD64][arch_amd64_badge]][arch_link]
 [![Architecture ARM64][arch_arm64_badge]][arch_link]
 [![Architecture ARM/v7][arch_arm_badge]][arch_link]
-[![Publish Workflow][github_publish_badge]][github_publish_workflow]
-[![Docker Image Size][docker_size_badge]][docker_hub_tags]
 
-[![StackOverflow Community][stackoverflow_badge]][stackoverflow_community]
-[![Slack Community][slack_badge]][slack_community]
+# Dockerized Salt Master v3003 _Aluminium_
 
-# Dockerized SaltStack Master v3002.6 _Magnesium_
+Dockerfile to build a [Salt Project](https://saltproject.io) Master image for the Docker opensource container platform.
 
-Dockerfile to build a [SaltStack](https://www.saltstack.com) Master image for the Docker opensource container platform.
+`salt-master` is installed inside the Docker image using git source as documented in the the [official bootstrap](https://docs.saltproject.io/en/latest/topics/tutorials/salt_bootstrap.html) documentation.
 
-SaltStack Master is set up in the Docker image using the install from git source method as documented in the the [official bootstrap](https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html) documentation.
-
-For other methods to install SaltStack please refer to the [Official SaltStack Installation Guide](https://docs.saltstack.com/en/latest/topics/installation/index.html).
+For other methods to install `salt-master` please refer to the [Official Salt Project Installation Guide](https://docs.saltproject.io/en/latest/topics/installation/index.html).
 
 ## Table of Contents
 
@@ -47,7 +45,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
 Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/docker-salt-master/) and is the recommended method of installation.
 
 ```sh
-docker pull cdalvaro/docker-salt-master:3002.6
+docker pull cdalvaro/docker-salt-master:3003
 ```
 
 You can also pull the latest tag which is built from the repository `HEAD`
@@ -56,22 +54,22 @@ You can also pull the latest tag which is built from the repository `HEAD`
 docker pull cdalvaro/docker-salt-master:latest
 ```
 
-These images are also available from [Quay.io](https://quay.io/repository/cdalvaro/docker-salt-master):
-
-```sh
-docker pull quay.io/cdalvaro/docker-salt-master:latest
-```
-
-and from [GitHub Container Registry](https://github.com/users/cdalvaro/packages/container/package/docker-salt-master):
+These images are also available from [GitHub Container Registry](https://github.com/users/cdalvaro/packages/container/package/docker-salt-master):
 
 ```sh
 docker pull ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
-Alternatively, you can build the image locally.
+and from [Quay.io](https://quay.io/repository/cdalvaro/docker-salt-master):
 
 ```sh
-docker build -t cdalvaro/docker-salt-master github.com/cdalvaro/docker-salt-master
+docker pull quay.io/cdalvaro/docker-salt-master:latest
+```
+
+Alternatively, you can build the image locally using `make` command:
+
+```sh
+make release
 ```
 
 ## Quick Start
@@ -82,7 +80,7 @@ The quickest way to get started is using [docker-compose](https://docs.docker.co
 wget https://raw.githubusercontent.com/cdalvaro/docker-salt-master/master/docker-compose.yml
 ```
 
-Start SaltStack master using:
+Start the `docker-salt-master` container with the `docker-compose.yml` file by executing:
 
 ```sh
 docker-compose up --detach
@@ -103,16 +101,13 @@ docker run --name salt_master --detach \
 
 ### Custom States
 
-In order to provide salt with your custom states you must mount the volume `/home/salt/data/srv/`
-with your `roots` directory.
+In order to provide salt with your custom states you must mount the volume `/home/salt/data/srv/` with your `roots` directory inside it.
 
 ### Minion Keys
 
-Minion keys can be added automatically on startup to SaltStack master by mounting the volume
-`/home/salt/data/keys` and copying the minion keys inside `keys/minions/` directory.
+Minion keys can be added automatically on startup to `docker-salt-master` by mounting the volume `/home/salt/data/keys` and copying the minion keys inside `keys/minions/` directory.
 
-It is also important to know that, in order to keep your keys after removing the container,
-the keys directory must be mounted.
+It is also important to know that, in order to keep your keys after removing the container, the keys directory must be mounted.
 
 ```sh
 mkdir -p keys/minions
@@ -123,13 +118,37 @@ docker run --name salt_master -d \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/config/:/home/salt/data/config/ \
     cdalvaro/docker-salt-master:latest
 ```
 
+Also, you can set your `docker-salt-master` instance to autoaccept minions that match certain grains. To do that, add the `autosign_grains.conf` to your `config` directory:
+
+```sls
+# config/autosign_grains.conf
+autosign_grains_dir: /home/salt/data/srv/autosign_grains
+```
+
+Then, inside `roots/autosign_grains` you can place a file named like the grain you want to match and fill it with the content to match. For example, if you want to autoaccept minions that belong to specific domains, you have to add the `domain` file with the domains you want to allow:
+
+```sls
+# roots/autosign_grains/domain
+cdalvaro.io
+cdalvaro.com
+```
+
+It is possible that you have to configure the minion to send the specific grains to the master in the minion config file:
+
+```sls
+autosign_grains:
+  - domain
+```
+
+More info at: [Salt Project - Autoaccept Minions From Grains](https://docs.saltproject.io/en/latest/topics/tutorials/autoaccept_grains.html)
+
 ### Master Signed Keys
 
-It is possible to use signed master keys by establishing the environment variable
-`SALT_MASTER_SIGN_PUBKEY` to `True`.
+It is possible to use signed master keys by establishing the environment variable `SALT_MASTER_SIGN_PUBKEY` to `True`.
 
 ```sh
 docker run --name salt_stack --detach \
@@ -141,9 +160,7 @@ docker run --name salt_stack --detach \
     cdalvaro/docker-salt-master:latest
 ```
 
-The container will create the `master_sign` key and its signature.
-More information about how to configure the minion service can be found
-[here](https://docs.saltstack.com/en/latest/topics/tutorials/multimaster_pki.html#prepping-the-minion-to-verify-received-public-keys).
+The container will create the `master_sign` key and its signature. More information about how to configure the minion service can be found [here](https://docs.saltproject.io/en/latest/topics/tutorials/multimaster_pki.html#prepping-the-minion-to-verify-received-public-keys).
 
 Additionally, you can generate new keys by executing the following command:
 
@@ -160,8 +177,7 @@ The newly created keys will appear inside `keys/generated/new_master_sign` direc
 
 You can enable `salt-api` service by setting env variable `SALT_API_SERVICE_ENABLED` to `true`.
 
-A self-signed SSL certificate will be automatically generated and the following configuration
-will be added to the master configuration file:
+A self-signed SSL certificate will be automatically generated and the following configuration will be added to the master configuration file:
 
 ```yml
 rest_cherrypy:
@@ -170,8 +186,7 @@ rest_cherrypy:
   ssl_key: /etc/pki/tls/certs/docker-salt-master.key
 ```
 
-The container exposes port `8000` by default, although you can map this port to whatever port you like in
-your `docker run` command:
+The container exposes port `8000` by default, although you can map this port to whatever port you like in your `docker run` command:
 
 ```sh
 docker run --name salt_stack --detach \
@@ -184,20 +199,15 @@ docker run --name salt_stack --detach \
     cdalvaro/docker-salt-master:latest
 ```
 
-If you choose using the [docker-compose.yml](docker-compose.yml) to manage your salt-master instance,
-uncomment salt-api settings to enable and configure the service.
+If you choose using the [docker-compose.yml](docker-compose.yml) to manage your salt-master instance, uncomment salt-api settings to enable and configure the service.
 
-By default, user `salt_api` is created and you can set its password by setting the environment variable
-`SALT_API_USER_PASS`.
+By default, user `salt_api` is created and you can set its password by setting the environment variable `SALT_API_USER_PASS`.
 
-You can also change the salt-api _username_ by setting `SALT_API_USER`.
-It is possible to disable this user by explicitly setting this variable to an empty string: `SALT_API_USER=''` if you are going to use an `LDAP` server.
+You can also change the salt-api _username_ by setting `SALT_API_USER`. It is possible to disable this user by explicitly setting this variable to an empty string: `SALT_API_USER=''` if you are going to use an `LDAP` server.
 
-As a security measure, if `SALT_API_SERVICE_ENABLED` is set to `true` and you don't disable `SALT_API_USER`,
-you'll be required to set `SALT_API_USER_PASS`. Otherwise initialization will fail and your Docker image won't work.
+As a security measure, if `SALT_API_SERVICE_ENABLED` is set to `true` and you don't disable `SALT_API_USER`, you'll be required to set `SALT_API_USER_PASS`. Otherwise initialization will fail and your Docker image won't work.
 
-With all that set, you'll be able to provide your _salt-api_ custom configuration by creating the `salt-api.conf`
-file inside your `conf` directory:
+With all that set, you'll be able to provide your _salt-api_ custom configuration by creating the `salt-api.conf` file inside your `conf` directory:
 
 ```yml
 external_auth:
@@ -209,7 +219,7 @@ external_auth:
       - "@jobs"
 ```
 
-More information is available in the following link: [External Authentication System (eAuth)](https://docs.saltstack.com/en/latest/topics/eauth/index.html#acl-eauth).
+More information is available in the following link: [External Authentication System (eAuth)](https://docs.saltproject.io/en/latest/topics/eauth/index.html#acl-eauth).
 
 Now you have your docker-salt-master docker image ready to accept external authentications and to connect external tools such as [`saltstack/pepper`](https://github.com/saltstack/pepper).
 
@@ -262,7 +272,7 @@ docker run --name salt_stack -it --rm \
 
 This image uses [GitPython](https://github.com/gitpython-developers/GitPython) and [PyGit2](https://www.pygit2.org) as gitfs backends to allow Salt to serve files from git repositories.
 
-It can be enabled by adding `gitfs` to the [`fileserver_backend`](https://docs.saltstack.com/en/latest/ref/configuration/master.html#std:conf_master-fileserver_backend) list (see [Available Configuration Parameters](#available-configuration-parameters)), and configuring one or more repositories in [`gitfs_remotes`](https://docs.saltstack.com/en/latest/ref/configuration/master.html#std:conf_master-gitfs_remotes).
+It can be enabled by adding `gitfs` to the [`fileserver_backend`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std:conf_master-fileserver_backend) list (see [Available Configuration Parameters](#available-configuration-parameters)), and configuring one or more repositories in [`gitfs_remotes`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std:conf_master-gitfs_remotes).
 
 #### GitPython
 
@@ -315,18 +325,18 @@ gitfs_remotes:
   - https://github.com/aokiji/salt-formula-helm.git
 ```
 
-This is the [SaltStack recommended](https://docs.saltstack.com/en/latest/topics/development/conventions/formulas.html#adding-a-formula-as-a-gitfs-remote) way of doing it, and you can go to the [Git Fileserver](#git-fileserver) section on this document if you need help configuring this service.
+This is the [Salt recommended](https://docs.saltproject.io/en/latest/topics/development/conventions/formulas.html#adding-a-formula-as-a-gitfs-remote) way of doing it, and you can go to the [Git Fileserver](#git-fileserver) section on this document if you need help configuring this service.
 
 You can find a great set of formulas on the following GitHub repositories:
 
-- [Official SaltStack Formulas](https://github.com/saltstack-formulas)
-- [Unofficial SaltStack Formulas](https://github.com/salt-formulas)
+- [Official Salt Formulas](https://github.com/saltstack-formulas)
+- [Unofficial Salt Formulas](https://github.com/salt-formulas)
 
-Although, as mention in [SaltStack documentation](https://docs.saltstack.com/en/latest/topics/development/conventions/formulas.html#adding-a-formula-as-a-gitfs-remote), you are encouraged to fork desired formulas to avoid unexpected changes to your infrastructure.
+Although, as mention in [Salt Project documentation](https://docs.saltproject.io/en/latest/topics/development/conventions/formulas.html#adding-a-formula-as-a-gitfs-remote), you are encouraged to fork desired formulas to avoid unexpected changes to your infrastructure.
 
 However, sometimes you may need to load some formulas that are not available on a git repository and you want to have them separated from your main `srv` directory.
 
-For that case, you can mount a volume containing all your third party formulas separeted in subdirectories into `/home/salt/data/3pfs/`, and they will be automatically added to the master configuration when your container starts.
+For that case, you can mount a volume containing all your third party formulas separated in subdirectories into `/home/salt/data/3pfs/`, and they will be automatically added to the master configuration when your container starts.
 
 ```sh
 # 3pfs directory content
@@ -450,7 +460,7 @@ This container will watch your containers and restart your failing instances.
 
 Please refer the docker run command options for the `--env-file` flag where you can specify all required environment variables in a single file. This will save you from writing a potentially long docker run command. Alternatively you can use docker-compose.
 
-Below is the list of available options that can be used to customize your SaltStack master installation.
+Below you can find a list with the available options that can be used to customize your `docker-salt-master` installation.
 
 | Parameter                          | Description                                                                                                                                                                                                                |
 | :--------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -473,7 +483,7 @@ Below is the list of available options that can be used to customize your SaltSt
 | `USERMAP_UID`                      | Sets the uid for user `salt` to the specified uid. Default: `1000`.                                                                                                                                                        |
 | `USERMAP_GID`                      | Sets the gid for user `salt` to the specified gid. Default: `1000`.                                                                                                                                                        |
 
-Any parameter not listed in the above table and available in the following [link](https://docs.saltstack.com/en/latest/ref/configuration/examples.html#configuration-examples-master), can be set by creating the directory `config` and adding into it a `.conf` file with the desired parameters:
+Any parameter not listed in the above table and available in the following [link](https://docs.saltproject.io/en/latest/ref/configuration/examples.html#configuration-examples-master), can be set by creating the directory `config` and adding into it a `.conf` file with the desired parameters:
 
 ```sh
 mkdir config
@@ -527,23 +537,25 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 
 ## References
 
-- https://docs.saltstack.com/en/latest/topics/installation/index.html
-- https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html
-- https://github.com/saltstack/salt/releases
+[![StackOverflow Community][stackoverflow_badge]][stackoverflow_community]
+[![Slack Community][slack_badge]][slack_community]
 
-[saltstack_badge]: https://img.shields.io/badge/SaltStack-v3002.6-lightgrey.svg?style=flat-square&logo=Saltstack
-[saltstack_release_notes]: https://docs.saltstack.com/en/latest/topics/releases/3002.6.html "SaltStack Release Notes"
-[ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20201008-E95420.svg?style=flat-square&logo=Ubuntu
+- https://docs.saltproject.io/en/getstarted/
+- https://docs.saltproject.io/en/latest/contents.html
+
+[saltproject_badge]: https://img.shields.io/badge/Salt-v3003-lightgrey.svg?logo=Saltstack
+[saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3003.html "Salt Project Release Notes"
+[ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20210217-E95420.svg?logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
-[github_publish_badge]: https://img.shields.io/github/workflow/status/cdalvaro/docker-salt-master/Publish%20Docker%20image?style=flat-square&label=build&logo=GitHub&logoColor=%23181717
+[github_publish_badge]: https://img.shields.io/github/workflow/status/cdalvaro/docker-salt-master/Publish%20Docker%20image?label=build&logo=GitHub&logoColor=%23181717
 [github_publish_workflow]: https://github.com/cdalvaro/docker-salt-master/actions?query=workflow%3A%22Publish+Docker+image%22
-[docker_size_badge]: https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?style=flat-square&logo=docker&color=2496ED
+[docker_size_badge]: https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED
 [docker_hub_tags]: https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags
-[stackoverflow_badge]: https://img.shields.io/badge/stackoverflow-community-orange?style=flat-square&logo=stackoverflow&color=FE7A16
+[stackoverflow_badge]: https://img.shields.io/badge/stackoverflow-community-orange?logo=stackoverflow&color=FE7A16
 [stackoverflow_community]: https://stackoverflow.com/tags/salt-stack
-[slack_badge]: https://img.shields.io/badge/slack-@saltstackcommunity-blue.svg?style=flat-square&logo=slack&logoColor=4A154B&color=4A154B
+[slack_badge]: https://img.shields.io/badge/slack-@saltstackcommunity-blue.svg?logo=slack&logoColor=4A154B&color=4A154B
 [slack_community]: https://saltstackcommunity.herokuapp.com
-[arch_amd64_badge]: https://img.shields.io/badge/arch-amd64-inactive.svg?style=flat-square
-[arch_arm_badge]: https://img.shields.io/badge/arch-arm/v7-inactive.svg?style=flat-square
-[arch_arm64_badge]: https://img.shields.io/badge/arch-arm64-inactive.svg?style=flat-square
+[arch_amd64_badge]: https://img.shields.io/badge/arch-amd64-2496ED.svg
+[arch_arm_badge]: https://img.shields.io/badge/arch-arm/v7-2496ED.svg
+[arch_arm64_badge]: https://img.shields.io/badge/arch-arm64-2496ED.svg
 [arch_link]: https://github.com/users/cdalvaro/packages/container/package/docker-salt-master
