@@ -6,6 +6,7 @@ Please refer to the [Salt 3002.5 Release Notes](https://docs.saltstack.com/en/la
 **3003**
 
 - Add python3 `timelib` `0.2.5`
+- Change Docker base image to `ubuntu:focal-20210217`
 
 **3002.6**
 
