@@ -31,6 +31,8 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recomm
   python3-redis python3-gnupg python3-mysqldb python3-dateutil python3-libnacl python3-openssl \
   python3-pygit2 python3-m2crypto
 
+pip3 install timelib==0.2.5
+
 # Bootstrap script options:
 # https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html#command-line-options
 ## -M: install Salt Master by default

@@ -1,7 +1,11 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the SaltStack [Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3002.6.html) for the list of changes in SaltStack.
+Please refer to the [Salt 3002.5 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3002.5.html) for the list of changes in SaltStack.
+
+**3003**
+
+- Add python3 `timelib` `0.2.5`
 
 **3002.6**
 
