@@ -4,15 +4,17 @@ set -e
 
 source "${SALT_BUILD_DIR}/functions.sh"
 
-echo "Updating repositories ..."
+echo "Installing build dependencies ..."
+BUILD_DEPENDENCIES=(make gcc g++ cmake pkg-config)
+
 apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y "${BUILD_DEPENDENCIES[@]}"
 
 # Install arm build dependencies
 if [[ "$(uname -i)" =~ ^(arm|aarch64) ]]; then
-  echo "Installing arm dependencies ..."
+  echo "Installing arm specific dependencies ..."
   DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
-    make gcc g++ cmake libzmq3-dev \
-    libhttp-parser-dev libssl-dev libcurl4-openssl-dev
+    libzmq3-dev libhttp-parser-dev libssl-dev libcurl4-openssl-dev
 fi
 
 # Create salt user
@@ -107,5 +109,6 @@ stderr_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
 EOF
 
 # Purge build dependencies and cleanup apt
+DEBIAN_FRONTEND=noninteractive apt-get purge -y --auto-remove "${BUILD_DEPENDENCIES[@]}"
 DEBIAN_FRONTEND=noninteractive apt-get clean --yes
 rm -rf /var/lib/apt/lists/*
