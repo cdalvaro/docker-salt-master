@@ -1,6 +1,10 @@
 name: Security analysis
 
 on:
+  push:
+    branches:
+      - main
+  pull_request:
   schedule:
     - cron: '0 0 * * 1'
 
@@ -8,9 +12,46 @@ jobs:
   security-analysis:
     name: Trivy scan
     runs-on: ubuntu-latest
+    env:
+      CACHE_PATH: /tmp/.buildx-cache
 
     steps:
+      - name: Checkout repository
+        if: github.event_name != 'schedule'
+        uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        if: github.event_name != 'schedule'
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        if: github.event_name != 'schedule'
+        uses: docker/setup-buildx-action@v1
+
+      - name: Cache Docker layers
+        if: github.event_name != 'schedule'
+        uses: actions/cache@v2.1.4
+        with:
+          path: ${{ env.CACHE_PATH }}
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Build docker-salt-master image
+        if: github.event_name != 'schedule'
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          cache-from: |
+            type=local,src=${{ env.CACHE_PATH }}
+            ghcr.io/cdalvaro/docker-salt-master:latest
+          cache-to: type=local,dest=${{ env.CACHE_PATH }}
+          load: true
+          tags: ghcr.io/cdalvaro/docker-salt-master:${{ github.sha }}
+
       - name: Download and tag latest image
+        if: github.event_name == 'schedule'
         run: |
           docker pull ghcr.io/cdalvaro/docker-salt-master:latest
           docker tag ghcr.io/cdalvaro/docker-salt-master:latest ghcr.io/cdalvaro/docker-salt-master:${{ github.sha }}
