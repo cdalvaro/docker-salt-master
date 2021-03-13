@@ -45,9 +45,10 @@ jobs:
           file: ./Dockerfile
           cache-from: |
             type=local,src=${{ env.CACHE_PATH }}
-            ghcr.io/cdalvaro/docker-salt-master:${{ github.sha }}
+            ghcr.io/cdalvaro/docker-salt-master:latest
           cache-to: type=local,dest=${{ env.CACHE_PATH }}
-          push: false
+          load: true
+          tags: ghcr.io/cdalvaro/docker-salt-master:${{ github.sha }}
 
       - name: Download and tag latest image
         if: github.event_name == 'schedule'
