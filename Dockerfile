@@ -32,7 +32,7 @@ WORKDIR ${SALT_BUILD_DIR}
 # hadolint ignore=DL3008
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
-    sudo ca-certificates apt-transport-https wget locales pkg-config openssh-client \
+    sudo ca-certificates apt-transport-https wget locales openssh-client \
     python${PYTHON_VERSION} python${PYTHON_VERSION}-dev \
     python3-pip python3-setuptools python3-wheel \
     supervisor logrotate git gettext-base tzdata \
