@@ -21,6 +21,7 @@ For other methods to install `salt-master` please refer to the [Official Salt Pr
   - [Changelog](CHANGELOG.md)
 - [Quick Start](#quick-start)
 - [Configuration](#configuration)
+  - [Custom Configuration](#custom-configuration)
   - [Custom States](#custom-states)
   - [Minion Keys](#minion-keys)
   - [Master Signed Keys](#master-signed-keys)
@@ -98,6 +99,39 @@ docker run --name salt_master --detach \
 ```
 
 ## Configuration
+
+### Custom Configuration
+
+This image uses its own `master.yml` file to configure `salt-master` to run properly inside the container. However, you can still tune other configuration parameters to fit your needs by adding your configuration files into a `config/` directory and mounting it into `/home/salt/data/config/`.
+
+For example, you can customize the [Reactor System](https://docs.saltproject.io/en/latest/topics/reactor/index.html) by adding a `reactor.conf` file to `config/`:
+
+```sls
+# config/reactor.conf
+reactor:                        # Master config section "reactor"
+  - 'salt/minion/*/start':      # Match tag "salt/minion/*/start"
+    - /srv/reactor/start.sls    # Things to do when a minion starts
+```
+
+Then, you have to add the `start.sls` file into your `roots/reactor/` directory:
+
+```sls
+# roots/reactor/start.sls
+highstate_run:
+  local.state.apply:
+    - tgt: {{ data['id'] }}
+```
+
+Finally, run your `docker-salt-master` instance mounting the required directories:
+
+```sh
+docker run --name salt_master -d \
+    --publish 4505:4505 --publish 4506:4506 \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/config/:/home/salt/data/config/ \
+    cdalvaro/docker-salt-master:latest
+```
 
 ### Custom States
 
@@ -555,7 +589,7 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 [stackoverflow_community]: https://stackoverflow.com/tags/salt-stack
 [slack_badge]: https://img.shields.io/badge/slack-@saltstackcommunity-blue.svg?logo=slack&logoColor=4A154B&color=4A154B
 [slack_community]: https://saltstackcommunity.herokuapp.com
-[arch_amd64_badge]: https://img.shields.io/badge/arch-amd64-2496ED.svg
-[arch_arm_badge]: https://img.shields.io/badge/arch-arm/v7-2496ED.svg
-[arch_arm64_badge]: https://img.shields.io/badge/arch-arm64-2496ED.svg
+[arch_amd64_badge]: https://img.shields.io/badge/arch-amd64-inactive.svg
+[arch_arm_badge]: https://img.shields.io/badge/arch-arm/v7-inactive.svg
+[arch_arm64_badge]: https://img.shields.io/badge/arch-arm64-inactive.svg
 [arch_link]: https://github.com/users/cdalvaro/packages/container/package/docker-salt-master
