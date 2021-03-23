@@ -9,7 +9,7 @@
 [![StackOverflow Community][stackoverflow_badge]][stackoverflow_community]
 [![Slack Community][slack_badge]][slack_community]
 
-# Dockerized SaltStack Master v3002.5 _Magnesium_
+# Dockerized SaltStack Master v3002.6 _Magnesium_
 
 Dockerfile to build a [SaltStack](https://www.saltstack.com) Master image for the Docker opensource container platform.
 
@@ -47,7 +47,7 @@ For other methods to install SaltStack please refer to the [Official SaltStack I
 Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/docker-salt-master/) and is the recommended method of installation.
 
 ```sh
-docker pull cdalvaro/docker-salt-master:3002.5
+docker pull cdalvaro/docker-salt-master:3002.6
 ```
 
 You can also pull the latest tag which is built from the repository `HEAD`
@@ -531,8 +531,8 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 - https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html
 - https://github.com/saltstack/salt/releases
 
-[saltstack_badge]: https://img.shields.io/badge/SaltStack-v3002.5-lightgrey.svg?style=flat-square&logo=Saltstack
-[saltstack_release_notes]: https://docs.saltstack.com/en/latest/topics/releases/3002.5.html "SaltStack Release Notes"
+[saltstack_badge]: https://img.shields.io/badge/SaltStack-v3002.6-lightgrey.svg?style=flat-square&logo=Saltstack
+[saltstack_release_notes]: https://docs.saltstack.com/en/latest/topics/releases/3002.6.html "SaltStack Release Notes"
 [ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20201008-E95420.svg?style=flat-square&logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
 [github_publish_badge]: https://img.shields.io/github/workflow/status/cdalvaro/docker-salt-master/Publish%20Docker%20image?style=flat-square&label=build&logo=GitHub&logoColor=%23181717
