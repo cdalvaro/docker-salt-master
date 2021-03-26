@@ -7,7 +7,7 @@ Please refer to the [Salt 3003 Release Notes](https://docs.saltstack.com/en/late
 
 - Upgrade `salt-master` to `3003` *Aluminium*
 - Add python3 `timelib` `0.2.5`
-- Change Docker base image to `ubuntu:focal-20210217`
+- Change Docker base image to `ubuntu:focal-20210325`
 - Replace `m2crypto` by `pycryptodome` (see [saltstack/salt#56625](https://github.com/saltstack/salt/pull/56625))
 
 **3002.6**
