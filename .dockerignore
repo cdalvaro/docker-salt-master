@@ -1,0 +1,6 @@
+# Ignoring git folders and files
+.github/
+.git/
+
+# Ignoring markdown files
+*.md
