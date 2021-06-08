@@ -36,7 +36,7 @@ jobs:
             --name registry registry:2
 
       - name: Cache Docker layers
-        uses: actions/cache@v2.1.5
+        uses: actions/cache@v2.1.6
         with:
           path: ${{ env.CACHE_PATH }}
           key: ${{ runner.os }}-buildx-${{ github.sha }}
