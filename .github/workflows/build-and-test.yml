@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths-ignore:
-      - './**/*.md'
-      - 'LICENSE'
+      - "./**/*.md"
+      - "LICENSE"
 
 env:
   IMAGE_NAME: localhost:5000/cdalvaro/docker-salt-master:${{ github.sha }}
@@ -24,14 +24,16 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1.1.0
 
-      - name: Start Docker registry
-        run: |
-          docker run -d -p 5000:5000 -v ${REGISTRY_PATH}:/var/lib/registry --name registry registry:2
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1.3.0
         with:
           driver-opts: network=host
+
+      - name: Start Docker registry
+        run: |
+          docker run --rm --detach --publish 5000:5000 \
+            --volume ${REGISTRY_PATH}:/var/lib/registry \
+            --name registry registry:2
 
       - name: Cache Docker layers
         uses: actions/cache@v2.1.5
@@ -93,19 +95,22 @@ jobs:
 
       - name: Start Docker registry
         run: |
-          docker run -d -p 5000:5000 -v ${REGISTRY_PATH}:/var/lib/registry --name registry registry:2
-
-      - name: Docker inspect
-        run: docker buildx imagetools inspect ${IMAGE_NAME}
+          docker run --rm --detach --publish 5000:5000 \
+            --volume ${REGISTRY_PATH}:/var/lib/registry \
+            --name registry registry:2
+          sleep 10
 
       - name: Import Docker images
         run: docker pull --platform ${{ matrix.platform }} ${IMAGE_NAME}
 
+      - name: Docker inspect
+        run: docker buildx imagetools inspect ${IMAGE_NAME} | grep '${{ matrix.platform }}'
+
       - name: Launch docker container
         run: |
           # Create configuration files
-          mkdir -p config/
-          cat > config/salt-api.conf <<EOF
+          mkdir -p /tmp/config/
+          cat > /tmp/config/salt-api.conf <<EOF
           external_auth:
             ${SALTAPI_EAUTH}:
               ${SALTAPI_USER}:
@@ -120,14 +125,12 @@ jobs:
             --publish 4505:4505 --publish 4506:4506 --publish 8000:8000 \
             --env 'SALT_API_SERVICE_ENABLED=true' \
             --env 'SALT_API_USER_PASS=${{ env.SALTAPI_PASS }}' \
-            --volume $(pwd)/config/:/home/salt/data/config/ \
-             ${IMAGE_NAME}
+            --platform ${{ matrix.platform }} \
+            --volume /tmp/config:/home/salt/data/config:ro \
+            ${IMAGE_NAME}
 
-      - name: Show container info
-        run: docker container ls
-
-      - name: Wait for salt-master bootup
-        run: sleep 90
+          # Wait for salt-master bootup
+          sleep 60
 
       - name: Show salt versions
         run: docker exec saltstack_master salt --versions
@@ -164,9 +167,8 @@ jobs:
         run: pip install salt-pepper
 
       - name: Test salt-pepper
-        run:  pepper --client runner test.stream
+        run: pepper --client runner test.stream
 
       - name: Cleanup
         run: |
           docker stop saltstack_master registry
-          docker image rm ${IMAGE_NAME}

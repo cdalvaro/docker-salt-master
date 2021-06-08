@@ -61,7 +61,7 @@ RUN chmod +x /sbin/entrypoint.sh
 # Shared resources
 EXPOSE 4505 4506 8000
 RUN mkdir -p "${SALT_BASE_DIR}" "${SALT_FORMULAS_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" "${SALT_LOGS_DIR}"
-VOLUME [ "${SALT_BASE_DIR}" "${SALT_FORMULAS_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" "${SALT_LOGS_DIR}" ]
+VOLUME [ "${SALT_BASE_DIR}", "${SALT_FORMULAS_DIR}", "${SALT_KEYS_DIR}", "${SALT_CONFS_DIR}", "${SALT_LOGS_DIR}" ]
 
 LABEL \
     maintainer="carlos@cdalvaro.io" \
