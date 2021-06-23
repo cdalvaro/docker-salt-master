@@ -2,6 +2,7 @@
 
 set -e
 
+# shellcheck disable=SC1091
 source "${SALT_BUILD_DIR}/functions.sh"
 
 echo "Installing build dependencies ..."
