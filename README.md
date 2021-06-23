@@ -46,7 +46,7 @@ For other methods to install `salt-master` please refer to the [Official Salt Pr
 Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/docker-salt-master/) and is the recommended method of installation.
 
 ```sh
-docker pull cdalvaro/docker-salt-master:3003
+docker pull cdalvaro/docker-salt-master:3003.1
 ```
 
 You can also pull the latest tag which is built from the repository `HEAD`
@@ -578,8 +578,8 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 - https://docs.saltproject.io/en/latest/contents.html
 
 [saltproject_badge]: https://img.shields.io/badge/Salt-v3003-lightgrey.svg?logo=Saltstack
-[saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3003.html "Salt Project Release Notes"
-[ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20210325-E95420.svg?logo=Ubuntu
+[saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3003.1.html "Salt Project Release Notes"
+[ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20210609-E95420.svg?logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
 [github_publish_badge]: https://img.shields.io/github/workflow/status/cdalvaro/docker-salt-master/Publish%20Docker%20image?label=build&logo=GitHub&logoColor=%23181717
 [github_publish_workflow]: https://github.com/cdalvaro/docker-salt-master/actions?query=workflow%3A%22Publish+Docker+image%22

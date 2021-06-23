@@ -1,7 +1,12 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3003 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3003.html) for the list of changes in SaltStack.
+Please refer to the [Salt 3003.1 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3003.1.html) for the list of changes in SaltStack.
+
+**3003.1**
+
+- Upgrade `salt-master` to `3003.1` *Aluminium*
+- Change Docker base image to `ubuntu:focal-20210609`
 
 **3003**
 

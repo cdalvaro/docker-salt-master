@@ -4,3 +4,6 @@
 
 # Ignoring markdown files
 *.md
+
+# Ignoring social media
+social/
