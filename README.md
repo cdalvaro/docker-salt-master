@@ -577,7 +577,7 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 - https://docs.saltproject.io/en/getstarted/
 - https://docs.saltproject.io/en/latest/contents.html
 
-[saltproject_badge]: https://img.shields.io/badge/Salt-v3003-lightgrey.svg?logo=Saltstack
+[saltproject_badge]: https://img.shields.io/badge/Salt-v3003.1-lightgrey.svg?logo=Saltstack
 [saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3003.1.html "Salt Project Release Notes"
 [ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20210609-E95420.svg?logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
