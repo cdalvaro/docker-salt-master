@@ -79,7 +79,7 @@ jobs:
           echo ::set-output name=created_on::${CREATED_ON}
 
       - name: Build
-        uses: docker/build-push-action@v2.5.0
+        uses: docker/build-push-action@v2.6.1
         with:
           context: .
           file: ./Dockerfile
