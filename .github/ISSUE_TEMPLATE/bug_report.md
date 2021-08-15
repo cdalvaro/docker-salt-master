@@ -26,7 +26,7 @@ The full log with the outputted error.
 **Version report (please complete the following information):**
  - Host OS: [e.g. `uname -a`]
  - Docker: [e.g. `docker --version`]
- - Image tag: [e.g. `3003.1`]
+ - Image tag: [e.g. `3003.2`]
 
 **Additional context**
 Add any other context about the problem here.
