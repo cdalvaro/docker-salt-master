@@ -1,10 +1,10 @@
-FROM ubuntu:focal-20210723
+FROM ubuntu:focal-20210827
 
 ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
-ENV SALT_VERSION="3003.2" \
+ENV SALT_VERSION="3003.3" \
     PYTHON_VERSION="3.8"
 
 ENV IMAGE_VERSION="${SALT_VERSION}"
