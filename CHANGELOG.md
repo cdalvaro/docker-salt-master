@@ -6,6 +6,7 @@ Please refer to the [Salt 3003.3 Release Notes](https://docs.saltstack.com/en/la
 **3003.3**
 
 - Upgrade `salt-master` to `3003.3` *Aluminium*
+- Change Docker base image to `ubuntu:focal-20210827`
 
 **3003.2**
 
