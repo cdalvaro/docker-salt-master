@@ -1,4 +1,4 @@
-FROM ubuntu:focal-20210827
+FROM ubuntu:focal-20211006
 
 ARG BUILD_DATE
 ARG VCS_REF
