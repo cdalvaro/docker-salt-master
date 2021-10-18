@@ -30,7 +30,7 @@ EOF
 # Install python3 packages
 echo "Installing python3 packages ..."
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
-  python3-mako python3-pycryptodome python3-cherrypy3 python3-git python3-u-msgpack \
+  python3-mako python3-pycryptodome python3-cherrypy3 python3-git \
   python3-redis python3-gnupg python3-mysqldb python3-dateutil python3-libnacl python3-openssl \
   python3-pygit2
 

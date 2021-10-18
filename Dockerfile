@@ -1,10 +1,10 @@
-FROM ubuntu:focal-20210827
+FROM ubuntu:focal-20211006
 
 ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
-ENV SALT_VERSION="3003.3" \
+ENV SALT_VERSION="3004" \
     PYTHON_VERSION="3.8"
 
 ENV IMAGE_VERSION="${SALT_VERSION}"
@@ -33,7 +33,7 @@ WORKDIR ${SALT_BUILD_DIR}
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
     sudo ca-certificates apt-transport-https wget locales openssh-client \
-    python${PYTHON_VERSION} python${PYTHON_VERSION}-dev \
+    python${PYTHON_VERSION} python3-dev libpython3-dev \
     python3-pip python3-setuptools python3-wheel \
     supervisor logrotate git gettext-base tzdata \
  && DEBIAN_FRONTEND=noninteractive update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \
