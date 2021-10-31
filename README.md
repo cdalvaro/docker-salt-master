@@ -319,7 +319,7 @@ This keys must be placed inside `/home/salt/data/keys` directory.
 You can create an ssh key for pygit2 with the following command:
 
 ```sh
-ssh-keygen -f gitfs_pygit2 -C 'gitfs@example.com'
+ssh-keygen -f gitfs_ssh -C 'gitfs@example.com'
 ```
 
 Place it wherever you want inside the container and specify its path with the configuration parameters: `gitfs_pubkey` and `gitfs_privkey` in your `.conf` file.
@@ -334,13 +334,19 @@ gitfs_pubkey: /home/salt/data/keys/gitfs/gitfs_ssh.pub
 
 **Important Note**
 
+By default, this image has been tested with RSA 4096 ssh keys generated with `ssh-keygen`.
+
 If you get the following error while using `gitfs` with `pygit2`
 
 ```plain
 _pygit2.GitError: Failed to authenticate SSH session: Unable to send userauth-publickey request
 ```
 
-look if your private key hash empty lines at the bottom of the file and suppress them for solving the error.
+you may have to recreate your ssh key adding the parameter: `-m PEM`:
+
+```sh
+ssh-keygen -m PEM -f gitfs_ssh -C 'gitfs@example.com'
+```
 
 ### 3rd Party Formulas
 

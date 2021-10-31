@@ -52,24 +52,24 @@ echo "container started ✅"
 echo "==> Waiting ${BOOTUP_WAIT_SECONDS} seconds for the container to be ready ..."
 sleep "${BOOTUP_WAIT_SECONDS}"
 
-  # Test salt-api authentication
-  echo "==> Getting salt-api token ..."
+# Test salt-api authentication
+echo "==> Getting salt-api token ..."
 SALTAPI_TOKEN=$(curl -sSk "${SALTAPI_URL%/}/login" \
-    -H "Accept: application/x-yaml" \
-    -d username="${SALTAPI_USER}" \
-    -d password="${SALTAPI_PASS}" \
-    -d eauth="${SALTAPI_EAUTH}" | grep 'token:' | cut -d' ' -f 4)
+  -H "Accept: application/x-yaml" \
+  -d username="${SALTAPI_USER}" \
+  -d password="${SALTAPI_PASS}" \
+  -d eauth="${SALTAPI_EAUTH}" | grep 'token:' | cut -d' ' -f 4)
 [ -n "${SALTAPI_TOKEN}" ] || ( echo "salt-api token ❌"; exit 1 )
 echo "salt-api token ✅"
 
-  # Test salt-api command
-  echo "==> Testing curl command ..."
+# Test salt-api command
+echo "==> Testing curl command ..."
 curl -sSk "${SALTAPI_URL}" \
-    -H "Accept: application/x-yaml" \
-    -H "X-Auth-Token: ${SALTAPI_TOKEN}" \
-    -d client=runner \
-    -d tgt='*' \
-    -d fun=test.stream \
+  -H "Accept: application/x-yaml" \
+  -H "X-Auth-Token: ${SALTAPI_TOKEN}" \
+  -d client=runner \
+  -d tgt='*' \
+  -d fun=test.stream \
 | grep -i 'true' || ( echo "curl command ❌"; exit 1 )
 echo "curl command ✅"
 

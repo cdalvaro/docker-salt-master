@@ -1,3 +1,6 @@
+# Always included
+!assets/**
+
 # development
 /config/
 /roots/
@@ -5,3 +8,6 @@
 /logs/
 /3pfs/
 .vscode/
+
+# tests
+/tests/**/keys/

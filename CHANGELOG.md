@@ -4,6 +4,12 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3004 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3004.html)
 for the list of changes in SaltStack.
 
+**3004_1**
+
+- Install `libssh2 1.10.0` from source
+- Install `libgit2 1.3.0` from source
+- Install `pygit2 1.7.0` from pip repositories
+
 **3004**
 
 - Upgrade `salt-master` to `3004` *Silicon*
