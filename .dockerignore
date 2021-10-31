@@ -2,6 +2,9 @@
 .github/
 .git/
 
+# Ignoring tests files
+tests/
+
 # Ignoring markdown files
 *.md
 

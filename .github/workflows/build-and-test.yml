@@ -74,11 +74,13 @@ jobs:
         platform: [linux/amd64, linux/arm64, linux/arm/v7]
     env:
       DOCKER_CLI_EXPERIMENTAL: enabled
-      SALTAPI_URL: https://localhost:8000/
-      SALTAPI_USER: salt_api
-      SALTAPI_PASS: 4wesome-Pass0rd
-      SALTAPI_EAUTH: pam
+      PLATFORM: ${{ matrix.platform }}
+      BOOTUP_WAIT_SECONDS: 90
+
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2.3.5
+
       - name: Download Docker registry data from build job
         uses: actions/download-artifact@v2
         with:
@@ -106,69 +108,17 @@ jobs:
       - name: Docker inspect
         run: docker buildx imagetools inspect ${IMAGE_NAME} | grep '${{ matrix.platform }}'
 
-      - name: Launch docker container
-        run: |
-          # Create configuration files
-          mkdir -p /tmp/config/
-          cat > /tmp/config/salt-api.conf <<EOF
-          external_auth:
-            ${SALTAPI_EAUTH}:
-              ${SALTAPI_USER}:
-                - .*
-                - '@runner'
-                - '@wheel'
-                - '@jobs'
-          EOF
-
-          # Run test instance
-          docker run --rm --detach --name saltstack_master \
-            --publish 4505:4505 --publish 4506:4506 --publish 8000:8000 \
-            --env 'SALT_API_SERVICE_ENABLED=true' \
-            --env 'SALT_API_USER_PASS=${{ env.SALTAPI_PASS }}' \
-            --platform ${{ matrix.platform }} \
-            --volume /tmp/config:/home/salt/data/config:ro \
-            ${IMAGE_NAME}
-
-          # Wait for salt-master bootup
-          sleep 60
-
-      - name: Show salt versions
-        run: docker exec saltstack_master salt --versions
-
-      - name: Test image calling healthcheck
-        run: docker exec saltstack_master /usr/local/sbin/healthcheck
-
-      - name: Test salt-api authentication
-        id: salt_api_auth
-        run: |
-          SALTAPI_TOKEN=$(curl -sSk https://localhost:8000/login \
-            -H 'Accept: application/x-yaml' \
-            -d username=${{ env.SALTAPI_USER }} \
-            -d password=${{ env.SALTAPI_PASS }} \
-            -d eauth=${{ env.SALTAPI_EAUTH }} | grep 'token:' | cut -d' ' -f 4)
-          [ -n "${SALTAPI_TOKEN}" ] || exit 1
-          echo "::set-output name=token::${SALTAPI_TOKEN}"
-
-      - name: Test salt-api command
-        run: |
-          curl -sSk https://localhost:8000 \
-            -H 'Accept: application/x-yaml' \
-            -H 'X-Auth-Token: ${{ steps.salt_api_auth.outputs.token }}' \
-            -d client=runner \
-            -d tgt='*' \
-            -d fun=test.stream
-
       - name: Setup Python
         uses: actions/setup-python@v2.2.2
         with:
           python-version: 3.8
 
-      - name: Install salt-pepper
-        run: pip install salt-pepper
+      - name: Execute basic tests
+        run: tests/basic/test.sh
 
-      - name: Test salt-pepper
-        run: pepper --client runner test.stream
+      - name: Execute salt-api tests
+        run: tests/salt-api/test.sh
 
       - name: Cleanup
         run: |
-          docker stop saltstack_master registry
+          docker stop registry
