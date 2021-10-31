@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
 set -e
-source "${SALT_RUNTIME_DIR}/env-defaults.sh"
+
+# shellcheck source=assets/runtime/env-defaults.sh
+ENV_DEFAULTS_FILE="${SALT_RUNTIME_DIR}/env-defaults.sh"
+source "${ENV_DEFAULTS_FILE}"
 
 # cdalvaro managed block string
 SELF_MANAGED_BLOCK_STRING="## cdalvaro managed block"
