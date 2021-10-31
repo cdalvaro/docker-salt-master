@@ -229,7 +229,7 @@ EOF
   # configure supervisord to start salt-api
   cat > /etc/supervisor/conf.d/salt-api.conf <<EOF
 [program:salt-api]
-priority=5
+priority=10
 directory=${SALT_HOME}
 environment=HOME=${SALT_HOME}
 command=/usr/local/bin/salt-api
