@@ -5,37 +5,26 @@ set -e
 
 echo "🧪 Running basic tests ..."
 
-IMAGE_NAME=${IMAGE_NAME:-cdalvaro/docker-salt-master}
-CONTAINER_NAME=salt_master
-PLATFORM=${PLATFORM:-$(docker version --format='{{.Server.Os}}/{{.Server.Arch}}')}
-BOOTUP_WAIT_SECONDS=${BOOTUP_WAIT_SECONDS:-60}
+# https://stackoverflow.com/a/4774063/3398062
+SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
-function cleanup {
-  echo "==> Removing ${CONTAINER_NAME} ..."
-  docker container rm --force "${CONTAINER_NAME}"
-}
-
+# shellcheck source=assets/build/functions.sh
+COMMON_FILE="${SCRIPT_PATH}/../lib/common.sh"
+source "${COMMON_FILE}"
 trap cleanup EXIT
 
 # Run test instance
 echo "==> Starting docker-salt-master (${PLATFORM}) ..."
-docker run --rm --detach --name "${CONTAINER_NAME}" \
-  --publish 4505:4505 --publish 4506:4506 \
-  --platform "${PLATFORM}" \
-  "${IMAGE_NAME}" || ( echo "container started ❌"; exit 1 )
-echo "container started ✅"
-
-# Wait for salt-master bootup
-echo "==> Waiting ${BOOTUP_WAIT_SECONDS} seconds for the container to be ready ..."
-sleep "${BOOTUP_WAIT_SECONDS}"
+start_container_and_wait || error "container started"
+ok "container started"
 
 # Check salt version
 echo "==> Checking salt version ..."
-docker exec "${CONTAINER_NAME}" salt --versions
-[[ "$(docker exec ${CONTAINER_NAME} salt --version)" == "salt $(cat VERSION)" ]] || ( echo "salt version ❌"; exit 1 )
-echo "salt version ✅"
+docker-exec salt --versions
+[[ "$(docker-exec salt --version)" == "salt $(cat VERSION)" ]] || error "salt version"
+ok "salt version"
 
 # Test image calling healthcheck
 echo "==> Executing healthcheck ..."
-docker exec "${CONTAINER_NAME}" /usr/local/sbin/healthcheck | grep -i 'true' || ( echo "healthcheck ❌"; exit 1 )
-echo "healthcheck ✅"
+docker-exec /usr/local/sbin/healthcheck | grep -i 'true' || error "healthcheck"
+ok "healthcheck"

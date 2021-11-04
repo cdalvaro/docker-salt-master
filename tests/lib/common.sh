@@ -35,12 +35,39 @@ function cleanup()
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  docker-exec
+#   DESCRIPTION:  Execute the given command inside the container.
+#----------------------------------------------------------------------------------------------------------------------
+function docker-exec()
+{
+  docker exec "${CONTAINER_NAME}" "$@"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  salt-run
+#   DESCRIPTION:  Execute the salt-run command inside the container.
+#----------------------------------------------------------------------------------------------------------------------
+function salt-run()
+{
+  docker-exec salt-run "$@"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  salt-call
+#   DESCRIPTION:  Execute the salt-call command inside the container.
+#----------------------------------------------------------------------------------------------------------------------
+function salt-call()
+{
+  docker-exec salt-call "$@"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  master_log
 #   DESCRIPTION:  Print salt-master log.
 #----------------------------------------------------------------------------------------------------------------------
 function master_log()
 {
-  docker exec "${CONTAINER_NAME}" cat data/logs/salt/master
+  docker-exec cat data/logs/salt/master
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
