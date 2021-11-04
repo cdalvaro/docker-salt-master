@@ -9,6 +9,7 @@ for the list of changes in SaltStack.
 - Install `libssh2 1.10.0` from source
 - Install `libgit2 1.3.0` from source
 - Install `pygit2 1.7.0` from pip repositories
+- Change Docker base image to `ubuntu:hirsute-20210917`
 
 **3004**
 
