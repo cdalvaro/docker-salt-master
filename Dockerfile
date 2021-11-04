@@ -5,7 +5,7 @@ ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
 ENV SALT_VERSION="3004" \
-    PYTHON_VERSION="3.8"
+    PYTHON_VERSION="3.9"
 
 ENV IMAGE_VERSION="${SALT_VERSION}_1"
 
