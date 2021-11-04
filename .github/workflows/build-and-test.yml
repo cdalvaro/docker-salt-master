@@ -124,8 +124,8 @@ jobs:
           GITFS_KEYS_DIR: tests/gitfs/data/keys/gitfs
         run: |
           mkdir -p "${GITFS_KEYS_DIR}"
-          echo ${{ secrets.TESTS_REPO_PRIVATE_KEY }} > "${GITFS_KEYS_DIR}"/gitfs_ssh && chmod 600 !$
-          echo ${{ secrets.TESTS_REPO_PUBLIC_KEY }} > "${GITFS_KEYS_DIR}"/gitfs_ssh.pub && chmod 644 !$
+          echo "${{ secrets.TESTS_REPO_PRIVATE_KEY }}" > "${GITFS_KEYS_DIR}"/gitfs_ssh && chmod 600 !$
+          echo "${{ secrets.TESTS_REPO_PUBLIC_KEY }}" > "${GITFS_KEYS_DIR}"/gitfs_ssh.pub && chmod 644 !$
           tests/gitfs/test.sh
 
       - name: Cleanup
