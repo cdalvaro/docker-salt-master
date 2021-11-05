@@ -64,15 +64,24 @@ jobs:
         id: metadata
         run: |
           # Tags
-          DOCKER_IMAGE="${IMAGE_NAME}:${GITHUB_REF_NAME:-latest}"
+          TAG="${GITHUB_REF_NAME:-latest}"
+          echo "Tag: ${TAG}"
+
+          DOCKER_IMAGE="${IMAGE_NAME}:${TAG}"
+          echo "Docker image: ${DOCKER_IMAGE}"
+
           TAGS="${DOCKER_IMAGE}"
           for registry in ${EXTRA_REGISTRIES}; do
             TAGS="${TAGS},${registry}/${DOCKER_IMAGE}"
           done
+          echo "Tags: ${TAGS}"
 
           # Build args
           VCS_REF="${GITHUB_SHA::8}"
+          echo "VCS ref: ${VCS_REF}"
+
           CREATED_ON="$(date +"%Y-%m-%d %H:%M:%S%:z")"
+          echo "Created on: ${CREATED_ON}"
 
           echo ::set-output name=tags::${TAGS}
           echo ::set-output name=vcs_ref::${VCS_REF}
