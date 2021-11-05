@@ -1,13 +1,13 @@
-FROM ubuntu:focal-20211006
+FROM ubuntu:hirsute-20210917
 
 ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
 ENV SALT_VERSION="3004" \
-    PYTHON_VERSION="3.8"
+    PYTHON_VERSION="3.9"
 
-ENV IMAGE_VERSION="${SALT_VERSION}"
+ENV IMAGE_VERSION="${SALT_VERSION}_1"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
@@ -32,7 +32,7 @@ WORKDIR ${SALT_BUILD_DIR}
 # hadolint ignore=DL3008
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
-    sudo ca-certificates apt-transport-https wget locales openssh-client \
+    sudo ca-certificates openssl apt-transport-https wget locales openssh-client \
     python${PYTHON_VERSION} python3-dev libpython3-dev \
     python3-pip python3-setuptools python3-wheel \
     supervisor logrotate git gettext-base tzdata \

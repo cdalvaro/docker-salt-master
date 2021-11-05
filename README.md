@@ -319,7 +319,7 @@ This keys must be placed inside `/home/salt/data/keys` directory.
 You can create an ssh key for pygit2 with the following command:
 
 ```sh
-ssh-keygen -f gitfs_pygit2 -C 'gitfs@example.com'
+ssh-keygen -f gitfs_ssh -C 'gitfs@example.com'
 ```
 
 Place it wherever you want inside the container and specify its path with the configuration parameters: `gitfs_pubkey` and `gitfs_privkey` in your `.conf` file.
@@ -334,13 +334,19 @@ gitfs_pubkey: /home/salt/data/keys/gitfs/gitfs_ssh.pub
 
 **Important Note**
 
+By default, this image has been tested with RSA 4096 ssh keys generated with `ssh-keygen`.
+
 If you get the following error while using `gitfs` with `pygit2`
 
 ```plain
 _pygit2.GitError: Failed to authenticate SSH session: Unable to send userauth-publickey request
 ```
 
-look if your private key hash empty lines at the bottom of the file and suppress them for solving the error.
+you may have to recreate your ssh key adding the parameter: `-m PEM`:
+
+```sh
+ssh-keygen -m PEM -f gitfs_ssh -C 'gitfs@example.com'
+```
 
 ### 3rd Party Formulas
 
@@ -507,6 +513,7 @@ Below you can find a list with the available options that can be used to customi
 | `SALT_API_SERVICE_ENABLED`         | Enable `salt-api` service. Default: `false`                                                                                                                                                                                |
 | `SALT_API_USER`                    | Set username for `salt-api` service. Default: `salt_api`                                                                                                                                                                   |
 | `SALT_API_USER_PASS`               | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `true` and `SALT_API_USER` is not empty. _Unset_ by default                                                                                            |
+| `SALT_API_CERT_CN`                 | Common name in the request. Default: `localhost` |
 | `SALT_MASTER_SIGN_PUBKEY`          | Sign the master auth-replies with a cryptographic signature of the master's public key. Possible values: 'True' or 'False'. Default: `False`                                                                               |
 | `SALT_MASTER_USE_PUBKEY_SIGNATURE` | Instead of computing the signature for each auth-reply, use a pre-calculated signature. This option requires `SALT_MASTER_SIGN_PUBKEY` set to 'True'. Possible values: 'True' or 'False'. Default: `True`                  |
 | `SALT_MASTER_SIGN_KEY_NAME`        | The customizable name of the signing-key-pair without suffix. Default: `master_sign`                                                                                                                                       |
@@ -579,7 +586,7 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 
 [saltproject_badge]: https://img.shields.io/badge/Salt-v3004-lightgrey.svg?logo=Saltstack
 [saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3004.html "Salt Project Release Notes"
-[ubuntu_badge]: https://img.shields.io/badge/ubuntu-focal--20211006-E95420.svg?logo=Ubuntu
+[ubuntu_badge]: https://img.shields.io/badge/ubuntu-hirsute--20210917-E95420.svg?logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
 [github_publish_badge]: https://img.shields.io/github/workflow/status/cdalvaro/docker-salt-master/Publish%20Docker%20image?label=build&logo=GitHub&logoColor=%23181717
 [github_publish_workflow]: https://github.com/cdalvaro/docker-salt-master/actions?query=workflow%3A%22Publish+Docker+image%22

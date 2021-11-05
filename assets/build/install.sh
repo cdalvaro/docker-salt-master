@@ -2,24 +2,27 @@
 
 set -e
 
-# shellcheck disable=SC1091
-source "${SALT_BUILD_DIR}/functions.sh"
+export DEBIAN_FRONTEND=noninteractive
 
-echo "Installing build dependencies ..."
-BUILD_DEPENDENCIES=(make gcc g++ cmake pkg-config)
+# shellcheck source=assets/build/functions.sh
+FUNCTIONS_FILE="${SALT_BUILD_DIR}/functions.sh"
+source "${FUNCTIONS_FILE}"
+
+log_info "Installing required packages and build dependencies ..."
+REQUIRED_PACKAGES=(
+  libssl1.1 zlib1g libffi7 libpcre3 libgssapi3-heimdal
+)
+
+BUILD_DEPENDENCIES=(
+  make gcc g++ cmake pkg-config libssl-dev zlib1g-dev libffi-dev
+  libpcre3-dev heimdal-dev
+)
 
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y "${BUILD_DEPENDENCIES[@]}"
-
-# Install arm build dependencies
-if [[ "$(uname -i)" =~ ^(arm|aarch64) ]]; then
-  echo "Installing arm specific dependencies ..."
-  DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
-    libzmq3-dev libhttp-parser-dev libssl-dev libcurl4-openssl-dev
-fi
+install_pkgs "${REQUIRED_PACKAGES[@]}" "${BUILD_DEPENDENCIES[@]}"
 
 # Create salt user
-echo "Creating ${SALT_USER} user ..."
+log_info "Creating ${SALT_USER} user ..."
 useradd -d "${SALT_HOME}" -ms /bin/bash -U -G root,sudo,shadow "${SALT_USER}"
 
 # Set PATH
@@ -28,13 +31,27 @@ PATH=/usr/local/sbin:/usr/local/bin:\$PATH
 EOF
 
 # Install python3 packages
-echo "Installing python3 packages ..."
-DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
-  python3-mako python3-pycryptodome python3-cherrypy3 python3-git python3-requests \
-  python3-redis python3-gnupg python3-mysqldb python3-dateutil python3-libnacl python3-openssl \
-  python3-pygit2
+log_info "Installing python3 packages ..."
+install_pkgs --quiet \
+  python3-mako python3-pycryptodome python3-cherrypy3 \
+  python3-git python3-requests python3-redis python3-gnupg \
+  python3-mysqldb python3-dateutil python3-libnacl python3-openssl
 
 pip3 install timelib==0.2.5
+
+# Install pygit2 package
+install_libssh2
+install_libgit2
+pip3 install pygit2==1.7.0
+
+# Downloading bootstrap-salt.sh script
+BOOTSTRAP_VERSION='2021.09.17'
+BOOTSTRAP_URL="https://raw.githubusercontent.com/saltstack/salt-bootstrap/v${BOOTSTRAP_VERSION}/bootstrap-salt.sh"
+BOOTSTRAP_FILE='bootstrap-salt.sh'
+BOOTSTRAP_SHA256='090d652cd6290debce0e3a4eded65086a4272e69446e711eb26f87160593b6a2'
+
+download "${BOOTSTRAP_URL}" "${BOOTSTRAP_FILE}"
+check_sha256 "${BOOTSTRAP_FILE}" "${BOOTSTRAP_SHA256}"
 
 # Bootstrap script options:
 # https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html#command-line-options
@@ -46,22 +63,17 @@ pip3 install timelib==0.2.5
 ## -p: Extra-package to install
 ## -x: Changes the python version used to install a git version of salt
 SALT_BOOTSTRAP_OPTS=( -M -N -X -d -P -p salt-api -p salt-call -x "python${PYTHON_VERSION}" )
-_WGET_ARGS=()
 
-if [[ "$(uname -i)" == 'armv7l' ]]; then
-  ## -I: allow insecure connections while downloading any files
-  SALT_BOOTSTRAP_OPTS+=( -I )
-  _WGET_ARGS+=( --no-check-certificate )
-fi
+## -I: allow insecure connections while downloading any files
+is_arm32 && SALT_BOOTSTRAP_OPTS+=( -I )
 
-echo "Installing saltstack ..."
-echo "Option: ${SALT_BOOTSTRAP_OPTS[@]}"
-wget ${_WGET_ARGS[@]} -O bootstrap-salt.sh https://bootstrap.saltstack.com
-sh bootstrap-salt.sh ${SALT_BOOTSTRAP_OPTS[@]} git "v${SALT_VERSION}"
+log_info "Installing saltstack ..."
+log_debug "Options: ${SALT_BOOTSTRAP_OPTS[@]}"
+sh "${BOOTSTRAP_FILE}" ${SALT_BOOTSTRAP_OPTS[@]} git "v${SALT_VERSION}"
 chown -R "${SALT_USER}": "${SALT_ROOT_DIR}"
 
 # Configure ssh
-echo "Configuring ssh ..."
+log_info "Configuring ssh ..."
 sed -i -e "s|^[# ]*StrictHostKeyChecking.*$|    StrictHostKeyChecking no|" /etc/ssh/ssh_config
 {
   echo "    UserKnownHostsFile /dev/null"
@@ -70,7 +82,7 @@ sed -i -e "s|^[# ]*StrictHostKeyChecking.*$|    StrictHostKeyChecking no|" /etc/
 } >> /etc/ssh/ssh_config
 
 # Configure logrotate
-echo "Configuring logrotate ..."
+log_info "Configuring logrotate ..."
 
 # move supervisord.log file to ${SALT_LOGS_DIR}/supervisor/
 sed -i "s|^[#]*logfile=.*|logfile=${SALT_LOGS_DIR}/supervisor/supervisord.log ;|" /etc/supervisor/supervisord.conf
@@ -79,7 +91,7 @@ sed -i "s|^[#]*logfile=.*|logfile=${SALT_LOGS_DIR}/supervisor/supervisord.log ;|
 sed -i "s|^su root syslog$|su root root|" /etc/logrotate.conf
 
 # Configure supervisor
-echo "Configuring supervisor ..."
+log_info "Configuring supervisor ..."
 
 # configure supervisord to start salt-master
 cat > /etc/supervisor/conf.d/salt-master.conf <<EOF
@@ -110,6 +122,8 @@ stderr_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
 EOF
 
 # Purge build dependencies and cleanup apt
-DEBIAN_FRONTEND=noninteractive apt-get purge -y --auto-remove "${BUILD_DEPENDENCIES[@]}"
-DEBIAN_FRONTEND=noninteractive apt-get clean --yes
+apt-get purge -y --auto-remove "${BUILD_DEPENDENCIES[@]}"
+apt-get clean --yes
 rm -rf /var/lib/apt/lists/*
+
+export -n DEBIAN_FRONTEND
