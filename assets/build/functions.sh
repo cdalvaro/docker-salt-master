@@ -3,35 +3,12 @@
 set -e
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
-#          NAME:  __detect_color_support
-#   DESCRIPTION:  Try to detect color support.
-#----------------------------------------------------------------------------------------------------------------------
-_COLORS=${BS_COLORS:-$(tput colors 2>/dev/null || echo 0)}
-__detect_color_support() {
-    # shellcheck disable=SC2181
-    if [ $? -eq 0 ] && [ "$_COLORS" -gt 2 ]; then
-        RC='\033[1;31m'
-        GC='\033[1;32m'
-        BC='\033[1;34m'
-        YC='\033[1;33m'
-        EC='\033[0m'
-    else
-        RC=""
-        GC=""
-        BC=""
-        YC=""
-        EC=""
-    fi
-}
-__detect_color_support
-
-#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  log_debug
 #   DESCRIPTION:  Echo debug information to stdout.
 #----------------------------------------------------------------------------------------------------------------------
 function log_debug() {
   if [[ "${DEBUG}" == 'true' || "${ECHO_DEBUG}" == 'true' ]]; then
-    echo -e "${BC} *  DEBUG${EC}: $*"
+    echo " *  DEBUG: $*"
   fi
 }
 
@@ -40,7 +17,7 @@ function log_debug() {
 #   DESCRIPTION:  Echo information to stdout.
 #----------------------------------------------------------------------------------------------------------------------
 function log_info() {
-  echo -e "${GC} *  INFO${EC}: $*"
+  echo " *  INFO: $*"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -48,7 +25,7 @@ function log_info() {
 #   DESCRIPTION:  Echo warning information to stdout.
 #----------------------------------------------------------------------------------------------------------------------
 function log_warn() {
-  echo -e "${YC} *  WARN${EC}: $*"
+  echo " *  WARN: $*"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -57,12 +34,12 @@ function log_warn() {
 #----------------------------------------------------------------------------------------------------------------------
 function log_error()
 {
-  (>&2 echo -e "${RC} *  ERROR${EC}: $*")
+  (>&2 echo " *  ERROR: $*")
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  exec_as_salt
-#   DESCRIPTION:  Execute the pass command as the `salt` user.
+#   DESCRIPTION:  Execute the pass command as the `SALT_USER` user.
 #----------------------------------------------------------------------------------------------------------------------
 function exec_as_salt()
 {
@@ -100,9 +77,13 @@ function is_arm()
   is_arm32 || is_arm64
 }
 
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  install_pkgs
+#   DESCRIPTION:  Install packages using apt-get install.
+#----------------------------------------------------------------------------------------------------------------------
 function install_pkgs()
 {
-  apt-get install --no-install-recommends -y $@
+  apt-get install --no-install-recommends --yes $@
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -213,7 +194,10 @@ function install_libssh2()
   rm -rf "${WORK_DIR}"
 }
 
-# Install libgit2 library
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  install_libgit2
+#   DESCRIPTION:  Install libgit2 library.
+#----------------------------------------------------------------------------------------------------------------------
 function install_libgit2()
 {
   local LIBGIT2_VERSION=1.3.0

@@ -9,7 +9,10 @@ source "${ENV_DEFAULTS_FILE}"
 # cdalvaro managed block string
 SELF_MANAGED_BLOCK_STRING="## cdalvaro managed block"
 
-# Execute a command as SALT_USER
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  exec_as_salt
+#   DESCRIPTION:  Execute the pass command as the `SALT_USER` user.
+#----------------------------------------------------------------------------------------------------------------------
 function exec_as_salt()
 {
   if [[ $(whoami) == "${SALT_USER}" ]]; then
@@ -19,13 +22,19 @@ function exec_as_salt()
   fi
 }
 
-# Log error
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  log_error
+#   DESCRIPTION:  Echo errors to stderr.
+#----------------------------------------------------------------------------------------------------------------------
 function log_error()
 {
-  (>&2 echo "ERROR: $*")
+  (>&2 echo " *  ERROR: $*")
 }
 
-# Map salt user with host user
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  map_uidgid
+#   DESCRIPTION:  Map salt user with host user.
+#----------------------------------------------------------------------------------------------------------------------
 function map_uidgid()
 {
   USERMAP_ORIG_UID=$(id -u "${SALT_USER}")
@@ -48,9 +57,13 @@ function map_uidgid()
   fi
 }
 
-# This function replaces placeholders with values
-# $1: file with placeholders to replace
-# $x: placeholders to replace
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  update_template
+#   DESCRIPTION:  Replace placeholders with values.
+#     ARGUMENTS:
+#           - 1: Template file with placeholders to replace
+#           - @: Placeholder values
+#----------------------------------------------------------------------------------------------------------------------
 function update_template()
 {
   local FILE=${1?missing argument}
@@ -77,7 +90,10 @@ function update_template()
   rm -f "${tmp_file}"
 }
 
-# This function configures containers timezone
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  configure_timezone
+#   DESCRIPTION:  Configure containers timezone.
+#----------------------------------------------------------------------------------------------------------------------
 function configure_timezone()
 {
   echo "Configuring container timezone ..."
@@ -97,7 +113,10 @@ function configure_timezone()
   fi
 }
 
-# This function generates a master_sign key pair and its signature
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  gen_signed_keys
+#   DESCRIPTION:  Generate a master_sign key pair and its signature.
+#----------------------------------------------------------------------------------------------------------------------
 function gen_signed_keys()
 {
   local key_name=${1:-master}
@@ -111,7 +130,10 @@ function gen_signed_keys()
   echo -n "${GENERATED_KEYS_DIR}"
 }
 
-# This function repairs keys permissions and creates keys if neaded
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  setup_salt_keys
+#   DESCRIPTION:  Repair keys permissions and creates keys if neaded.
+#----------------------------------------------------------------------------------------------------------------------
 function setup_salt_keys()
 {
   echo "Setting up salt keys ..."
@@ -138,7 +160,10 @@ function setup_salt_keys()
   find "${SALT_HOME}" -path "${SALT_KEYS_DIR}/*" -print0 | xargs -0 chown -h "${SALT_USER}":
 }
 
-# This function configures ssh keys
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  setup_ssh_keys
+#   DESCRIPTION:  Configure ssh keys.
+#----------------------------------------------------------------------------------------------------------------------
 function setup_ssh_keys()
 {
   echo "Configuring ssh ..."
@@ -156,7 +181,10 @@ function setup_ssh_keys()
   fi
 }
 
-# This function cofigures master service
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  configure_salt_master
+#   DESCRIPTION:  Configure master service.
+#----------------------------------------------------------------------------------------------------------------------
 function configure_salt_master()
 {
   echo "Configuring salt-master service ..."
@@ -183,7 +211,10 @@ function configure_salt_master()
     SALT_MASTER_USE_PUBKEY_SIGNATURE
 }
 
-# This function configures salt-api if service is set to be enabled
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  configure_salt_api
+#   DESCRIPTION:  Configure salt-api if service is set to be enabled.
+#----------------------------------------------------------------------------------------------------------------------
 function configure_salt_api()
 {
   [[ ${SALT_API_SERVICE_ENABLED} == true ]] || return 0
@@ -246,7 +277,10 @@ EOF
 
 }
 
-# This function configures salt-formulas
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  configure_salt_formulas
+#   DESCRIPTION:  Configure salt-formulas.
+#----------------------------------------------------------------------------------------------------------------------
 function configure_salt_formulas()
 {
   echo "Configuring 3rd-party salt-formulas ..."
@@ -266,7 +300,10 @@ function configure_salt_formulas()
   rm "${tmp_file}"
 }
 
-# Initializes main directories
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  initialize_datadir
+#   DESCRIPTION:  Initialize main directories.
+#----------------------------------------------------------------------------------------------------------------------
 function initialize_datadir()
 {
   echo "Configuring directories ..."
@@ -328,7 +365,10 @@ function initialize_datadir()
   chown -R "${SALT_USER}": "${SALT_LOGS_DIR}/salt"
 }
 
-# Configures logrotate
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  configure_logrotate
+#   DESCRIPTION:  Configure logrotate.
+#----------------------------------------------------------------------------------------------------------------------
 function configure_logrotate()
 {
   echo "Configuring logrotate ..."
@@ -391,7 +431,10 @@ EOF
 
 }
 
-# Initializes the system
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  initialize_system
+#   DESCRIPTION:  Initialize the system.
+#----------------------------------------------------------------------------------------------------------------------
 function initialize_system()
 {
   map_uidgid

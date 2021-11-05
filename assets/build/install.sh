@@ -19,8 +19,7 @@ BUILD_DEPENDENCIES=(
 )
 
 apt-get update
-apt-get install --no-install-recommends -y \
-  "${REQUIRED_PACKAGES[@]}" "${BUILD_DEPENDENCIES[@]}"
+install_pkgs "${REQUIRED_PACKAGES[@]}" "${BUILD_DEPENDENCIES[@]}"
 
 # Create salt user
 log_info "Creating ${SALT_USER} user ..."
@@ -33,7 +32,7 @@ EOF
 
 # Install python3 packages
 log_info "Installing python3 packages ..."
-apt-get install --yes --quiet --no-install-recommends \
+install_pkgs --quiet \
   python3-mako python3-pycryptodome python3-cherrypy3 \
   python3-git python3-requests python3-redis python3-gnupg \
   python3-mysqldb python3-dateutil python3-libnacl python3-openssl
