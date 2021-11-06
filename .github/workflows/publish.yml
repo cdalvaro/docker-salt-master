@@ -30,7 +30,10 @@ jobs:
       - name: Image Tags
         id: tags
         run: |
-          IMAGE_TAG="${GITHUB_REF_NAME:-latest}"
+          IMAGE_TAG="latest"
+          if [ -n "${GITHUB_REF_NAME}" ]; then
+            IMAGE_TAG="${GITHUB_REF_NAME}"
+          fi
           DOCKER_IMAGE="${IMAGE_NAME}:${IMAGE_TAG}"
           TAGS="${DOCKER_IMAGE}"
           for registry in ${EXTRA_REGISTRIES}; do
