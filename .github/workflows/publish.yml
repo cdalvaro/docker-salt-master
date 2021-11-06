@@ -30,10 +30,8 @@ jobs:
       - name: Image Tags
         id: tags
         run: |
-          IMAGE_TAG="latest"
-          if [ -n "${{ github.event.release.tag_name }}" ]; then
-            IMAGE_TAG="${{ github.event.release.tag_name }}"
-          fi
+          IMAGE_TAG="${{ github.event.release.tag_name }}"
+          [ -z "${IMAGE_TAG}" ] && IMAGE_TAG='latest'
 
           DOCKER_IMAGE="${IMAGE_NAME}:${IMAGE_TAG}"
           TAGS="${DOCKER_IMAGE}"
