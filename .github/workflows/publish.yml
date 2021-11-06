@@ -31,9 +31,10 @@ jobs:
         id: tags
         run: |
           IMAGE_TAG="latest"
-          if [ -n "${GITHUB_REF_NAME}" ]; then
-            IMAGE_TAG="${GITHUB_REF_NAME}"
+          if [ -n "${{ github.event.release.tag_name }}" ]; then
+            IMAGE_TAG="${{ github.event.release.tag_name }}"
           fi
+
           DOCKER_IMAGE="${IMAGE_NAME}:${IMAGE_TAG}"
           TAGS="${DOCKER_IMAGE}"
           for registry in ${EXTRA_REGISTRIES}; do
