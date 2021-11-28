@@ -30,7 +30,7 @@ export BOOTUP_WAIT_SECONDS=${BOOTUP_WAIT_SECONDS:-60}
 #----------------------------------------------------------------------------------------------------------------------
 function cleanup()
 {
-  echo "==> Removing ${CONTAINER_NAME} ..."
+  echo "🧹 Removing ${CONTAINER_NAME} ..."
   docker container rm --force "${CONTAINER_NAME}"
 }
 

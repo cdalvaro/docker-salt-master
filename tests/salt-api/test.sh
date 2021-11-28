@@ -31,7 +31,7 @@ external_auth:
       - '@wheel'
       - '@jobs'
 EOF
-echo "salt-api config created ✅"
+ok "salt-api config created"
 
 # Run test instance
 echo "==> Starting docker-salt-master (${PLATFORM}) with salt-api config ..."

@@ -3,7 +3,9 @@
 set -e
 set -o pipefail
 
-source "${SALT_RUNTIME_DIR}/functions.sh"
+# shellcheck source=assets/runtime/functions.sh
+FUNCTIONS_FILE="${SALT_RUNTIME_DIR}/functions.sh"
+source "${FUNCTIONS_FILE}"
 
 [[ "${DEBUG}" == true ]] && set -x
 
@@ -28,7 +30,7 @@ case "${1}" in
     case "${1}" in
       salt-master|salt-api)
         echo "Restarting ${1} service ..."
-        exec pkill "${1}"
+        exec supervisorctl restart "${1}"
         ;;
       *)
         log_error "Unable to restart ${1} serice. Service is unknown"

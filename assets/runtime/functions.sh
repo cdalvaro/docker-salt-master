@@ -217,6 +217,7 @@ function configure_salt_master()
 #----------------------------------------------------------------------------------------------------------------------
 function configure_salt_api()
 {
+  rm -f /etc/supervisor/conf.d/salt-api.conf
   [[ ${SALT_API_SERVICE_ENABLED} == true ]] || return 0
 
   if [[ -n "${SALT_API_USER}" ]]; then
