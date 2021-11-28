@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3004 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3004.html)
 for the list of changes in SaltStack.
 
+**3004_2**
+
+- Support for automatically restart `salt-master` after config changes
+
 **3004_1**
 
 - Install `libssh2 1.10.0` from source

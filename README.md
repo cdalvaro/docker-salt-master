@@ -133,6 +133,10 @@ docker run --name salt_master -d \
     cdalvaro/docker-salt-master:latest
 ```
 
+This image provides support for automatically restart `salt-master` when configuration files change.
+This support is disabled by default, but it can be enabled by setting the
+`SALT_RESTART_MASTER_ON_CONFIG_CHANGE` environment variable to `true`.
+
 ### Custom States
 
 In order to provide salt with your custom states you must mount the volume `/home/salt/data/srv/` with your `roots` directory inside it.
@@ -502,27 +506,28 @@ Please refer the docker run command options for the `--env-file` flag where you 
 
 Below you can find a list with the available options that can be used to customize your `docker-salt-master` installation.
 
-| Parameter                          | Description                                                                                                                                                                                                                |
-| :--------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DEBUG`                            | Set this to `true` to enable entrypoint debugging.                                                                                                                                                                         |
-| `TIMEZONE`                         | Set the container timezone. Defaults to `UTC`. Values are expected to be in Canonical format. Example: `Europe/Madrid`. See the list of [acceptable values](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). |
-| `SALT_LOG_LEVEL`                   | The level of messages to send to the console. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning`                                                                                |
-| `SALT_LOG_ROTATE_FREQUENCY`        | Logrotate frequency for salt logs. Available options are 'daily', 'weekly', 'monthly', and 'yearly'. Default: `weekly`                                                                                                     |
-| `SALT_LOG_ROTATE_RETENTION`        | Keep x files before deleting old log files. Defaults: `52`                                                                                                                                                                 |
-| `SALT_LEVEL_LOGFILE`               | The level of messages to send to the log file. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning`                                                                               |
-| `SALT_API_SERVICE_ENABLED`         | Enable `salt-api` service. Default: `false`                                                                                                                                                                                |
-| `SALT_API_USER`                    | Set username for `salt-api` service. Default: `salt_api`                                                                                                                                                                   |
-| `SALT_API_USER_PASS`               | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `true` and `SALT_API_USER` is not empty. _Unset_ by default                                                                                            |
-| `SALT_API_CERT_CN`                 | Common name in the request. Default: `localhost` |
-| `SALT_MASTER_SIGN_PUBKEY`          | Sign the master auth-replies with a cryptographic signature of the master's public key. Possible values: 'True' or 'False'. Default: `False`                                                                               |
-| `SALT_MASTER_USE_PUBKEY_SIGNATURE` | Instead of computing the signature for each auth-reply, use a pre-calculated signature. This option requires `SALT_MASTER_SIGN_PUBKEY` set to 'True'. Possible values: 'True' or 'False'. Default: `True`                  |
-| `SALT_MASTER_SIGN_KEY_NAME`        | The customizable name of the signing-key-pair without suffix. Default: `master_sign`                                                                                                                                       |
-| `SALT_MASTER_PUBKEY_SIGNATURE`     | The name of the file in the master's pki-directory that holds the pre-calculated signature of the master's public-key. Default: `master_pubkey_signature`                                                                  |
-| `SALT_MASTER_ROOT_USER`            | Forces `salt-master` to be runned as `root` instead of `salt`. Default: `False`                                                                                                                                            |
-| `SALT_GITFS_SSH_PRIVATE_KEY`       | The name of the ssh private key for gitfs. Default: `gitfs_ssh`                                                                                                                                                            |
-| `SALT_GITFS_SSH_PUBLIC_KEY`        | The name of the ssh public key for gitfs. Default: `gitfs_ssh.pub`                                                                                                                                                         |
-| `USERMAP_UID`                      | Sets the uid for user `salt` to the specified uid. Default: `1000`.                                                                                                                                                        |
-| `USERMAP_GID`                      | Sets the gid for user `salt` to the specified gid. Default: `1000`.                                                                                                                                                        |
+| Parameter                              | Description                                                                                                                                                                                                                |
+| :------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DEBUG`                                | Set this to `true` to enable entrypoint debugging.                                                                                                                                                                         |
+| `TIMEZONE`                             | Set the container timezone. Defaults to `UTC`. Values are expected to be in Canonical format. Example: `Europe/Madrid`. See the list of [acceptable values](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). |
+| `SALT_RESTART_MASTER_ON_CONFIG_CHANGE` | Set this to `true` to restart `salt-master` service when configuration files change. Default: `false`                                                                                                                      |
+| `SALT_LOG_LEVEL`                       | The level of messages to send to the console. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning`                                                                                |
+| `SALT_LOG_ROTATE_FREQUENCY`            | Logrotate frequency for salt logs. Available options are 'daily', 'weekly', 'monthly', and 'yearly'. Default: `weekly`                                                                                                     |
+| `SALT_LOG_ROTATE_RETENTION`            | Keep x files before deleting old log files. Defaults: `52`                                                                                                                                                                 |
+| `SALT_LEVEL_LOGFILE`                   | The level of messages to send to the log file. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning`                                                                               |
+| `SALT_API_SERVICE_ENABLED`             | Enable `salt-api` service. Default: `false`                                                                                                                                                                                |
+| `SALT_API_USER`                        | Set username for `salt-api` service. Default: `salt_api`                                                                                                                                                                   |
+| `SALT_API_USER_PASS`                   | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `true` and `SALT_API_USER` is not empty. _Unset_ by default                                                                                            |
+| `SALT_API_CERT_CN`                     | Common name in the request. Default: `localhost`                                                                                                                                                                           |
+| `SALT_MASTER_SIGN_PUBKEY`              | Sign the master auth-replies with a cryptographic signature of the master's public key. Possible values: 'True' or 'False'. Default: `False`                                                                               |
+| `SALT_MASTER_USE_PUBKEY_SIGNATURE`     | Instead of computing the signature for each auth-reply, use a pre-calculated signature. This option requires `SALT_MASTER_SIGN_PUBKEY` set to 'True'. Possible values: 'True' or 'False'. Default: `True`                  |
+| `SALT_MASTER_SIGN_KEY_NAME`            | The customizable name of the signing-key-pair without suffix. Default: `master_sign`                                                                                                                                       |
+| `SALT_MASTER_PUBKEY_SIGNATURE`         | The name of the file in the master's pki-directory that holds the pre-calculated signature of the master's public-key. Default: `master_pubkey_signature`                                                                  |
+| `SALT_MASTER_ROOT_USER`                | Forces `salt-master` to be runned as `root` instead of `salt`. Default: `False`                                                                                                                                            |
+| `SALT_GITFS_SSH_PRIVATE_KEY`           | The name of the ssh private key for gitfs. Default: `gitfs_ssh`                                                                                                                                                            |
+| `SALT_GITFS_SSH_PUBLIC_KEY`            | The name of the ssh public key for gitfs. Default: `gitfs_ssh.pub`                                                                                                                                                         |
+| `USERMAP_UID`                          | Sets the uid for user `salt` to the specified uid. Default: `1000`.                                                                                                                                                        |
+| `USERMAP_GID`                          | Sets the gid for user `salt` to the specified gid. Default: `1000`.                                                                                                                                                        |
 
 Any parameter not listed in the above table and available in the following [link](https://docs.saltproject.io/en/latest/ref/configuration/examples.html#configuration-examples-master), can be set by creating the directory `config` and adding into it a `.conf` file with the desired parameters:
 

@@ -217,6 +217,7 @@ function configure_salt_master()
 #----------------------------------------------------------------------------------------------------------------------
 function configure_salt_api()
 {
+  rm -f /etc/supervisor/conf.d/salt-api.conf
   [[ ${SALT_API_SERVICE_ENABLED} == true ]] || return 0
 
   if [[ -n "${SALT_API_USER}" ]]; then
@@ -431,6 +432,27 @@ EOF
 
 }
 
+function configure_config_reloader()
+{
+  rm -f /etc/supervisor/conf.d/config-reloader.conf
+  [ "${SALT_RESTART_MASTER_ON_CONFIG_CHANGE}" == true ] || return 0
+
+  echo "Configuring config reloader ..."
+
+  # configure supervisord to start config-reloader
+  cat > /etc/supervisor/conf.d/config-reloader.conf <<EOF
+[program:config-reloader]
+priority=20
+directory=/tmp
+command=/usr/local/sbin/config-reloader
+user=root
+autostart=true
+autorestart=true
+stdout_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
+stderr_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
+EOF
+}
+
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  initialize_system
 #   DESCRIPTION:  Initialize the system.
@@ -444,6 +466,7 @@ function initialize_system()
   configure_salt_master
   configure_salt_api
   configure_salt_formulas
+  configure_config_reloader
   setup_salt_keys
   setup_ssh_keys
   rm -rf /var/run/supervisor.sock

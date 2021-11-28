@@ -30,7 +30,7 @@ export BOOTUP_WAIT_SECONDS=${BOOTUP_WAIT_SECONDS:-60}
 #----------------------------------------------------------------------------------------------------------------------
 function cleanup()
 {
-  echo "==> Removing ${CONTAINER_NAME} ..."
+  echo "🧹 Removing ${CONTAINER_NAME} ..."
   docker container rm --force "${CONTAINER_NAME}"
 }
 
@@ -41,6 +41,15 @@ function cleanup()
 function docker-exec()
 {
   docker exec "${CONTAINER_NAME}" "$@"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  docker-logs
+#   DESCRIPTION:  Get the logs of the container.
+#----------------------------------------------------------------------------------------------------------------------
+function docker-logs()
+{
+  docker logs "${CONTAINER_NAME}"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -106,4 +115,28 @@ function error()
   echo "🔥 $*"
   master_log
   return 1
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  check_equal
+#   DESCRIPTION:  Check if the given value is equal to the expected value.
+#----------------------------------------------------------------------------------------------------------------------
+function check_equal()
+{
+  local actual="$1"
+  local expected="$2"
+  local message="$3"
+
+  output=$(cat <<EOF
+${message}
+  Expected: ${expected}
+    Actual: ${actual}
+EOF
+)
+
+  if [[ "${actual}" == "${expected}" ]]; then
+    ok "${output}"
+  else
+    error "${output}"
+  fi
 }

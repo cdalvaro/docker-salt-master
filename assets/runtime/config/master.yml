@@ -117,20 +117,3 @@ log_level: {{SALT_LOG_LEVEL}}
 # One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'.
 # If using 'log_granular_levels' this must be set to the highest desired level.
 log_level_logfile: {{SALT_LEVEL_LOGFILE}}
-
-
-#####  Windows Software Repo settings #####
-###########################################
-# Location of the repo on the master:
-winrepo_dir_ng: '{{SALT_BASE_DIR}}/salt/win/repo-ng'
-
-
-#####  Windows Software Repo settings - Pre 2015.8 #####
-########################################################
-# Legacy repo settings for pre-2015.8 Windows minions.
-#
-# Location of the repo on the master:
-winrepo_dir: '{{SALT_BASE_DIR}}/salt/win/repo'
-#
-# Location of the master's repo cache file:
-winrepo_mastercachefile: '{{SALT_BASE_DIR}}/salt/win/repo/winrepo.p'
