@@ -13,7 +13,7 @@ COMMON_FILE="${SCRIPT_PATH}/../lib/common.sh"
 source "${COMMON_FILE}"
 trap cleanup EXIT
 
-export GITFS_KEYS_DIR=${GITFS_KEYS_DIR:-"${SCRIPT_PATH}/data/keys/gitfs"}
+export GITFS_KEYS_DIR=${GITFS_KEYS_DIR:-tests/gitfs/data/keys/gitfs}
 
 # Check gitfs keys are present
 echo "==> Checking gitfs keys are present ..."
@@ -26,7 +26,7 @@ ok "gitfs keys"
 echo "==> Starting docker-salt-master (${PLATFORM}) with RSA 4096 ssh key ..."
 start_container_and_wait \
   --volume "${SCRIPT_PATH}/config":/home/salt/data/config:ro \
-  --volume "${GITFS_KEYS_DIR%%/gitfs}":/home/salt/data/keys \
+  --volume "$(pwd)/${GITFS_KEYS_DIR%%/gitfs}":/home/salt/data/keys \
 || error "container started"
 ok "container started"
 
