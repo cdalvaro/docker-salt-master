@@ -130,6 +130,9 @@ jobs:
           chmod 644 "${GITFS_KEYS_DIR}"/gitfs_ssh.pub
           tests/gitfs/test.sh
 
+      - name: Execute config-reloader tests
+        run: tests/config-reloader/test.sh
+
       - name: Cleanup
         run: |
           docker stop registry

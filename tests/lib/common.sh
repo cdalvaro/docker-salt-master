@@ -44,6 +44,15 @@ function docker-exec()
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  docker-logs
+#   DESCRIPTION:  Get the logs of the container.
+#----------------------------------------------------------------------------------------------------------------------
+function docker-logs()
+{
+  docker logs "${CONTAINER_NAME}"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  salt-run
 #   DESCRIPTION:  Execute the salt-run command inside the container.
 #----------------------------------------------------------------------------------------------------------------------
@@ -106,4 +115,28 @@ function error()
   echo "🔥 $*"
   master_log
   return 1
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  check_equal
+#   DESCRIPTION:  Check if the given value is equal to the expected value.
+#----------------------------------------------------------------------------------------------------------------------
+function check_equal()
+{
+  local actual="$1"
+  local expected="$2"
+  local message="$3"
+
+  output=$(cat <<EOF
+${message}
+  Expected: ${expected}
+    Actual: ${actual}
+EOF
+)
+
+  if [[ "${actual}" == "${expected}" ]]; then
+    ok "${output}"
+  else
+    error "${output}"
+  fi
 }

@@ -7,7 +7,7 @@ ARG VCS_REF
 ENV SALT_VERSION="3004" \
     PYTHON_VERSION="3.9"
 
-ENV IMAGE_VERSION="${SALT_VERSION}_1"
+ENV IMAGE_VERSION="${SALT_VERSION}_2"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
@@ -35,7 +35,7 @@ RUN apt-get update \
     sudo ca-certificates openssl apt-transport-https wget locales openssh-client \
     python${PYTHON_VERSION} python3-dev libpython3-dev \
     python3-pip python3-setuptools python3-wheel \
-    supervisor logrotate git gettext-base tzdata \
+    supervisor logrotate git gettext-base tzdata inotify-tools \
  && DEBIAN_FRONTEND=noninteractive update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \
     locale-gen en_US.UTF-8 \
     dpkg-reconfigure locales \

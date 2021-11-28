@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# shellcheck source=assets/runtime/functions.sh
+FUNCTIONS_FILE="${SALT_RUNTIME_DIR}/functions.sh"
+source "${FUNCTIONS_FILE}"
+
+function check_for_config_changes()
+{
+  inotifywait -qq --recursive \
+    --event modify,move,create,delete \
+    "${SALT_CONFS_DIR}"
+}
+
+while check_for_config_changes; do
+  log_info "Configuration changes detected. Reloading salt-master ..."
+  supervisorctl restart salt-master
+done

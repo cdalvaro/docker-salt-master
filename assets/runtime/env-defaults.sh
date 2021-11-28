@@ -11,6 +11,7 @@ SALT_LOG_ROTATE_FREQUENCY=${SALT_LOG_ROTATE_FREQUENCY:-weekly}
 SALT_LOG_ROTATE_RETENTION=${SALT_LOG_ROTATE_RETENTION:-52}
 
 # https://docs.saltstack.com/en/latest/ref/configuration/master.html
+SALT_RESTART_MASTER_ON_CONFIG_CHANGE=${SALT_RESTART_MASTER_ON_CONFIG_CHANGE:-false}
 
 #####         Logging settings       #####
 # https://docs.saltstack.com/en/latest/ref/configuration/master.html#master-logging-settings
