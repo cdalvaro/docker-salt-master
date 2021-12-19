@@ -8,6 +8,7 @@ for the list of changes in SaltStack.
 
 - Deprecate `USERMAP_UID` env variable in favor of `PUID`.
 - Deprecate `USERMAP_GID` env variable in favor of `PGID`.
+- Add `TZ` in addition to `TIMEZONE` to the list of accepted env variables.
 
 Support for the `USERMAP_UID` and `USERMAP_GID` env variables will be removed with Salt 3005.
 
