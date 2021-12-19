@@ -20,8 +20,8 @@ services:
     environment:
       - DEBUG=false
       - TIMEZONE=Europe/Madrid
-      - USERMAP_UID=1000
-      - USERMAP_GID=1000
+      - PUID=1000
+      - PGID=1000
       - SALT_LOG_LEVEL=info
       ### salt-api settings
       # - SALT_API_SERVICE_ENABLED=true

@@ -24,7 +24,7 @@ quickstart:
 	@echo "Starting docker-salt-master container..."
 	@docker run --name='docker-salt-master-demo' --detach \
 		--publish=4505:4505/tcp --publish=4506:4506/tcp \
-		--env "USERMAP_UID=$(shell id -u)" --env "USERMAP_GID=$(shell id -g)" \
+		--env "PUID=$(shell id -u)" --env "PGID=$(shell id -g)" \
 		--env SALT_LOG_LEVEL=info \
 		--volume $(shell pwd)/roots/:/home/salt/data/srv/ \
 		--volume $(shell pwd)/keys/:/home/salt/data/keys/ \
