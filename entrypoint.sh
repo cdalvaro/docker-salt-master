@@ -16,7 +16,7 @@ case "${1}" in
 
     case "${1}" in
       app:start)
-        echo "Starting supervisord ..."
+        log_info "Starting supervisord ..."
         exec /usr/bin/supervisord -nc /etc/supervisor/supervisord.conf
         ;;
       app:gen-signed-keys)
@@ -29,7 +29,7 @@ case "${1}" in
     shift 1
     case "${1}" in
       salt-master|salt-api)
-        echo "Restarting ${1} service ..."
+        log_info "Restarting ${1} service ..."
         exec supervisorctl restart "${1}"
         ;;
       *)

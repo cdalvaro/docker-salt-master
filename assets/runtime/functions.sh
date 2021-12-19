@@ -23,12 +23,38 @@ function exec_as_salt()
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  log_debug
+#   DESCRIPTION:  Echo debug information to stdout.
+#----------------------------------------------------------------------------------------------------------------------
+function log_debug() {
+  if [[ "${DEBUG}" == 'true' || "${ECHO_DEBUG}" == 'true' ]]; then
+    echo "[DEBUG] - $*"
+  fi
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  log_info
+#   DESCRIPTION:  Echo information to stdout.
+#----------------------------------------------------------------------------------------------------------------------
+function log_info() {
+  echo "[INFO] - $*"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  log_warn
+#   DESCRIPTION:  Echo warning information to stdout.
+#----------------------------------------------------------------------------------------------------------------------
+function log_warn() {
+  (>&2 echo "[WARN] - $*")
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  log_error
 #   DESCRIPTION:  Echo errors to stderr.
 #----------------------------------------------------------------------------------------------------------------------
 function log_error()
 {
-  (>&2 echo " *  ERROR: $*")
+  (>&2 echo "[ERROR] - $*")
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -96,11 +122,11 @@ function update_template()
 #----------------------------------------------------------------------------------------------------------------------
 function configure_timezone()
 {
-  echo "Configuring container timezone ..."
+  log_info "Configuring container timezone ..."
 
   # Perform sanity check of provided timezone value
   if [ -e "/usr/share/zoneinfo/${TIMEZONE}" ]; then
-    echo "Setting TimeZone -> ${TIMEZONE} ..."
+    log_info "Setting TimeZone -> ${TIMEZONE} ..."
 
     # Set localtime
     ln -snf "/usr/share/zoneinfo/${TIMEZONE}" /etc/localtime
@@ -108,7 +134,7 @@ function configure_timezone()
     # Set timezone
     echo "${TIMEZONE}" > /etc/timezone
   else
-    echo "Timezone: '${TIMEZONE}' is not valid. Check available timezones at: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones"
+    log_error "Timezone: '${TIMEZONE}' is not valid. Check available timezones at: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones"
     return 1
   fi
 }
@@ -136,14 +162,14 @@ function gen_signed_keys()
 #----------------------------------------------------------------------------------------------------------------------
 function setup_salt_keys()
 {
-  echo "Setting up salt keys ..."
+  log_info "Setting up salt keys ..."
   if [ ! -f "${SALT_KEYS_DIR}/master.pem" ]; then
-    echo "Generating keys ..."
+    log_info "Generating keys ..."
     salt-key --gen-keys master --gen-keys-dir "${SALT_KEYS_DIR}"
   fi
 
   if [ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ] && [ "${SALT_MASTER_SIGN_PUBKEY}" == True ]; then
-    echo "Generating signed keys ..."
+    log_info "Generating signed keys ..."
     salt-key --gen-signature --auto-create --pub "${SALT_KEYS_DIR}/master.pub" --signature-path "${SALT_KEYS_DIR}"
   fi
 
@@ -166,7 +192,7 @@ function setup_salt_keys()
 #----------------------------------------------------------------------------------------------------------------------
 function setup_ssh_keys()
 {
-  echo "Configuring ssh ..."
+  log_info "Configuring ssh ..."
 
   sed -i \
     -e "s|^[# ]*IdentityFile salt_ssh_key$|    IdentityFile ${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PRIVATE_KEY}|" \
@@ -187,7 +213,7 @@ function setup_ssh_keys()
 #----------------------------------------------------------------------------------------------------------------------
 function configure_salt_master()
 {
-  echo "Configuring salt-master service ..."
+  log_info "Configuring salt-master service ..."
   # https://docs.saltstack.com/en/latest/ref/configuration/master.html
 
   exec_as_salt cp -p "${SALT_RUNTIME_DIR}/config/master.yml" "${SALT_ROOT_DIR}/master"
@@ -233,14 +259,14 @@ function configure_salt_api()
     fi
 
     if ! id -u "${SALT_API_USER}" &>/dev/null; then
-      echo "Creating '${SALT_API_USER}' user for salt-api ..."
+      log_info "Creating '${SALT_API_USER}' user for salt-api ..."
       adduser --quiet --disabled-password --gecos "Salt API" "${SALT_API_USER}"
     fi
     echo "${SALT_API_USER}:${SALT_API_USER_PASS}" | chpasswd
     unset SALT_API_USER_PASS
   fi
 
-  echo "Configuring salt-api service ..."
+  log_info "Configuring salt-api service ..."
 
   CERTS_PATH=/etc/pki
   rm -rf "${CERTS_PATH}"/tls/certs/*
@@ -284,7 +310,7 @@ EOF
 #----------------------------------------------------------------------------------------------------------------------
 function configure_salt_formulas()
 {
-  echo "Configuring 3rd-party salt-formulas ..."
+  log_info "Configuring 3rd-party salt-formulas ..."
   local master_yml_id="${SELF_MANAGED_BLOCK_STRING} - file_roots-base"
   local begin_delim="${master_yml_id} - begin"
   local end_delim="${master_yml_id} - end"
@@ -307,7 +333,7 @@ function configure_salt_formulas()
 #----------------------------------------------------------------------------------------------------------------------
 function initialize_datadir()
 {
-  echo "Configuring directories ..."
+  log_info "Configuring directories ..."
 
   # This symlink simplifies paths for loading sls files
   [[ -d /srv ]] && [[ ! -L /srv ]] && rm -rf /srv
@@ -315,14 +341,14 @@ function initialize_datadir()
   if [[ -w "${SALT_BASE_DIR}" ]]; then
     chown -R "${SALT_USER}": "${SALT_BASE_DIR}" || log_error "Unable to change '${SALT_BASE_DIR}' ownership"
   else
-    echo "${SALT_BASE_DIR} is mounted as a read-only volume. Ownership won't be changed."
+    log_info "${SALT_BASE_DIR} is mounted as a read-only volume. Ownership won't be changed."
   fi
 
   # Salt configuration directory
   if [[ -w "${SALT_CONFS_DIR}" ]]; then
     chown -R "${SALT_USER}": "${SALT_CONFS_DIR}" || log_error "Unable to change '${SALT_CONFS_DIR}' ownership"
   else
-    echo "${SALT_CONFS_DIR} is mounted as a read-only volume. Ownership won't be changed."
+    log_info "${SALT_CONFS_DIR} is mounted as a read-only volume. Ownership won't be changed."
   fi
 
   # Set Salt root permissions
@@ -357,7 +383,7 @@ function initialize_datadir()
   if [[ -w "${SALT_FORMULAS_DIR}" ]]; then
     chown -R "${SALT_USER}": "${SALT_FORMULAS_DIR}" || log_error "Unable to change '${SALT_FORMULAS_DIR}' ownership"
   else
-    echo "${SALT_FORMULAS_DIR} is mounted as a read-only volume. Ownership won't be changed."
+    log_info "${SALT_FORMULAS_DIR} is mounted as a read-only volume. Ownership won't be changed."
   fi
 
   [[ -d /var/log/salt ]] && [[ ! -L /var/log/salt ]] && rm -rf /var/log/salt
@@ -372,7 +398,7 @@ function initialize_datadir()
 #----------------------------------------------------------------------------------------------------------------------
 function configure_logrotate()
 {
-  echo "Configuring logrotate ..."
+  log_info "Configuring logrotate ..."
 
   rm -f /etc/logrotate.d/salt-common
 
@@ -437,7 +463,7 @@ function configure_config_reloader()
   rm -f /etc/supervisor/conf.d/config-reloader.conf
   [ "${SALT_RESTART_MASTER_ON_CONFIG_CHANGE}" == true ] || return 0
 
-  echo "Configuring config reloader ..."
+  log_info "Configuring config reloader ..."
 
   # configure supervisord to start config-reloader
   cat > /etc/supervisor/conf.d/config-reloader.conf <<EOF
