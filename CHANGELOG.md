@@ -4,6 +4,14 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3004 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3004.html)
 for the list of changes in SaltStack.
 
+**3004_3**
+
+- Deprecate `USERMAP_UID` env variable in favor of `PUID`.
+- Deprecate `USERMAP_GID` env variable in favor of `PGID`.
+- Add `TZ` in addition to `TIMEZONE` to the list of accepted env variables.
+
+Support for the `USERMAP_UID` and `USERMAP_GID` env variables will be removed with Salt 3005.
+
 **3004_2**
 
 - Support for automatically restart `salt-master` after config changes

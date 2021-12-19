@@ -295,12 +295,12 @@ pepper '*' test.ping
 
 Per default the container is configured to run `salt-master` as user and group `salt` with `uid` and `gid` `1000`. From the host it appears as if the mounted data volumes are owned by the host's user/group `1000` and maybe leading to unfavorable effects.
 
-Also the container processes seem to be executed as the host's user/group `1000`. The container can be configured to map the uid and gid of git to different ids on host by passing the environment variables `USERMAP_UID` and `USERMAP_GID`. The following command maps the ids to the current user and group on the host.
+Also the container processes seem to be executed as the host's user/group `1000`. The container can be configured to map the uid and gid of git to different ids on host by passing the environment variables `PUID` and `PGID`. The following command maps the ids to the current user and group on the host.
 
 ```sh
 docker run --name salt_stack -it --rm \
     --publish 4505:4505 --publish 4506:4506 \
-    --env "USERMAP_UID=$(id -u)" --env "USERMAP_GID=$(id -g)" \
+    --env "PUID=$(id -u)" --env "PGID=$(id -g)" \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     cdalvaro/docker-salt-master:latest
@@ -393,7 +393,7 @@ For that case, you can mount a volume containing all your third party formulas s
 ```sh
 docker run --name salt_stack -it --rm \
     --publish 4505:4505 --publish 4506:4506 \
-    --env "USERMAP_UID=$(id -u)" --env "USERMAP_GID=$(id -g)" \
+    --env "PUID=$(id -u)" --env "PGID=$(id -g)" \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/3pfs/:/home/salt/data/3pfs/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
@@ -509,7 +509,7 @@ Below you can find a list with the available options that can be used to customi
 | Parameter                              | Description                                                                                                                                                                                                                |
 | :------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `DEBUG`                                | Set this to `true` to enable entrypoint debugging.                                                                                                                                                                         |
-| `TIMEZONE`                             | Set the container timezone. Defaults to `UTC`. Values are expected to be in Canonical format. Example: `Europe/Madrid`. See the list of [acceptable values](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). |
+| `TIMEZONE` / `TZ`                      | Set the container timezone. Defaults to `UTC`. Values are expected to be in Canonical format. Example: `Europe/Madrid`. See the list of [acceptable values](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). |
 | `SALT_RESTART_MASTER_ON_CONFIG_CHANGE` | Set this to `true` to restart `salt-master` service when configuration files change. Default: `false`                                                                                                                      |
 | `SALT_LOG_LEVEL`                       | The level of messages to send to the console. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning`                                                                                |
 | `SALT_LOG_ROTATE_FREQUENCY`            | Logrotate frequency for salt logs. Available options are 'daily', 'weekly', 'monthly', and 'yearly'. Default: `weekly`                                                                                                     |
@@ -526,8 +526,10 @@ Below you can find a list with the available options that can be used to customi
 | `SALT_MASTER_ROOT_USER`                | Forces `salt-master` to be runned as `root` instead of `salt`. Default: `False`                                                                                                                                            |
 | `SALT_GITFS_SSH_PRIVATE_KEY`           | The name of the ssh private key for gitfs. Default: `gitfs_ssh`                                                                                                                                                            |
 | `SALT_GITFS_SSH_PUBLIC_KEY`            | The name of the ssh public key for gitfs. Default: `gitfs_ssh.pub`                                                                                                                                                         |
-| `USERMAP_UID`                          | Sets the uid for user `salt` to the specified uid. Default: `1000`.                                                                                                                                                        |
-| `USERMAP_GID`                          | Sets the gid for user `salt` to the specified gid. Default: `1000`.                                                                                                                                                        |
+| `PUID`                                 | Sets the uid for user `salt` to the specified uid. Default: `1000`.                                                                                                                                                        |
+| `PGID`                                 | Sets the gid for user `salt` to the specified gid. Default: `1000`.                                                                                                                                                        |
+| `USERMAP_UID` (**deprecated**)         | Same as `PUID`. Support will be removed in Salt 3005 release in favor of `PUID`.                                                                                                                                           |
+| `USERMAP_GID` (**deprecated**)         | Same as `PGID`. Support will be removed in Salt 3005 release in favor of `PGID`.                                                                                                                                           |
 
 Any parameter not listed in the above table and available in the following [link](https://docs.saltproject.io/en/latest/ref/configuration/examples.html#configuration-examples-master), can be set by creating the directory `config` and adding into it a `.conf` file with the desired parameters:
 

@@ -3,7 +3,7 @@ version: '3'
 services:
   master:
     container_name: salt_master
-    image: cdalvaro/docker-salt-master:3004
+    image: cdalvaro/docker-salt-master:3004_3
     restart: always
     volumes:
       - "roots/:/home/salt/data/srv"
@@ -18,12 +18,12 @@ services:
       test: ["CMD", "/usr/local/sbin/healthcheck"]
       start_period: 30s
     environment:
-      - DEBUG=false
-      - TIMEZONE=Europe/Madrid
-      - USERMAP_UID=1000
-      - USERMAP_GID=1000
-      - SALT_LOG_LEVEL=info
+      DEBUG: 'false'
+      TZ: Europe/Madrid
+      PUID: 1000
+      PGID: 1000
+      SALT_LOG_LEVEL: info
       ### salt-api settings
-      # - SALT_API_SERVICE_ENABLED=true
-      # - SALT_API_USER=salt_api
-      # - SALT_API_USER_PASS=4wesome-Pass0rd
+      # SALT_API_SERVICE_ENABLED: 'true'
+      # SALT_API_USER: salt_api
+      # SALT_API_USER_PASS: 4wesome-Pass0rd
