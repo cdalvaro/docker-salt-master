@@ -7,7 +7,7 @@ set -e
 #   DESCRIPTION:  Echo debug information to stdout.
 #----------------------------------------------------------------------------------------------------------------------
 function log_debug() {
-  if [[ "${DEBUG}" == 'true' || "${ECHO_DEBUG}" == 'true' ]]; then
+  if [[ "${DEBUG,,}" == true || "${ECHO_DEBUG,,}" == true ]]; then
     echo "[DEBUG] - $*"
   fi
 }

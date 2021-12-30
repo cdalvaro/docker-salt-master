@@ -135,7 +135,7 @@ docker run --name salt_master -d \
 
 This image provides support for automatically restart `salt-master` when configuration files change.
 This support is disabled by default, but it can be enabled by setting the
-`SALT_RESTART_MASTER_ON_CONFIG_CHANGE` environment variable to `true`.
+`SALT_RESTART_MASTER_ON_CONFIG_CHANGE` environment variable to `True`.
 
 ### Custom States
 
@@ -213,7 +213,7 @@ The newly created keys will appear inside `keys/generated/new_master_sign` direc
 
 ### Salt API
 
-You can enable `salt-api` service by setting env variable `SALT_API_SERVICE_ENABLED` to `true`.
+You can enable `salt-api` service by setting env variable `SALT_API_SERVICE_ENABLED` to `True`.
 
 A self-signed SSL certificate will be automatically generated and the following configuration will be added to the master configuration file:
 
@@ -229,7 +229,7 @@ The container exposes port `8000` by default, although you can map this port to 
 ```sh
 docker run --name salt_stack --detach \
     --publish 4505:4505 --publish 4506:4506 --publish 8000:8000 \
-    --env 'SALT_API_SERVICE_ENABLED=true' \
+    --env 'SALT_API_SERVICE_ENABLED=True' \
     --env 'SALT_API_USER_PASS=4wesome-Pass0rd' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
@@ -243,7 +243,7 @@ By default, user `salt_api` is created and you can set its password by setting t
 
 You can also change the salt-api _username_ by setting `SALT_API_USER`. It is possible to disable this user by explicitly setting this variable to an empty string: `SALT_API_USER=''` if you are going to use an `LDAP` server.
 
-As a security measure, if `SALT_API_SERVICE_ENABLED` is set to `true` and you don't disable `SALT_API_USER`, you'll be required to set `SALT_API_USER_PASS`. Otherwise initialization will fail and your Docker image won't work.
+As a security measure, if `SALT_API_SERVICE_ENABLED` is set to `True` and you don't disable `SALT_API_USER`, you'll be required to set `SALT_API_USER_PASS`. Otherwise initialization will fail and your Docker image won't work.
 
 With all that set, you'll be able to provide your _salt-api_ custom configuration by creating the `salt-api.conf` file inside your `conf` directory:
 
@@ -508,16 +508,16 @@ Below you can find a list with the available options that can be used to customi
 
 | Parameter                              | Description                                                                                                                                                                                                                |
 | :------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DEBUG`                                | Set this to `true` to enable entrypoint debugging.                                                                                                                                                                         |
+| `DEBUG`                                | Set this to `True` to enable entrypoint debugging.                                                                                                                                                                         |
 | `TIMEZONE` / `TZ`                      | Set the container timezone. Defaults to `UTC`. Values are expected to be in Canonical format. Example: `Europe/Madrid`. See the list of [acceptable values](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). |
-| `SALT_RESTART_MASTER_ON_CONFIG_CHANGE` | Set this to `true` to restart `salt-master` service when configuration files change. Default: `false`                                                                                                                      |
+| `SALT_RESTART_MASTER_ON_CONFIG_CHANGE` | Set this to `True` to restart `salt-master` service when configuration files change. Default: `False`                                                                                                                      |
 | `SALT_LOG_LEVEL`                       | The level of messages to send to the console. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning`                                                                                |
 | `SALT_LOG_ROTATE_FREQUENCY`            | Logrotate frequency for salt logs. Available options are 'daily', 'weekly', 'monthly', and 'yearly'. Default: `weekly`                                                                                                     |
 | `SALT_LOG_ROTATE_RETENTION`            | Keep x files before deleting old log files. Defaults: `52`                                                                                                                                                                 |
 | `SALT_LEVEL_LOGFILE`                   | The level of messages to send to the log file. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning`                                                                               |
-| `SALT_API_SERVICE_ENABLED`             | Enable `salt-api` service. Default: `false`                                                                                                                                                                                |
+| `SALT_API_SERVICE_ENABLED`             | Enable `salt-api` service. Default: `False`                                                                                                                                                                                |
 | `SALT_API_USER`                        | Set username for `salt-api` service. Default: `salt_api`                                                                                                                                                                   |
-| `SALT_API_USER_PASS`                   | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `true` and `SALT_API_USER` is not empty. _Unset_ by default                                                                                            |
+| `SALT_API_USER_PASS`                   | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `True` and `SALT_API_USER` is not empty. _Unset_ by default                                                                                            |
 | `SALT_API_CERT_CN`                     | Common name in the request. Default: `localhost`                                                                                                                                                                           |
 | `SALT_MASTER_SIGN_PUBKEY`              | Sign the master auth-replies with a cryptographic signature of the master's public key. Possible values: 'True' or 'False'. Default: `False`                                                                               |
 | `SALT_MASTER_USE_PUBKEY_SIGNATURE`     | Instead of computing the signature for each auth-reply, use a pre-calculated signature. This option requires `SALT_MASTER_SIGN_PUBKEY` set to 'True'. Possible values: 'True' or 'False'. Default: `True`                  |
@@ -582,7 +582,7 @@ You can restart containers services by running the following command:
 docker exec -it salt_master entrypoint.sh app:restart [salt-service]
 ```
 
-Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVICE_ENABLED` is set to `true`)
+Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVICE_ENABLED` is set to `True`)
 
 ## References
 

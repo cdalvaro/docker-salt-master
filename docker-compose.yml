@@ -24,6 +24,6 @@ services:
       PGID: 1000
       SALT_LOG_LEVEL: info
       ### salt-api settings
-      # SALT_API_SERVICE_ENABLED: 'true'
+      # SALT_API_SERVICE_ENABLED: 'True'
       # SALT_API_USER: salt_api
       # SALT_API_USER_PASS: 4wesome-Pass0rd

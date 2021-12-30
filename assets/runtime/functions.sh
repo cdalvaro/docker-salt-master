@@ -27,7 +27,7 @@ function exec_as_salt()
 #   DESCRIPTION:  Echo debug information to stdout.
 #----------------------------------------------------------------------------------------------------------------------
 function log_debug() {
-  if [[ "${DEBUG}" == 'true' || "${ECHO_DEBUG}" == 'true' ]]; then
+  if [[ "${DEBUG,,}" == true || "${ECHO_DEBUG,,}" == true ]]; then
     echo "[DEBUG] - $*"
   fi
 }
@@ -286,7 +286,7 @@ function configure_salt_master()
 function configure_salt_api()
 {
   rm -f /etc/supervisor/conf.d/salt-api.conf
-  [[ ${SALT_API_SERVICE_ENABLED} == true ]] || return 0
+  [[ ${SALT_API_SERVICE_ENABLED,,} == true ]] || return 0
 
   if [[ -n "${SALT_API_USER}" ]]; then
 
@@ -484,7 +484,7 @@ ${SALT_LOGS_DIR}/salt/key {
 }
 EOF
 
-  if [[ "${SALT_API_SERVICE_ENABLED}" == true ]]; then
+  if [[ "${SALT_API_SERVICE_ENABLED,,}" == true ]]; then
     # configure salt-api log rotation
     cat >> /etc/logrotate.d/salt <<EOF
 
@@ -503,7 +503,7 @@ EOF
 function configure_config_reloader()
 {
   rm -f /etc/supervisor/conf.d/config-reloader.conf
-  [ "${SALT_RESTART_MASTER_ON_CONFIG_CHANGE}" == true ] || return 0
+  [ "${SALT_RESTART_MASTER_ON_CONFIG_CHANGE,,}" == true ] || return 0
 
   log_info "Configuring config reloader ..."
 
