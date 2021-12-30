@@ -268,7 +268,8 @@ function configure_salt_master()
     SALT_BASE_DIR \
     SALT_CACHE_DIR \
     SALT_CONFS_DIR \
-    SALT_KEYS_DIR
+    SALT_KEYS_DIR \
+    SALT_REACTOR_WORKER_THREADS
 
   # Update keys configuration
   update_template "${SALT_ROOT_DIR}/master" \

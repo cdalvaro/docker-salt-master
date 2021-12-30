@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3004 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3004.html)
 for the list of changes in SaltStack.
 
+**3004_5**
+
+- Set the number of workers for the runner/wheel in the reactor by setting `SALT_REACTOR_WORKER_THREADS` env variable.
+
 **3004_4**
 
 - Fix an issue restarting `salt-master` processes with `supervisorctl` when reloading config.

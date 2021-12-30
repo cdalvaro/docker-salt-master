@@ -85,6 +85,12 @@ pillar_roots:
     - {{SALT_BASE_DIR}}/pillar
 
 
+######        Reactor Settings        #####
+###########################################
+# Configure the number of workers for the runner/wheel in the reactor.
+reactor_worker_threads: {{SALT_REACTOR_WORKER_THREADS}}
+
+
 #####          Syndic settings       #####
 ##########################################
 # The Salt syndic is used to pass commands through a master from a higher
