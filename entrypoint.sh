@@ -7,7 +7,7 @@ set -o pipefail
 FUNCTIONS_FILE="${SALT_RUNTIME_DIR}/functions.sh"
 source "${FUNCTIONS_FILE}"
 
-[[ "${DEBUG}" == true ]] && set -x
+[[ "${DEBUG,,}" == true ]] && set -x
 
 case "${1}" in
   app:start|app:gen-signed-keys)

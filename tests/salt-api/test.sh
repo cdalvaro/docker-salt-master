@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-[ "${DEBUG}" == true ] && set -vx
+[ "${DEBUG,,}" == true ] && set -vx
 
 echo "🧪 Running salt-api tests ..."
 
@@ -37,7 +37,7 @@ ok "salt-api config created"
 echo "==> Starting docker-salt-master (${PLATFORM}) with salt-api config ..."
 start_container_and_wait \
   --publish 8000:8000 \
-  --env SALT_API_SERVICE_ENABLED=true \
+  --env SALT_API_SERVICE_ENABLED=True \
   --env SALT_API_USER_PASS="${SALTAPI_PASS}" \
   --volume "${SALTAPI_TMP_DIR}/config":/home/salt/data/config:ro \
 || error "container started"
@@ -61,7 +61,7 @@ curl -sSk "${SALTAPI_URL}" \
   -d client=runner \
   -d tgt='*' \
   -d fun=test.stream \
-| grep -i 'true' || error "curl command"
+| grep -i true || error "curl command"
 ok "curl command"
 
 # Install salt-pepper

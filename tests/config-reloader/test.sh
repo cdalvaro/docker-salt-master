@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-[ "${DEBUG}" == true ] && set -vx
+[ "${DEBUG,,}" == true ] && set -vx
 
 echo "🧪 Running config-reloader tests ..."
 
@@ -16,7 +16,7 @@ trap cleanup EXIT
 # Run test instance
 echo "==> Starting docker-salt-master (${PLATFORM}) ..."
 start_container_and_wait \
-  --env SALT_RESTART_MASTER_ON_CONFIG_CHANGE=true \
+  --env SALT_RESTART_MASTER_ON_CONFIG_CHANGE=True \
   --volume "${SCRIPT_PATH}/config":/home/salt/data/config:ro \
 || error "container started"
 ok "container started"

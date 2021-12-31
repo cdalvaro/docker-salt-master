@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-[ "${DEBUG}" == true ] && set -vx
+[ "${DEBUG,,}" == true ] && set -vx
 
 echo "🧪 Running gitfs tests ..."
 
@@ -34,7 +34,7 @@ ok "container started"
 echo "==> Updating gitfs repositories ..."
 salt-run cache.clear_git_lock gitfs type=update
 UPDATE_REPOS="$( salt-run fileserver.update )"
-echo "${UPDATE_REPOS}" | grep -qi 'true' || error "update gitfs"
+echo "${UPDATE_REPOS}" | grep -qi true || error "update gitfs"
 ok "update gitfs"
 
 # Check pillars

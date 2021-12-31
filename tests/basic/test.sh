@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-[ "${DEBUG}" == true ] && set -vx
+[ "${DEBUG,,}" == true ] && set -vx
 
 echo "🧪 Running basic tests ..."
 
@@ -26,5 +26,5 @@ ok "salt version"
 
 # Test image calling healthcheck
 echo "==> Executing healthcheck ..."
-docker-exec /usr/local/sbin/healthcheck | grep -i 'true' || error "healthcheck"
+docker-exec /usr/local/sbin/healthcheck | grep -i true || error "healthcheck"
 ok "healthcheck"

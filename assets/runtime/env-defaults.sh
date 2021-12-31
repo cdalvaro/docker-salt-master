@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-DEBUG=${DEBUG:-false}
+DEBUG=${DEBUG:-False}
 TIMEZONE=${TIMEZONE:-${TZ:-UTC}}
 
-SALT_API_SERVICE_ENABLED=${SALT_API_SERVICE_ENABLED:-false}
+SALT_API_SERVICE_ENABLED=${SALT_API_SERVICE_ENABLED:-False}
 SALT_API_USER=${SALT_API_USER:-salt_api}
 SALT_API_CERT_CN=${SALT_API_CERT_CN:-localhost}
 
@@ -11,7 +11,8 @@ SALT_LOG_ROTATE_FREQUENCY=${SALT_LOG_ROTATE_FREQUENCY:-weekly}
 SALT_LOG_ROTATE_RETENTION=${SALT_LOG_ROTATE_RETENTION:-52}
 
 # https://docs.saltstack.com/en/latest/ref/configuration/master.html
-SALT_RESTART_MASTER_ON_CONFIG_CHANGE=${SALT_RESTART_MASTER_ON_CONFIG_CHANGE:-false}
+SALT_RESTART_MASTER_ON_CONFIG_CHANGE=${SALT_RESTART_MASTER_ON_CONFIG_CHANGE:-False}
+SALT_REACTOR_WORKER_THREADS=${SALT_REACTOR_WORKER_THREADS:-10}
 
 #####         Logging settings       #####
 # https://docs.saltstack.com/en/latest/ref/configuration/master.html#master-logging-settings
