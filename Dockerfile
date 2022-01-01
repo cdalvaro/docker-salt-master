@@ -4,10 +4,9 @@ ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
+# NOTE: Review org.label-schema.version label if necessary
 ENV SALT_VERSION="3004" \
     PYTHON_VERSION="3.9"
-
-ENV IMAGE_VERSION="${SALT_VERSION}_5"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
@@ -67,7 +66,7 @@ LABEL \
     maintainer="carlos@cdalvaro.io" \
     org.label-schema.vendor=cdalvaro \
     org.label-schema.name="SaltStack Master" \
-    org.label-schema.version=${IMAGE_VERSION} \
+    org.label-schema.version="${SALT_VERSION}_6" \
     org.label-schema.description="Dockerized SaltStack Master" \
     org.label-schema.url="https://github.com/cdalvaro/docker-salt-master" \
     org.label-schema.vcs-url="https://github.com/cdalvaro/docker-salt-master.git" \
