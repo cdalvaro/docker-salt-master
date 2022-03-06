@@ -74,7 +74,7 @@ jobs:
     if: contains(toJSON(github.event.commits.*.message), 'ci(debug)') == false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1.2.0
