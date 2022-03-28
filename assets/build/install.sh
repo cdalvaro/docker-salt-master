@@ -42,7 +42,7 @@ pip3 install timelib==0.2.5
 # Install pygit2 package
 install_libssh2
 install_libgit2
-pip3 install pygit2==1.7.0
+pip3 install cached-property cffi==1.14.6 pygit2==1.9.1
 
 # Downloading bootstrap-salt.sh script
 BOOTSTRAP_VERSION='2021.09.17'

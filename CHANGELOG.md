@@ -7,6 +7,7 @@ for the list of changes in SaltStack.
 **3004.1**
 
 - Upgrade `salt-master` to `3004.1` *Silicon*
+- Upgrade `pygit2` to version `1.9.1`
 - Upgrade `libgit2` to version `1.4.2`
 - Change Docker base image to `ubuntu:hirsute-20220113`
 
