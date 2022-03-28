@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3004 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3004.html)
 for the list of changes in SaltStack.
 
+**3004.1**
+
+- Change Docker base image to `ubuntu:hirsute-20220113`
+
 **3004_6**
 
 - Set the number of worker threads to start by setting `SALT_WORKER_THREADS` env variable.
