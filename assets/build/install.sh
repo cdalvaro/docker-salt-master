@@ -72,6 +72,10 @@ log_debug "Options: ${SALT_BOOTSTRAP_OPTS[@]}"
 sh "${BOOTSTRAP_FILE}" ${SALT_BOOTSTRAP_OPTS[@]} git "v${SALT_VERSION}"
 chown -R "${SALT_USER}": "${SALT_ROOT_DIR}"
 
+# Fix Jinja2 version to avoid Markup import error
+# https://github.com/saltstack/salt/issues/61848
+pip3 install -I markupsafe==2.0.1 jinja2==3.0.3
+
 # Configure ssh
 log_info "Configuring ssh ..."
 sed -i -e "s|^[# ]*StrictHostKeyChecking.*$|    StrictHostKeyChecking no|" /etc/ssh/ssh_config

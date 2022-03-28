@@ -9,6 +9,7 @@ for the list of changes in SaltStack.
 - Upgrade `salt-master` to `3004.1` *Silicon*
 - Upgrade `pygit2` to version `1.9.1`
 - Upgrade `libgit2` to version `1.4.2`
+- Fix Jinja2 version to avoid Markup import error
 - Change Docker base image to `ubuntu:hirsute-20220113`
 
 **3004_6**
