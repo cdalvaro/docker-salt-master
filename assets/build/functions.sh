@@ -200,10 +200,10 @@ function install_libssh2()
 #----------------------------------------------------------------------------------------------------------------------
 function install_libgit2()
 {
-  local LIBGIT2_VERSION=1.3.0
+  local LIBGIT2_VERSION=1.4.2
   local LIBGIT2_URL="https://github.com/libgit2/libgit2/archive/refs/tags/v${LIBGIT2_VERSION}.tar.gz"
   local FILE_NAME="libgit2-${LIBGIT2_VERSION}.tar.gz"
-  local SHA256_SUM='192eeff84596ff09efb6b01835a066f2df7cd7985e0991c79595688e6b36444e'
+  local SHA256_SUM='901c2b4492976b86477569502a41c31b274b69adc177149c02099ea88404ef19'
 
   local CURRENT_DIR="$(pwd)"
   local WORK_DIR="$(mktemp -d)" && cd "${WORK_DIR}"
