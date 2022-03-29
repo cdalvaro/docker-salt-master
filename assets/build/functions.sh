@@ -186,6 +186,8 @@ function install_libssh2()
     -DENABLE_ZLIB_COMPRESSION=ON
     -DENABLE_DEBUG_LOGGING=OFF
     -DCLEAR_MEMORY=ON
+    -DBUILD_EXAMPLES=OFF
+    -DBUILD_TESTING=OFF
   )
 
   build_and_install "libssh2 v${LIBSSH2_VERSION}" ${_OPTS[@]}
@@ -212,7 +214,15 @@ function install_libgit2()
   check_sha256 "${FILE_NAME}" "${SHA256_SUM}"
   extract "${FILE_NAME}"
 
-  build_and_install "libgit2 v${LIBGIT2_VERSION}" -DBUILD_CLAR=OFF
+  _OPTS=(
+    -DBUILD_SHARED_LIBS=ON
+    -DUSE_SSH=ON
+    -DUSE_THREADS=ON
+    -DBUILD_EXAMPLES=OFF
+    -DBUILD_TESTS=OFF
+  )
+
+  build_and_install "libgit2 v${LIBGIT2_VERSION}" ${_OPTS[@]}
 
   cd "${CURRENT_DIR}"
   rm -rf "${WORK_DIR}"
