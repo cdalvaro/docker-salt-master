@@ -7,7 +7,7 @@
 [![Architecture ARM64][arch_arm64_badge]][arch_link]
 [![Architecture ARM/v7][arch_arm_badge]][arch_link]
 
-# Dockerized Salt Master v3004 _Silicon_
+# Dockerized Salt Master v3004.1 _Silicon_
 
 Dockerfile to build a [Salt Project](https://saltproject.io) Master image for the Docker opensource container platform.
 
@@ -46,7 +46,7 @@ For other methods to install `salt-master` please refer to the [Official Salt Pr
 Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/docker-salt-master/) and is the recommended method of installation.
 
 ```sh
-docker pull cdalvaro/docker-salt-master:3004
+docker pull cdalvaro/docker-salt-master:3004.1
 ```
 
 You can also pull the latest tag which is built from the repository `HEAD`
@@ -593,9 +593,9 @@ Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVIC
 - https://docs.saltproject.io/en/getstarted/
 - https://docs.saltproject.io/en/latest/contents.html
 
-[saltproject_badge]: https://img.shields.io/badge/Salt-v3004-lightgrey.svg?logo=Saltstack
-[saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3004.html "Salt Project Release Notes"
-[ubuntu_badge]: https://img.shields.io/badge/ubuntu-hirsute--20210917-E95420.svg?logo=Ubuntu
+[saltproject_badge]: https://img.shields.io/badge/Salt-v3004.1-lightgrey.svg?logo=Saltstack
+[saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3004.1.html "Salt Project Release Notes"
+[ubuntu_badge]: https://img.shields.io/badge/ubuntu-hirsute--20220113-E95420.svg?logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
 [github_publish_badge]: https://img.shields.io/github/workflow/status/cdalvaro/docker-salt-master/Publish%20Docker%20image?label=build&logo=GitHub&logoColor=%23181717
 [github_publish_workflow]: https://github.com/cdalvaro/docker-salt-master/actions?query=workflow%3A%22Publish+Docker+image%22

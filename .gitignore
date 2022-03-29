@@ -8,6 +8,7 @@
 /logs/
 /3pfs/
 .vscode/
+.idea/
 
 # tests
 /tests/**/keys/

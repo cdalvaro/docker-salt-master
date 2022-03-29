@@ -1,11 +1,11 @@
-FROM ubuntu:hirsute-20210917
+FROM ubuntu:hirsute-20220113
 
 ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
 # NOTE: Review org.label-schema.version label if necessary
-ENV SALT_VERSION="3004" \
+ENV SALT_VERSION="3004.1" \
     PYTHON_VERSION="3.9"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \

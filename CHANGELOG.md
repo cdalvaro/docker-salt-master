@@ -1,8 +1,17 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3004 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3004.html)
+Please refer to the [Salt 3004.1 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3004.1.html)
 for the list of changes in SaltStack.
+
+**3004.1**
+
+- Upgrade `salt-master` to `3004.1` *Silicon*
+- Upgrade `salt-bootstrap` to version `2022.03.15`
+- Upgrade `pygit2` to version `1.9.1`
+- Upgrade `libgit2` to version `1.4.2`
+- Fix Jinja2 version to avoid Markup import error
+- Change Docker base image to `ubuntu:hirsute-20220113`
 
 **3004_6**
 

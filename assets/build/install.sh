@@ -42,13 +42,13 @@ pip3 install timelib==0.2.5
 # Install pygit2 package
 install_libssh2
 install_libgit2
-pip3 install pygit2==1.7.0
+pip3 install cached-property cffi==1.14.6 pygit2==1.9.1
 
 # Downloading bootstrap-salt.sh script
-BOOTSTRAP_VERSION='2021.09.17'
+BOOTSTRAP_VERSION='2022.03.15'
 BOOTSTRAP_URL="https://raw.githubusercontent.com/saltstack/salt-bootstrap/v${BOOTSTRAP_VERSION}/bootstrap-salt.sh"
 BOOTSTRAP_FILE='bootstrap-salt.sh'
-BOOTSTRAP_SHA256='090d652cd6290debce0e3a4eded65086a4272e69446e711eb26f87160593b6a2'
+BOOTSTRAP_SHA256='ed66dc9e71aed7602b9ae548f8535131831026f934f19f868fdefbe6a3ab9bf9'
 
 download "${BOOTSTRAP_URL}" "${BOOTSTRAP_FILE}"
 check_sha256 "${BOOTSTRAP_FILE}" "${BOOTSTRAP_SHA256}"
@@ -71,6 +71,10 @@ log_info "Installing saltstack ..."
 log_debug "Options: ${SALT_BOOTSTRAP_OPTS[@]}"
 sh "${BOOTSTRAP_FILE}" ${SALT_BOOTSTRAP_OPTS[@]} git "v${SALT_VERSION}"
 chown -R "${SALT_USER}": "${SALT_ROOT_DIR}"
+
+# Fix Jinja2 version to avoid Markup import error
+# https://github.com/saltstack/salt/issues/61848
+pip3 install -I markupsafe==2.0.1 jinja2==3.0.3
 
 # Configure ssh
 log_info "Configuring ssh ..."

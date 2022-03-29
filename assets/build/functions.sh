@@ -186,6 +186,8 @@ function install_libssh2()
     -DENABLE_ZLIB_COMPRESSION=ON
     -DENABLE_DEBUG_LOGGING=OFF
     -DCLEAR_MEMORY=ON
+    -DBUILD_EXAMPLES=OFF
+    -DBUILD_TESTING=OFF
   )
 
   build_and_install "libssh2 v${LIBSSH2_VERSION}" ${_OPTS[@]}
@@ -200,10 +202,10 @@ function install_libssh2()
 #----------------------------------------------------------------------------------------------------------------------
 function install_libgit2()
 {
-  local LIBGIT2_VERSION=1.3.0
+  local LIBGIT2_VERSION=1.4.2
   local LIBGIT2_URL="https://github.com/libgit2/libgit2/archive/refs/tags/v${LIBGIT2_VERSION}.tar.gz"
   local FILE_NAME="libgit2-${LIBGIT2_VERSION}.tar.gz"
-  local SHA256_SUM='192eeff84596ff09efb6b01835a066f2df7cd7985e0991c79595688e6b36444e'
+  local SHA256_SUM='901c2b4492976b86477569502a41c31b274b69adc177149c02099ea88404ef19'
 
   local CURRENT_DIR="$(pwd)"
   local WORK_DIR="$(mktemp -d)" && cd "${WORK_DIR}"
@@ -212,7 +214,15 @@ function install_libgit2()
   check_sha256 "${FILE_NAME}" "${SHA256_SUM}"
   extract "${FILE_NAME}"
 
-  build_and_install "libgit2 v${LIBGIT2_VERSION}" -DBUILD_CLAR=OFF
+  _OPTS=(
+    -DBUILD_SHARED_LIBS=ON
+    -DUSE_SSH=ON
+    -DUSE_THREADS=ON
+    -DBUILD_EXAMPLES=OFF
+    -DBUILD_TESTS=OFF
+  )
+
+  build_and_install "libgit2 v${LIBGIT2_VERSION}" ${_OPTS[@]}
 
   cd "${CURRENT_DIR}"
   rm -rf "${WORK_DIR}"
