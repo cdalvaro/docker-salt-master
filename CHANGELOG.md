@@ -7,6 +7,7 @@ for the list of changes in SaltStack.
 **3004.1**
 
 - Upgrade `salt-master` to `3004.1` *Silicon*
+- Upgrade `salt-bootstrap` to version `2022.03.15`
 - Upgrade `pygit2` to version `1.9.1`
 - Upgrade `libgit2` to version `1.4.2`
 - Fix Jinja2 version to avoid Markup import error
