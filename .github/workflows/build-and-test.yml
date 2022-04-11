@@ -60,7 +60,7 @@ jobs:
         run: docker stop registry
 
       - name: Upload Docker registry data for testing
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: docker-registry-data
           path: ${{ env.REGISTRY_PATH }}/
