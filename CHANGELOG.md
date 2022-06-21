@@ -1,8 +1,12 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3004.1 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3004.1.html)
+Please refer to the [Salt 3004.2 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3004.2.html)
 for the list of changes in SaltStack.
+
+**3004.2**
+
+- Upgrade `salt-master` to `3004.2` *Silicon*
 
 **3004.1**
 
