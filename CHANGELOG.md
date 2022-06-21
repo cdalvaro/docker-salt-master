@@ -7,6 +7,7 @@ for the list of changes in SaltStack.
 **3004.2**
 
 - Upgrade `salt-master` to `3004.2` *Silicon*
+- Remove Jinja2 patch to avoid Markup import error
 
 **3004.1**
 
