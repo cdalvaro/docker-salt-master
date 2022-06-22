@@ -7,6 +7,7 @@ for the list of changes in SaltStack.
 **3004.2_1**
 
 - Change Docker base image to `ubuntu:jammy-20220531`
+- Upgrade Python to version `3.10`
 
 **3004.2**
 
