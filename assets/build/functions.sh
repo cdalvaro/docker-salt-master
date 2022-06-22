@@ -162,41 +162,6 @@ function build_and_install()
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
-#          NAME:  install_libssh2
-#   DESCRIPTION:  Install libssh2 library.
-#----------------------------------------------------------------------------------------------------------------------
-function install_libssh2()
-{
-  local LIBSSH2_VERSION=1.10.0
-  local LIBSSH2_URL="https://github.com/libssh2/libssh2/releases/download/libssh2-${LIBSSH2_VERSION}/libssh2-${LIBSSH2_VERSION}.tar.gz"
-  local FILE_NAME="libssh2-${LIBSSH2_VERSION}.tar.gz"
-  local SHA256_SUM='2d64e90f3ded394b91d3a2e774ca203a4179f69aebee03003e5a6fa621e41d51'
-
-  local CURRENT_DIR="$(pwd)"
-  local WORK_DIR="$(mktemp -d)" && cd "${WORK_DIR}"
-
-  download "${LIBSSH2_URL}" "${FILE_NAME}"
-  check_sha256 "${FILE_NAME}" "${SHA256_SUM}"
-  extract "${FILE_NAME}"
-
-  _OPTS=(
-    -DLINT=OFF
-    -DBUILD_SHARED_LIBS=ON
-    -DCRYPTO_BACKEND=OpenSSL
-    -DENABLE_ZLIB_COMPRESSION=ON
-    -DENABLE_DEBUG_LOGGING=OFF
-    -DCLEAR_MEMORY=ON
-    -DBUILD_EXAMPLES=OFF
-    -DBUILD_TESTING=OFF
-  )
-
-  build_and_install "libssh2 v${LIBSSH2_VERSION}" ${_OPTS[@]}
-
-  cd "${CURRENT_DIR}"
-  rm -rf "${WORK_DIR}"
-}
-
-#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  install_libgit2
 #   DESCRIPTION:  Install libgit2 library.
 #----------------------------------------------------------------------------------------------------------------------
