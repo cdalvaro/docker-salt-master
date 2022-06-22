@@ -1,4 +1,4 @@
-FROM ubuntu:hirsute-20220113
+FROM ubuntu:jammy-20220531
 
 ARG BUILD_DATE
 ARG VCS_REF
