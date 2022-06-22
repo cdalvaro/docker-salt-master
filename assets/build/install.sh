@@ -14,8 +14,7 @@ REQUIRED_PACKAGES=(
 )
 
 BUILD_DEPENDENCIES=(
-  make gcc g++ cmake pkg-config libssl-dev zlib1g-dev libffi-dev
-  libpcre3-dev heimdal-dev
+  make gcc g++
 )
 
 apt-get update

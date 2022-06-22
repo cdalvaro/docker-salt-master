@@ -139,24 +139,3 @@ function extract()
   log_info "Unpacking file: ${FILE}"
   tar xzf "${FILE}" --strip-components 1
 }
-
-#---  FUNCTION  -------------------------------------------------------------------------------------------------------
-#          NAME:  build_and_install
-#   DESCRIPTION:  Build and install the given package from the current directory using cmake.
-#----------------------------------------------------------------------------------------------------------------------
-function build_and_install()
-{
-  local PACKAGE_NAME="${1}"; shift
-  local CMAKE_ARGS=(
-    -Wno-dev
-    -DCMAKE_BUILD_TYPE=Release
-  )
-
-  # shellcheck disable=SC2206
-  CMAKE_ARGS+=( $@ )
-
-  log_info "Building and installing ${PACKAGE_NAME} ..."
-  log_debug "CMAKE_ARGS: ${CMAKE_ARGS[@]}"
-  cmake ${CMAKE_ARGS[@]} .
-  cmake --build . --target install --config Release
-}
