@@ -8,6 +8,7 @@ for the list of changes in SaltStack.
 
 - Change Docker base image to `ubuntu:jammy-20220531`
 - Upgrade Python to version `3.10`
+- Install `python3-pygit2` version `1.6.1` from Ubuntu repositories
 
 **3004.2**
 

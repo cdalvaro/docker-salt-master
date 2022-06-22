@@ -10,7 +10,7 @@ source "${FUNCTIONS_FILE}"
 
 log_info "Installing required packages and build dependencies ..."
 REQUIRED_PACKAGES=(
-  libssl1.1 zlib1g libffi7 libpcre3 libgssapi3-heimdal
+  libssl3 zlib1g libffi7 libpcre3 libgssapi3-heimdal
 )
 
 BUILD_DEPENDENCIES=(
@@ -35,14 +35,10 @@ log_info "Installing python3 packages ..."
 install_pkgs --quiet \
   python3-mako python3-pycryptodome python3-cherrypy3 \
   python3-git python3-requests python3-redis python3-gnupg \
-  python3-mysqldb python3-dateutil python3-libnacl python3-openssl
+  python3-mysqldb python3-dateutil python3-libnacl python3-openssl \
+  python3-pygit2
 
 pip3 install timelib==0.2.5
-
-# Install pygit2 package
-install_libssh2
-install_libgit2
-pip3 install cached-property cffi==1.14.6 pygit2==1.9.1
 
 # Downloading bootstrap-salt.sh script
 BOOTSTRAP_VERSION='2022.03.15'
