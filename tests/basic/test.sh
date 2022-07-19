@@ -19,10 +19,10 @@ start_container_and_wait || error "container started"
 ok "container started"
 
 # Check salt version
-echo "==> Checking salt version ..."
-docker-exec salt --versions
-[[ "$(docker-exec salt --version)" == "salt $(cat VERSION)" ]] || error "salt version"
-ok "salt version"
+echo "==> Checking salt-master version ..."
+docker-exec salt-master --versions
+[[ "$(docker-exec salt-master --version)" == "salt-master $(cat VERSION)" ]] || error "salt-master version"
+ok "salt-master version"
 
 # Test image calling healthcheck
 echo "==> Executing healthcheck ..."
