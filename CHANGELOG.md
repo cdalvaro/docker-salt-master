@@ -1,11 +1,12 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3004.2 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3004.2.html)
+Please refer to the [Salt 3005 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3005.html)
 for the list of changes in SaltStack.
 
-**3004.2_1**
+**3005**
 
+- Upgrade `salt-master` to `3005` *Phosphorus*
 - Change Docker base image to `ubuntu:jammy-20220531`
 - Upgrade Python to version `3.10`
 - Install `python3-pygit2` version `1.6.1` from Ubuntu repositories
