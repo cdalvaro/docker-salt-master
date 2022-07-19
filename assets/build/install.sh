@@ -37,8 +37,6 @@ install_pkgs --quiet \
   python3-mysqldb python3-dateutil python3-libnacl python3-openssl \
   python3-pygit2
 
-pip3 install timelib==0.2.5
-
 # Downloading bootstrap-salt.sh script
 BOOTSTRAP_VERSION='2022.03.15'
 BOOTSTRAP_URL="https://raw.githubusercontent.com/saltstack/salt-bootstrap/v${BOOTSTRAP_VERSION}/bootstrap-salt.sh"
