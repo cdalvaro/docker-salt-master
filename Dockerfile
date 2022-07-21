@@ -5,8 +5,7 @@ ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
 # NOTE: Review org.label-schema.version label if necessary
-ENV SALT_VERSION="3005rc1" \
-    PYTHON_VERSION="3.10"
+ENV SALT_VERSION="3005rc1"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
@@ -32,7 +31,7 @@ WORKDIR ${SALT_BUILD_DIR}
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
     sudo ca-certificates openssl apt-transport-https wget locales openssh-client \
-    python${PYTHON_VERSION} python3-dev libpython3-dev \
+    python3 python3-dev libpython3-dev \
     python3-pip python3-setuptools python3-wheel \
     supervisor logrotate git gettext-base tzdata inotify-tools psmisc \
  && DEBIAN_FRONTEND=noninteractive update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \

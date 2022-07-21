@@ -54,8 +54,7 @@ check_sha256 "${BOOTSTRAP_FILE}" "${BOOTSTRAP_SHA256}"
 ## -d: Disables checking if Salt services are enabled to start on system boot
 ## -P: Allow pip based installations
 ## -p: Extra-package to install
-## -x: Changes the python version used to install a git version of salt
-SALT_BOOTSTRAP_OPTS=( -M -N -X -d -P -p salt-api -p salt-call -x "python${PYTHON_VERSION}" )
+SALT_BOOTSTRAP_OPTS=( -M -N -X -d -P -p salt-api -p salt-call )
 
 ## -I: allow insecure connections while downloading any files
 is_arm32 && SALT_BOOTSTRAP_OPTS+=( -I )

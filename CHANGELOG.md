@@ -8,7 +8,7 @@ for the list of changes in SaltStack.
 
 - Upgrade `salt-master` to `3005` *Phosphorus*
 - Change Docker base image to `ubuntu:jammy-20220531`
-- Upgrade Python to version `3.10`
+- Use `python3` default distro version
 - Install `python3-pygit2` version `1.6.1` from Ubuntu repositories
 
 **3004.2**
