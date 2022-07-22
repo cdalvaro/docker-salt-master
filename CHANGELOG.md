@@ -10,6 +10,7 @@ for the list of changes in SaltStack.
 - Change Docker base image to `ubuntu:jammy-20220531`
 - Use `python3` default distro version
 - Install `python3-pygit2` version `1.6.1` from Ubuntu repositories
+- Remove `USERMAP_UID` and `USERMAP_GID` env variables in favor of `PUID` and `PGID`, respectively.
 - CI(tests): Use `python3` version `3.10`
 
 **3004.2**

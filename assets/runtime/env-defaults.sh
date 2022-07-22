@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+PUID=${PUID:-1000}
+PGID=${PGID:-1000}
+
 DEBUG=${DEBUG:-False}
 TIMEZONE=${TIMEZONE:-${TZ:-UTC}}
 

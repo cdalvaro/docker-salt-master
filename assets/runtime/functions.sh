@@ -58,52 +58,11 @@ function log_error()
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
-#          NAME:  __check_puid_pgid_env
-#   DESCRIPTION:  Check if the PUID and PGID environment variables are set correctly.
-#----------------------------------------------------------------------------------------------------------------------
-function __check_puid_pgid_env
-{
-  if [[ "${SALT_VERSION}" -ge "3005" ]]; then
-    log_error "The USERMAP_UID and USERMAP_GID environment variables are not supported in Salt >= 3005"
-    exit 1
-  fi
-
-  if [[ -n "${USERMAP_UID}" ]]; then
-    log_warn "The USERMAP_UID environment variable is deprecated. Please use PUID instead."
-    log_warn "Support for USERMAP_UID will be removed in Salt 3005 release."
-    if [[ -z "${PUID}" ]]; then
-      log_warn "Setting PUID to USERMAP_UID (${USERMAP_UID})"
-      export PUID="${USERMAP_UID}"
-    else
-      log_error "The PUID and USERMAP_UID environment variables are set. PUID will be used."
-    fi
-    unset USERMAP_UID
-  fi
-
-  if [[ -n "${USERMAP_GID}" ]]; then
-    log_warn "The USERMAP_GID environment variable is deprecated. Please use PGID instead."
-    log_warn "Support for USERMAP_GID will be removed in Salt 3005 release."
-    if [[ -z "${PGID}" ]]; then
-      log_info "Setting PGID to USERMAP_GID (${USERMAP_GID})"
-      export PGID="${USERMAP_GID}"
-    else
-      log_error "The PGID and USERMAP_GID environment variables are set. PGID will be used."
-    fi
-    unset USERMAP_GID
-  fi
-}
-
-#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  map_uidgid
 #   DESCRIPTION:  Map salt user with host user.
 #----------------------------------------------------------------------------------------------------------------------
 function map_uidgid()
 {
-  __check_puid_pgid_env
-  # Move this into env-defaults.sh
-  [ -z "${PUID}" ] && export PUID=1000
-  [ -z "${PGID}" ] && export PGID=1000
-
   ORIG_PUID=$(id -u "${SALT_USER}")
   ORIG_PGID=$(id -g "${SALT_USER}")
   PGID=${PGID:-${PUID:-$ORIG_PGID}}
