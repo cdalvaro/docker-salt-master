@@ -7,7 +7,7 @@ for the list of changes in SaltStack.
 **3005**
 
 - Upgrade `salt-master` to `3005` *Phosphorus*
-- Change Docker base image to `ubuntu:jammy-20220531`
+- Change Docker base image to `ubuntu:jammy-20220801`
 - Use `python3` default distro version
 - Install `python3-pygit2` version `1.6.1` from Ubuntu repositories
 - Remove `USERMAP_UID` and `USERMAP_GID` env variables in favor of `PUID` and `PGID`, respectively.
