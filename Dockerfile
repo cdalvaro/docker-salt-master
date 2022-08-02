@@ -5,7 +5,7 @@ ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
 # NOTE: Review org.label-schema.version label if necessary
-ENV SALT_VERSION="3005rc1"
+ENV SALT_VERSION="3005rc2"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
