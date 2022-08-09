@@ -62,17 +62,16 @@ RUN mkdir -p "${SALT_BASE_DIR}" "${SALT_FORMULAS_DIR}" "${SALT_KEYS_DIR}" "${SAL
 VOLUME [ "${SALT_BASE_DIR}", "${SALT_FORMULAS_DIR}", "${SALT_KEYS_DIR}", "${SALT_CONFS_DIR}", "${SALT_LOGS_DIR}" ]
 
 LABEL \
-    maintainer="carlos@cdalvaro.io" \
-    org.label-schema.vendor=cdalvaro \
-    org.label-schema.name="SaltStack Master" \
-    org.label-schema.version="${SALT_VERSION}_6" \
-    org.label-schema.description="Dockerized SaltStack Master" \
-    org.label-schema.url="https://github.com/cdalvaro/docker-salt-master" \
-    org.label-schema.vcs-url="https://github.com/cdalvaro/docker-salt-master.git" \
-    org.label-schema.vcs-ref=${VCS_REF} \
-    org.label-schema.build-date=${BUILD_DATE} \
-    org.label-schema.docker.schema-version="1.0" \
-    com.cdalvaro.docker-salt-master.license=MIT
+    org.opencontainers.image.authors="carlos@cdalvaro.io" \
+    org.opencontainers.image.vendor=cdalvaro \
+    org.opencontainers.image.title="Dockerized Salt Master" \
+    org.opencontainers.image.description="Dockerized SaltStack Master" \
+    org.opencontainers.image.version="${SALT_VERSION}" \
+    org.opencontainers.image.url="https://github.com/cdalvaro/docker-salt-master" \
+    org.opencontainers.image.source="https://github.com/cdalvaro/docker-salt-master.git" \
+    org.opencontainers.image.revision=${VCS_REF} \
+    org.opencontainers.image.created=${BUILD_DATE} \
+    org.opencontainers.image.licenses=MIT
 
 WORKDIR ${SALT_HOME}
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]
