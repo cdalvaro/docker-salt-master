@@ -4,8 +4,8 @@ ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
-# NOTE: Review org.label-schema.version label if necessary
 ENV SALT_VERSION="3005rc2"
+ENV IMAGE_VERSION="${SALT_VERSION}"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
@@ -62,15 +62,18 @@ RUN mkdir -p "${SALT_BASE_DIR}" "${SALT_FORMULAS_DIR}" "${SALT_KEYS_DIR}" "${SAL
 VOLUME [ "${SALT_BASE_DIR}", "${SALT_FORMULAS_DIR}", "${SALT_KEYS_DIR}", "${SALT_CONFS_DIR}", "${SALT_LOGS_DIR}" ]
 
 LABEL \
-    org.opencontainers.image.authors="carlos@cdalvaro.io" \
-    org.opencontainers.image.vendor=cdalvaro \
     org.opencontainers.image.title="Dockerized Salt Master" \
-    org.opencontainers.image.description="Dockerized SaltStack Master" \
-    org.opencontainers.image.version="${SALT_VERSION}" \
+    org.opencontainers.image.description="salt-master ${SALT_VERSION} containerized" \
+    org.opencontainers.image.documentation="https://github.com/cdalvaro/docker-salt-master/blob/${IMAGE_VERSION}/README.md" \
     org.opencontainers.image.url="https://github.com/cdalvaro/docker-salt-master" \
     org.opencontainers.image.source="https://github.com/cdalvaro/docker-salt-master.git" \
-    org.opencontainers.image.revision=${VCS_REF} \
+    org.opencontainers.image.authors="Carlos Álvaro <github@cdalvaro.io>" \
+    org.opencontainers.image.vendor=cdalvaro \
     org.opencontainers.image.created=${BUILD_DATE} \
+    org.opencontainers.image.version="${IMAGE_VERSION}" \
+    org.opencontainers.image.revision=${VCS_REF} \
+    org.opencontainers.image.base.digest="sha256:42ba2dfce475de1113d55602d40af18415897167d47c2045ec7b6d9746ff148f" \
+    org.opencontainers.image.base.name="ubuntu:jammy-20220801" \
     org.opencontainers.image.licenses=MIT
 
 WORKDIR ${SALT_HOME}
