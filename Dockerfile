@@ -1,12 +1,11 @@
-FROM ubuntu:hirsute-20220113
+FROM ubuntu:jammy-20220801
 
 ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
-# NOTE: Review org.label-schema.version label if necessary
-ENV SALT_VERSION="3004.2" \
-    PYTHON_VERSION="3.9"
+ENV SALT_VERSION="3005"
+ENV IMAGE_VERSION="${SALT_VERSION}"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
     SALT_ROOT_DIR="/etc/salt" \
@@ -32,7 +31,7 @@ WORKDIR ${SALT_BUILD_DIR}
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
     sudo ca-certificates openssl apt-transport-https wget locales openssh-client \
-    python${PYTHON_VERSION} python3-dev libpython3-dev \
+    python3 python3-dev libpython3-dev \
     python3-pip python3-setuptools python3-wheel \
     supervisor logrotate git gettext-base tzdata inotify-tools psmisc \
  && DEBIAN_FRONTEND=noninteractive update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \
@@ -63,17 +62,19 @@ RUN mkdir -p "${SALT_BASE_DIR}" "${SALT_FORMULAS_DIR}" "${SALT_KEYS_DIR}" "${SAL
 VOLUME [ "${SALT_BASE_DIR}", "${SALT_FORMULAS_DIR}", "${SALT_KEYS_DIR}", "${SALT_CONFS_DIR}", "${SALT_LOGS_DIR}" ]
 
 LABEL \
-    maintainer="carlos@cdalvaro.io" \
-    org.label-schema.vendor=cdalvaro \
-    org.label-schema.name="SaltStack Master" \
-    org.label-schema.version="${SALT_VERSION}_6" \
-    org.label-schema.description="Dockerized SaltStack Master" \
-    org.label-schema.url="https://github.com/cdalvaro/docker-salt-master" \
-    org.label-schema.vcs-url="https://github.com/cdalvaro/docker-salt-master.git" \
-    org.label-schema.vcs-ref=${VCS_REF} \
-    org.label-schema.build-date=${BUILD_DATE} \
-    org.label-schema.docker.schema-version="1.0" \
-    com.cdalvaro.docker-salt-master.license=MIT
+    org.opencontainers.image.title="Dockerized Salt Master" \
+    org.opencontainers.image.description="salt-master ${SALT_VERSION} containerized" \
+    org.opencontainers.image.documentation="https://github.com/cdalvaro/docker-salt-master/blob/${IMAGE_VERSION}/README.md" \
+    org.opencontainers.image.url="https://github.com/cdalvaro/docker-salt-master" \
+    org.opencontainers.image.source="https://github.com/cdalvaro/docker-salt-master.git" \
+    org.opencontainers.image.authors="Carlos Álvaro <github@cdalvaro.io>" \
+    org.opencontainers.image.vendor=cdalvaro \
+    org.opencontainers.image.created=${BUILD_DATE} \
+    org.opencontainers.image.version="${IMAGE_VERSION}" \
+    org.opencontainers.image.revision=${VCS_REF} \
+    org.opencontainers.image.base.digest="sha256:42ba2dfce475de1113d55602d40af18415897167d47c2045ec7b6d9746ff148f" \
+    org.opencontainers.image.base.name="ubuntu:jammy-20220801" \
+    org.opencontainers.image.licenses=MIT
 
 WORKDIR ${SALT_HOME}
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]

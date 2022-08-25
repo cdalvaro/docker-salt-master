@@ -10,12 +10,11 @@ source "${FUNCTIONS_FILE}"
 
 log_info "Installing required packages and build dependencies ..."
 REQUIRED_PACKAGES=(
-  libssl1.1 zlib1g libffi7 libpcre3 libgssapi3-heimdal
+  libssl3 zlib1g libffi7 libpcre3 libgssapi3-heimdal
 )
 
 BUILD_DEPENDENCIES=(
-  make gcc g++ cmake pkg-config libssl-dev zlib1g-dev libffi-dev
-  libpcre3-dev heimdal-dev
+  make gcc g++
 )
 
 apt-get update
@@ -35,20 +34,14 @@ log_info "Installing python3 packages ..."
 install_pkgs --quiet \
   python3-mako python3-pycryptodome python3-cherrypy3 \
   python3-git python3-requests python3-redis python3-gnupg \
-  python3-mysqldb python3-dateutil python3-libnacl python3-openssl
-
-pip3 install timelib==0.2.5
-
-# Install pygit2 package
-install_libssh2
-install_libgit2
-pip3 install cached-property cffi==1.14.6 pygit2==1.9.1
+  python3-mysqldb python3-dateutil python3-libnacl python3-openssl \
+  python3-pygit2
 
 # Downloading bootstrap-salt.sh script
-BOOTSTRAP_VERSION='2022.03.15'
+BOOTSTRAP_VERSION='2022.08.13'
 BOOTSTRAP_URL="https://raw.githubusercontent.com/saltstack/salt-bootstrap/v${BOOTSTRAP_VERSION}/bootstrap-salt.sh"
 BOOTSTRAP_FILE='bootstrap-salt.sh'
-BOOTSTRAP_SHA256='ed66dc9e71aed7602b9ae548f8535131831026f934f19f868fdefbe6a3ab9bf9'
+BOOTSTRAP_SHA256='8363e4dc2410c6d540fabab972ffc612b04bf4b5239e2ffb3e366266d9b63b70'
 
 download "${BOOTSTRAP_URL}" "${BOOTSTRAP_FILE}"
 check_sha256 "${BOOTSTRAP_FILE}" "${BOOTSTRAP_SHA256}"
@@ -61,8 +54,7 @@ check_sha256 "${BOOTSTRAP_FILE}" "${BOOTSTRAP_SHA256}"
 ## -d: Disables checking if Salt services are enabled to start on system boot
 ## -P: Allow pip based installations
 ## -p: Extra-package to install
-## -x: Changes the python version used to install a git version of salt
-SALT_BOOTSTRAP_OPTS=( -M -N -X -d -P -p salt-api -p salt-call -x "python${PYTHON_VERSION}" )
+SALT_BOOTSTRAP_OPTS=( -M -N -X -d -P -p salt-api -p salt-call )
 
 ## -I: allow insecure connections while downloading any files
 is_arm32 && SALT_BOOTSTRAP_OPTS+=( -I )
