@@ -23,7 +23,7 @@ fi
 ok "gitfs keys"
 
 # Run test instance
-echo "==> Starting docker-salt-master (${PLATFORM}) with RSA 4096 ssh key ..."
+echo "==> Starting docker-salt-master (${PLATFORM}) with ed25519 ssh key ..."
 start_container_and_wait \
   --volume "${SCRIPT_PATH}/config":/home/salt/data/config:ro \
   --volume "$(pwd)/${GITFS_KEYS_DIR%%/gitfs}":/home/salt/data/keys \
