@@ -13,7 +13,7 @@ help:
 
 build:
 	@docker build --tag=cdalvaro/docker-salt-master:latest . \
-		--build-arg=BUILD_DATE="$(shell date +"%Y-%m-%d %H:%M:%S%:z")" \
+		--build-arg=BUILD_DATE="$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")" \
 		--build-arg=VCS_REF="$(shell git rev-parse --short HEAD)"
 
 release: build
