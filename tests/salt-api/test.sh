@@ -73,3 +73,40 @@ ok "pepper installed"
 echo "==> Testing salt-pepper ..."
 pepper --client runner test.stream || error "pepper test.stream"
 ok "pepper test.stream"
+
+# Stop and start with salt-api pass via file
+echo "==> Stopping previous container ..."
+cleanup
+
+echo "==> Starting docker-salt-master (${PLATFORM}) with salt-api config and password via file ..."
+export SALT_API_USER_PASS_FILE=salt_api_user_pass
+echo -n "${SALTAPI_PASS}" > "./${SALT_API_USER_PASS_FILE}"
+start_container_and_wait \
+  --publish 8000:8000 \
+  --env SALT_API_SERVICE_ENABLED=True \
+  --env SALT_API_USER_PASS_FILE="/run/secrets/${SALT_API_USER_PASS_FILE}" \
+  --volume "${SALTAPI_TMP_DIR}/config":/home/salt/data/config:ro \
+  --volume "$(pwd)/${SALT_API_USER_PASS_FILE}":/run/secrets/${SALT_API_USER_PASS_FILE}:ro \
+|| error "container started"
+ok "container started"
+
+# Test salt-api authentication
+echo "==> Getting salt-api token (pass via file) ..."
+SALTAPI_TOKEN=$(curl -sSk "${SALTAPI_URL%/}/login" \
+  -H "Accept: application/x-yaml" \
+  -d username="${SALTAPI_USER}" \
+  -d password="${SALTAPI_PASS}" \
+  -d eauth="${SALTAPI_EAUTH}" | grep 'token:' | cut -d' ' -f 4)
+[ -n "${SALTAPI_TOKEN}" ] || error "salt-api token"
+ok "salt-api token"
+
+# Test salt-api command
+echo "==> Testing curl command (pass via file) ..."
+curl -sSk "${SALTAPI_URL}" \
+  -H "Accept: application/x-yaml" \
+  -H "X-Auth-Token: ${SALTAPI_TOKEN}" \
+  -d client=runner \
+  -d tgt='*' \
+  -d fun=test.stream \
+| grep -i true || error "curl command"
+ok "curl command"

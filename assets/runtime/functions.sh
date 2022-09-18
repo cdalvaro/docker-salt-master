@@ -251,12 +251,22 @@ function configure_salt_api()
   if [[ -n "${SALT_API_USER}" ]]; then
 
     if [[ ${SALT_API_USER} == "${SALT_USER}" ]]; then
-      log_error "SALT_API_USER cannot be the same as '${SALT_USER}'"
+      log_error "SALT_API_USER cannot be the same as '${SALT_USER}'."
       return 1
     fi
 
+    if [[ -n "${SALT_API_USER_PASS_FILE}" ]]; then
+      if [[ ! -f "${SALT_API_USER_PASS_FILE}" ]]; then
+        log_error "SALT_API_USER_PASS_FILE '${SALT_API_USER_PASS_FILE}' does not exist."
+        return 1
+      elif [[ -n "${SALT_API_USER_PASS}" ]]; then
+        log_warn "SALT_API_USER_PASS_FILE and SALT_API_USER_PASS cannot be set at the same time. The first one will be used."
+      fi
+      SALT_API_USER_PASS="$(cat "${SALT_API_USER_PASS_FILE}")"
+    fi
+
     if [[ -z "${SALT_API_USER_PASS}" ]]; then
-      log_error "SALT_API_USER_PASS env variable must be set to create '${SALT_API_USER}' user"
+      log_error "SALT_API_USER_PASS env variable must be set to create '${SALT_API_USER}' user."
       return 2
     fi
 
