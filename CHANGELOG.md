@@ -6,8 +6,14 @@ for the list of changes in SaltStack.
 
 **3005_1**
 
-- Add support for setting the `salt-api` user's password via docker secrets using the environment
-  variable `SALT_API_USER_PASS_FILE`. Has priority over `SALT_API_USER_PASS`.
+- Add support for setting the `salt-master` keys via Docker secrets using the environment variables:
+  - `SALT_MASTER_KEY_FILE`: The path to the master-key-pair {pem,pub} files without suffixes.
+  - `SALT_MASTER_SIGN_KEY_FILE`: The path to the signing-key-pair {pem,pub} without suffixes.
+  - `SALT_MASTER_PUBKEY_SIGNATURE_FILE`: The path of the salt-master public key file with the pre-calculated
+    signature.
+- Add support for setting the `salt-api` user's password via Docker secrets using the environment
+  variable `SALT_API_USER_PASS_FILE`.
+  - Note: Has priority over `SALT_API_USER_PASS`.
 
 **3005**
 

@@ -157,22 +157,106 @@ function gen_signed_keys()
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _setup_master_keys
+#   DESCRIPTION:  Setup salt-master keys.
+#----------------------------------------------------------------------------------------------------------------------
+function _setup_master_keys()
+{
+  log_info " ==> Setting up master keys ..."
+
+  if [ -n "${SALT_MASTER_KEY_FILE}" ]; then
+    if ! -f "${SALT_MASTER_KEY_FILE}.pem" || ! -f "${SALT_MASTER_KEY_FILE}.pub"; then
+      log_error "SALT_MASTER_KEY_FILE is set to '${SALT_MASTER_KEY_FILE}' but .pem and .pub don't exist."
+      return 1
+    fi
+  fi
+
+  if [ ! -f "${SALT_KEYS_DIR}/master.pem" ]; then
+    if [ -n "${SALT_MASTER_KEY_FILE}" ]; then
+      # Copy master keys provided via external files
+      log_info "Linking '${SALT_MASTER_KEY_FILE}' keys to '${SALT_KEYS_DIR}/master.{pem,pub}' ..."
+      ln -sfn "${SALT_MASTER_KEY_FILE}.{pem,pub}" "${SALT_KEYS_DIR}/master.{pem,pub}"
+    else
+      log_info "Generating master keys ..."
+      salt-key --gen-keys master --gen-keys-dir "${SALT_KEYS_DIR}"
+    fi
+  else
+    if [ -n "${SALT_MASTER_KEY_FILE}" ]; then
+      # If a master key is provided via SALT_MASTER_KEY_FILE, check it is the same as the one in the keys directory
+      if ! cmp -s "${SALT_MASTER_KEY_FILE}.pem" "${SALT_KEYS_DIR}/master.pem" \
+      || ! cmp -s "${SALT_MASTER_KEY_FILE}.pub" "${SALT_KEYS_DIR}/master.pub"; then
+        log_error "SALT_MASTER_KEY_FILE is set to '${SALT_MASTER_KEY_FILE}' but keys don't match the master keys inside '${SALT_KEYS_DIR}'."
+        return 1
+      fi
+    fi
+  fi
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _setup_master_sign_keys
+#   DESCRIPTION:  Setup salt-master sign keys.
+#----------------------------------------------------------------------------------------------------------------------
+function _setup_master_sign_keys()
+{
+  log_info " ==> Setting up master_sign keys ..."
+
+  if [ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]; then
+    if ! -f "${SALT_MASTER_SIGN_KEY_FILE}.pem" || ! -f "${SALT_MASTER_SIGN_KEY_FILE}.pub"; then
+      log_error "SALT_MASTER_SIGN_KEY_FILE is set to '${SALT_MASTER_SIGN_KEY_FILE}' but .pem and .pub don't exist."
+      return 1
+    fi
+  fi
+
+  if [ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ]; then
+    if [ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]; then
+      # Copy master_sign keys provided via external files
+      log_info "Linking '${SALT_MASTER_SIGN_KEY_FILE}' keys to '${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.{pem,pub}' ..."
+      ln -sfn "${SALT_MASTER_SIGN_KEY_FILE}.{pem,pub}" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.{pem,pub}"
+    else
+      log_info "Generating signed keys ..."
+      salt-key --gen-signature --auto-create --pub "${SALT_KEYS_DIR}/master.pub" --signature-path "${SALT_KEYS_DIR}"
+    fi
+  else
+    if [ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]; then
+      # If a master_sign key-pair is provided via SALT_MASTER_SIGN_KEY_FILE, check it is the same as the one in the keys directory
+      if ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pem" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" \
+      || ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pub" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub"; then
+        log_error "SALT_MASTER_SIGN_KEY_FILE is set to '${SALT_MASTER_SIGN_KEY_FILE}' but keys don't match the master_sign keys inside '${SALT_KEYS_DIR}'."
+        return 1
+      fi
+    fi
+  fi
+
+  if [ -n "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" ]; then
+    if ! -f "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}"; then
+      log_error "SALT_MASTER_PUBKEY_SIGNATURE_FILE is set to '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' but it doesn't exist."
+      return 1
+    fi
+
+    if [ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}" ]; then
+      log_info "Linking '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' to '${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}' ..."
+      ln -sfn "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}"
+    else
+      # If a master_pubkey_signature is provided via SALT_MASTER_PUBKEY_SIGNATURE_FILE, check it is the same as the one in the keys directory
+      if ! cmp -s "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}"; then
+        log_error "SALT_MASTER_PUBKEY_SIGNATURE_FILE is set to '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' but it doesn't match the ${SALT_MASTER_PUBKEY_SIGNATURE} inside '${SALT_KEYS_DIR}'."
+        return 1
+      fi
+    fi
+  fi
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  setup_salt_keys
 #   DESCRIPTION:  Repair keys permissions and creates keys if neaded.
 #----------------------------------------------------------------------------------------------------------------------
 function setup_salt_keys()
 {
   log_info "Setting up salt keys ..."
-  if [ ! -f "${SALT_KEYS_DIR}/master.pem" ]; then
-    log_info "Generating keys ..."
-    salt-key --gen-keys master --gen-keys-dir "${SALT_KEYS_DIR}"
-  fi
+  _setup_master_keys
+  [ "${SALT_MASTER_SIGN_PUBKEY}" == True ] && _setup_master_sign_keys
 
-  if [ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ] && [ "${SALT_MASTER_SIGN_PUBKEY}" == True ]; then
-    log_info "Generating signed keys ..."
-    salt-key --gen-signature --auto-create --pub "${SALT_KEYS_DIR}/master.pub" --signature-path "${SALT_KEYS_DIR}"
-  fi
-
+  log_info "Setting up salt keys permissions ..."
   while IFS= read -r -d '' pub_key
   do
     if [[ "${pub_key}" =~ .*\.pem$ ]]; then
