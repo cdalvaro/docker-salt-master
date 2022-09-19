@@ -165,7 +165,7 @@ function _setup_master_keys()
   log_info " ==> Setting up master keys ..."
 
   if [ -n "${SALT_MASTER_KEY_FILE}" ]; then
-    if ! -f "${SALT_MASTER_KEY_FILE}.pem" || ! -f "${SALT_MASTER_KEY_FILE}.pub"; then
+    if [[ ! -f "${SALT_MASTER_KEY_FILE}.pem" || ! -f "${SALT_MASTER_KEY_FILE}.pub" ]]; then
       log_error "SALT_MASTER_KEY_FILE is set to '${SALT_MASTER_KEY_FILE}' but .pem and .pub don't exist."
       return 1
     fi
@@ -201,7 +201,7 @@ function _setup_master_sign_keys()
   log_info " ==> Setting up master_sign keys ..."
 
   if [ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]; then
-    if ! -f "${SALT_MASTER_SIGN_KEY_FILE}.pem" || ! -f "${SALT_MASTER_SIGN_KEY_FILE}.pub"; then
+    if [[ ! -f "${SALT_MASTER_SIGN_KEY_FILE}.pem" || ! -f "${SALT_MASTER_SIGN_KEY_FILE}.pub" ]]; then
       log_error "SALT_MASTER_SIGN_KEY_FILE is set to '${SALT_MASTER_SIGN_KEY_FILE}' but .pem and .pub don't exist."
       return 1
     fi
@@ -228,7 +228,7 @@ function _setup_master_sign_keys()
   fi
 
   if [ -n "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" ]; then
-    if ! -f "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}"; then
+    if [ ! -f "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" ]; then
       log_error "SALT_MASTER_PUBKEY_SIGNATURE_FILE is set to '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' but it doesn't exist."
       return 1
     fi
