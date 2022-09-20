@@ -166,7 +166,8 @@ function _setup_master_keys()
 
   if [ -n "${SALT_MASTER_KEY_FILE}" ]; then
     if [[ ! -f "${SALT_MASTER_KEY_FILE}.pem" || ! -f "${SALT_MASTER_KEY_FILE}.pub" ]]; then
-      log_error "SALT_MASTER_KEY_FILE is set to '${SALT_MASTER_KEY_FILE}' but .pem and .pub don't exist."
+      [ -f "${SALT_MASTER_KEY_FILE}.pem" ] || log_error "'${SALT_MASTER_KEY_FILE}.pem' doesn't exist"
+      [ -f "${SALT_MASTER_KEY_FILE}.pub" ] || log_error "'${SALT_MASTER_KEY_FILE}.pub' doesn't exist"
       return 1
     fi
   fi
@@ -175,7 +176,8 @@ function _setup_master_keys()
     if [ -n "${SALT_MASTER_KEY_FILE}" ]; then
       # Copy master keys provided via external files
       log_info "Linking '${SALT_MASTER_KEY_FILE}' keys to '${SALT_KEYS_DIR}/master.{pem,pub}' ..."
-      ln -sfn "${SALT_MASTER_KEY_FILE}.{pem,pub}" "${SALT_KEYS_DIR}/master.{pem,pub}"
+      ln -sfn "${SALT_MASTER_KEY_FILE}.pem" "${SALT_KEYS_DIR}/master.pem"
+      ln -sfn "${SALT_MASTER_KEY_FILE}.pub" "${SALT_KEYS_DIR}/master.pub"
     else
       log_info "Generating master keys ..."
       salt-key --gen-keys master --gen-keys-dir "${SALT_KEYS_DIR}"
@@ -202,7 +204,8 @@ function _setup_master_sign_keys()
 
   if [ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]; then
     if [[ ! -f "${SALT_MASTER_SIGN_KEY_FILE}.pem" || ! -f "${SALT_MASTER_SIGN_KEY_FILE}.pub" ]]; then
-      log_error "SALT_MASTER_SIGN_KEY_FILE is set to '${SALT_MASTER_SIGN_KEY_FILE}' but .pem and .pub don't exist."
+      [ -f "${SALT_MASTER_SIGN_KEY_FILE}.pem" ] || log_error "'${SALT_MASTER_SIGN_KEY_FILE}.pem' doesn't exist"
+      [ -f "${SALT_MASTER_SIGN_KEY_FILE}.pub" ] || log_error "'${SALT_MASTER_SIGN_KEY_FILE}.pub' doesn't exist"
       return 1
     fi
   fi
@@ -211,7 +214,8 @@ function _setup_master_sign_keys()
     if [ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]; then
       # Copy master_sign keys provided via external files
       log_info "Linking '${SALT_MASTER_SIGN_KEY_FILE}' keys to '${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.{pem,pub}' ..."
-      ln -sfn "${SALT_MASTER_SIGN_KEY_FILE}.{pem,pub}" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.{pem,pub}"
+      ln -sfn "${SALT_MASTER_SIGN_KEY_FILE}.pem" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem"
+      ln -sfn "${SALT_MASTER_SIGN_KEY_FILE}.pub" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub"
     else
       log_info "Generating signed keys ..."
       salt-key --gen-signature --auto-create --pub "${SALT_KEYS_DIR}/master.pub" --signature-path "${SALT_KEYS_DIR}"
