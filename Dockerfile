@@ -47,7 +47,7 @@ RUN bash ${SALT_BUILD_DIR}/install.sh
 COPY assets/runtime ${SALT_RUNTIME_DIR}
 RUN chmod -R +x ${SALT_RUNTIME_DIR}
 
-COPY assets/sbin/* /usr/local/sbin
+COPY assets/sbin/* /usr/local/sbin/
 
 # Cleaning tasks
 RUN rm -rf "${SALT_BUILD_DIR:?}"/*
