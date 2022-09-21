@@ -157,22 +157,110 @@ function gen_signed_keys()
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _setup_master_keys
+#   DESCRIPTION:  Setup salt-master keys.
+#----------------------------------------------------------------------------------------------------------------------
+function _setup_master_keys()
+{
+  log_info " ==> Setting up master keys ..."
+
+  if [ -n "${SALT_MASTER_KEY_FILE}" ]; then
+    if [[ ! -f "${SALT_MASTER_KEY_FILE}.pem" || ! -f "${SALT_MASTER_KEY_FILE}.pub" ]]; then
+      [ -f "${SALT_MASTER_KEY_FILE}.pem" ] || log_error "'${SALT_MASTER_KEY_FILE}.pem' doesn't exist"
+      [ -f "${SALT_MASTER_KEY_FILE}.pub" ] || log_error "'${SALT_MASTER_KEY_FILE}.pub' doesn't exist"
+      return 1
+    fi
+  fi
+
+  if [ ! -f "${SALT_KEYS_DIR}/master.pem" ]; then
+    if [ -n "${SALT_MASTER_KEY_FILE}" ]; then
+      # Copy master keys provided via external files
+      log_info "Linking '${SALT_MASTER_KEY_FILE}' keys to '${SALT_KEYS_DIR}/master.{pem,pub}' ..."
+      ln -sfn "${SALT_MASTER_KEY_FILE}.pem" "${SALT_KEYS_DIR}/master.pem"
+      ln -sfn "${SALT_MASTER_KEY_FILE}.pub" "${SALT_KEYS_DIR}/master.pub"
+    else
+      log_info "Generating master keys ..."
+      salt-key --gen-keys master --gen-keys-dir "${SALT_KEYS_DIR}"
+    fi
+  else
+    if [ -n "${SALT_MASTER_KEY_FILE}" ]; then
+      # If a master key is provided via SALT_MASTER_KEY_FILE, check it is the same as the one in the keys directory
+      if ! cmp -s "${SALT_MASTER_KEY_FILE}.pem" "${SALT_KEYS_DIR}/master.pem" \
+      || ! cmp -s "${SALT_MASTER_KEY_FILE}.pub" "${SALT_KEYS_DIR}/master.pub"; then
+        log_error "SALT_MASTER_KEY_FILE is set to '${SALT_MASTER_KEY_FILE}' but keys don't match the master keys inside '${SALT_KEYS_DIR}'."
+        return 1
+      fi
+    fi
+  fi
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _setup_master_sign_keys
+#   DESCRIPTION:  Setup salt-master sign keys.
+#----------------------------------------------------------------------------------------------------------------------
+function _setup_master_sign_keys()
+{
+  log_info " ==> Setting up master_sign keys ..."
+
+  if [ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]; then
+    if [[ ! -f "${SALT_MASTER_SIGN_KEY_FILE}.pem" || ! -f "${SALT_MASTER_SIGN_KEY_FILE}.pub" ]]; then
+      [ -f "${SALT_MASTER_SIGN_KEY_FILE}.pem" ] || log_error "'${SALT_MASTER_SIGN_KEY_FILE}.pem' doesn't exist"
+      [ -f "${SALT_MASTER_SIGN_KEY_FILE}.pub" ] || log_error "'${SALT_MASTER_SIGN_KEY_FILE}.pub' doesn't exist"
+      return 1
+    fi
+  fi
+
+  if [ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ]; then
+    if [ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]; then
+      # Copy master_sign keys provided via external files
+      log_info "Linking '${SALT_MASTER_SIGN_KEY_FILE}' keys to '${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.{pem,pub}' ..."
+      ln -sfn "${SALT_MASTER_SIGN_KEY_FILE}.pem" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem"
+      ln -sfn "${SALT_MASTER_SIGN_KEY_FILE}.pub" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub"
+    else
+      log_info "Generating signed keys ..."
+      salt-key --gen-signature --auto-create --pub "${SALT_KEYS_DIR}/master.pub" --signature-path "${SALT_KEYS_DIR}"
+    fi
+  else
+    if [ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]; then
+      # If a master_sign key-pair is provided via SALT_MASTER_SIGN_KEY_FILE, check it is the same as the one in the keys directory
+      if ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pem" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" \
+      || ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pub" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub"; then
+        log_error "SALT_MASTER_SIGN_KEY_FILE is set to '${SALT_MASTER_SIGN_KEY_FILE}' but keys don't match the master_sign keys inside '${SALT_KEYS_DIR}'."
+        return 1
+      fi
+    fi
+  fi
+
+  if [ -n "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" ]; then
+    if [ ! -f "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" ]; then
+      log_error "SALT_MASTER_PUBKEY_SIGNATURE_FILE is set to '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' but it doesn't exist."
+      return 1
+    fi
+
+    if [ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}" ]; then
+      log_info "Linking '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' to '${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}' ..."
+      ln -sfn "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}"
+    else
+      # If a master_pubkey_signature is provided via SALT_MASTER_PUBKEY_SIGNATURE_FILE, check it is the same as the one in the keys directory
+      if ! cmp -s "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}"; then
+        log_error "SALT_MASTER_PUBKEY_SIGNATURE_FILE is set to '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' but it doesn't match the ${SALT_MASTER_PUBKEY_SIGNATURE} inside '${SALT_KEYS_DIR}'."
+        return 1
+      fi
+    fi
+  fi
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  setup_salt_keys
 #   DESCRIPTION:  Repair keys permissions and creates keys if neaded.
 #----------------------------------------------------------------------------------------------------------------------
 function setup_salt_keys()
 {
   log_info "Setting up salt keys ..."
-  if [ ! -f "${SALT_KEYS_DIR}/master.pem" ]; then
-    log_info "Generating keys ..."
-    salt-key --gen-keys master --gen-keys-dir "${SALT_KEYS_DIR}"
-  fi
+  _setup_master_keys
+  [ "${SALT_MASTER_SIGN_PUBKEY}" == True ] && _setup_master_sign_keys
 
-  if [ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ] && [ "${SALT_MASTER_SIGN_PUBKEY}" == True ]; then
-    log_info "Generating signed keys ..."
-    salt-key --gen-signature --auto-create --pub "${SALT_KEYS_DIR}/master.pub" --signature-path "${SALT_KEYS_DIR}"
-  fi
-
+  log_info "Setting up salt keys permissions ..."
   while IFS= read -r -d '' pub_key
   do
     if [[ "${pub_key}" =~ .*\.pem$ ]]; then
@@ -184,27 +272,6 @@ function setup_salt_keys()
 
   find "${SALT_KEYS_DIR}/minions"* -maxdepth 1 -type f -exec chmod 644 {} \;
   find "${SALT_HOME}" -path "${SALT_KEYS_DIR}/*" -print0 | xargs -0 chown -h "${SALT_USER}":
-}
-
-#---  FUNCTION  -------------------------------------------------------------------------------------------------------
-#          NAME:  setup_ssh_keys
-#   DESCRIPTION:  Configure ssh keys.
-#----------------------------------------------------------------------------------------------------------------------
-function setup_ssh_keys()
-{
-  log_info "Configuring ssh ..."
-
-  sed -i \
-    -e "s|^[# ]*IdentityFile salt_ssh_key$|    IdentityFile ${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PRIVATE_KEY}|" \
-    /etc/ssh/ssh_config
-
-  if [[ -f "${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PRIVATE_KEY}" ]]; then
-    chmod 600 "${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PRIVATE_KEY}"
-  fi
-
-  if [[ -f "${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PUBLIC_KEY}" ]]; then
-    chmod 644 "${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PUBLIC_KEY}"
-  fi
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -251,12 +318,22 @@ function configure_salt_api()
   if [[ -n "${SALT_API_USER}" ]]; then
 
     if [[ ${SALT_API_USER} == "${SALT_USER}" ]]; then
-      log_error "SALT_API_USER cannot be the same as '${SALT_USER}'"
+      log_error "SALT_API_USER cannot be the same as '${SALT_USER}'."
       return 1
     fi
 
+    if [[ -n "${SALT_API_USER_PASS_FILE}" ]]; then
+      if [[ ! -f "${SALT_API_USER_PASS_FILE}" ]]; then
+        log_error "SALT_API_USER_PASS_FILE '${SALT_API_USER_PASS_FILE}' does not exist."
+        return 1
+      elif [[ -n "${SALT_API_USER_PASS}" ]]; then
+        log_warn "SALT_API_USER_PASS_FILE and SALT_API_USER_PASS cannot be set at the same time. The first one will be used."
+      fi
+      SALT_API_USER_PASS="$(cat "${SALT_API_USER_PASS_FILE}")"
+    fi
+
     if [[ -z "${SALT_API_USER_PASS}" ]]; then
-      log_error "SALT_API_USER_PASS env variable must be set to create '${SALT_API_USER}' user"
+      log_error "SALT_API_USER_PASS env variable must be set to create '${SALT_API_USER}' user."
       return 2
     fi
 
@@ -496,6 +573,5 @@ function initialize_system()
   configure_salt_formulas
   configure_config_reloader
   setup_salt_keys
-  setup_ssh_keys
   rm -rf /var/run/supervisor.sock
 }

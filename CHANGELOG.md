@@ -4,6 +4,17 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3005 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3005.html)
 for the list of changes in SaltStack.
 
+**3005_1**
+
+- Add support for setting the `salt-master` keys via Docker secrets using the environment variables:
+  - `SALT_MASTER_KEY_FILE`: The path to the master-key-pair {pem,pub} files without suffixes.
+  - `SALT_MASTER_SIGN_KEY_FILE`: The path to the signing-key-pair {pem,pub} without suffixes.
+  - `SALT_MASTER_PUBKEY_SIGNATURE_FILE`: The path of the salt-master public key file with the pre-calculated
+    signature.
+- Add support for setting the `salt-api` user's password via Docker secrets using the environment
+  variable `SALT_API_USER_PASS_FILE`.
+  - Note: Has priority over `SALT_API_USER_PASS`.
+
 **3005**
 
 - Upgrade `salt-master` to `3005` *Phosphorus*
@@ -111,7 +122,8 @@ Support for the `USERMAP_UID` and `USERMAP_GID` env variables will be removed wi
 
 - Upgrade `salt-master` to `3002.1` *Magnesium*
 - Change Docker base image to `ubuntu:focal-20201008`
-- Fix issue changing _read-only_ directories ownership ([@Kidswiss](https://github.com/Kidswiss) - [#47](https://github.com/cdalvaro/docker-salt-master/pull/47))
+- Fix issue changing _read-only_ directories ownership
+  ([@Kidswiss](https://github.com/Kidswiss) - [#47](https://github.com/cdalvaro/docker-salt-master/pull/47))
 
 **3002**
 
