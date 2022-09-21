@@ -275,27 +275,6 @@ function setup_salt_keys()
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
-#          NAME:  setup_ssh_keys
-#   DESCRIPTION:  Configure ssh keys.
-#----------------------------------------------------------------------------------------------------------------------
-function setup_ssh_keys()
-{
-  log_info "Configuring ssh ..."
-
-  sed -i \
-    -e "s|^[# ]*IdentityFile salt_ssh_key$|    IdentityFile ${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PRIVATE_KEY}|" \
-    /etc/ssh/ssh_config
-
-  if [[ -f "${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PRIVATE_KEY}" ]]; then
-    chmod 600 "${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PRIVATE_KEY}"
-  fi
-
-  if [[ -f "${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PUBLIC_KEY}" ]]; then
-    chmod 644 "${SALT_KEYS_DIR}/${SALT_GITFS_SSH_PUBLIC_KEY}"
-  fi
-}
-
-#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  configure_salt_master
 #   DESCRIPTION:  Configure master service.
 #----------------------------------------------------------------------------------------------------------------------
@@ -594,6 +573,5 @@ function initialize_system()
   configure_salt_formulas
   configure_config_reloader
   setup_salt_keys
-  setup_ssh_keys
   rm -rf /var/run/supervisor.sock
 }
