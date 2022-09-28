@@ -3,7 +3,7 @@ version: '3.9'
 services:
   master:
     container_name: salt_master
-    image: cdalvaro/docker-salt-master:latest
+    image: ghcr.io/cdalvaro/docker-salt-master:latest
     restart: always
     volumes:
       - "roots/:/home/salt/data/srv"

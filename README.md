@@ -19,24 +19,25 @@ the [Official Salt Project Installation Guide](https://docs.saltproject.io/en/la
 
 ## 🐳 Installation
 
-Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cdalvaro/docker-salt-master/) and is
+Automated builds of the image are available on
+[GitHub Container Registry](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) and is
 the recommended method of installation.
 
 ```sh
-docker pull cdalvaro/docker-salt-master:3005
+docker pull ghcr.io/cdalvaro/docker-salt-master:3005_1
 ```
 
 You can also pull the latest tag which is built from the repository `HEAD`
 
 ```sh
-docker pull cdalvaro/docker-salt-master:latest
+docker pull ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
 These images are also available
-from [GitHub Container Registry](https://github.com/users/cdalvaro/packages/container/package/docker-salt-master):
+from [Docker Registry](https://hub.docker.com/r/cdalvaro/docker-salt-master):
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:latest
+docker pull cdalvaro/docker-salt-master:latest
 ```
 
 and from [Quay.io](https://quay.io/repository/cdalvaro/docker-salt-master):
@@ -73,7 +74,7 @@ docker run --name salt_master --detach \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:latest
+    ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
 ## ⚙️ Configuration
@@ -111,7 +112,7 @@ docker run --name salt_master -d \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
-    cdalvaro/docker-salt-master:latest
+    ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
 This image provides support for automatically restart `salt-master` when configuration files change.
@@ -141,7 +142,7 @@ docker run --name salt_master -d \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
-    cdalvaro/docker-salt-master:latest
+    ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
 Also, you can set your `docker-salt-master` instance to auto accept minions that match certain grains. To do that, add
@@ -184,7 +185,7 @@ docker run --name salt_stack --detach \
     --env 'SALT_MASTER_SIGN_PUBKEY=True' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:latest
+    ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
 The container will create the `master_sign` key and its signature. More information about how to configure the minion
@@ -197,7 +198,7 @@ Additionally, you can generate new keys by executing the following command:
 ```sh
 docker run --name salt_stack -it --rm \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:latest \
+    ghcr.io/cdalvaro/docker-salt-master:latest \
     app:gen-signed-keys new_master_sign
 ```
 
@@ -221,7 +222,7 @@ version: '3.9'
 
 services:
   salt-master:
-    image: cdalvaro/docker-salt-master:latest
+    image: ghcr.io/cdalvaro/docker-salt-master:latest
     ports:
       - "4505:4505"
       - "4506:4506"
@@ -297,7 +298,7 @@ docker run --name salt_stack --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
-    cdalvaro/docker-salt-master:latest
+    ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
 If you choose using the [docker-compose.yml](docker-compose.yml) to manage your salt-master instance, uncomment salt-api
@@ -383,7 +384,7 @@ docker run --name salt_stack -it --rm \
     --env "PUID=$(id -u)" --env "PGID=$(id -g)" \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:latest
+    ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
 ### Git Fileserver
@@ -486,7 +487,7 @@ docker run --name salt_stack -it --rm \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/3pfs/:/home/salt/data/3pfs/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    cdalvaro/docker-salt-master:latest
+    ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
 If you need to add more third party formulas, you can restart the container, or you can type the following command:
@@ -511,7 +512,7 @@ docker run --name salt_master --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    cdalvaro/docker-salt-master:latest
+    ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
 Check [Available Configuration Parameters](#available-configuration-parameters) section for configuring logrotate.
@@ -523,7 +524,8 @@ script: `/usr/local/sbin/healthcheck` (although it is disabled by default). It i
 service is alive and responding.
 
 If you are running this image under k8s, you can define a _liveness command_ as
-explained [here](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command).
+explained [here](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command)
+.
 
 If you use `docker-compose` as your container orchestrator, you can add the following entries to your compose file:
 
@@ -533,7 +535,7 @@ version: "3.4"
 services:
   master:
     container_name: salt_master
-    image: cdalvaro/docker-salt-master:latest
+    image: ghcr.io/cdalvaro/docker-salt-master:latest
     healthcheck:
       test: [ "CMD", "/usr/local/sbin/healthcheck" ]
       start_period: 30s
@@ -553,7 +555,7 @@ docker run --name salt_master --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    cdalvaro/docker-salt-master:latest
+    ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
 Then you can manually check this info by running the following command:
@@ -655,7 +657,7 @@ docker run --name salt_master -d \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
-    cdalvaro/docker-salt-master:latest
+    ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
 ## 🧑‍🚀 Usage

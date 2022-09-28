@@ -7,6 +7,10 @@ on:
     paths-ignore:
       - "./**/*.md"
       - "LICENSE"
+      - 'social/'
+      - '.gitignore'
+      - 'docker-compose.yml'
+      - 'Makefile'
 
 env:
   IMAGE_NAME: localhost:5000/cdalvaro/docker-salt-master:${{ github.sha }}

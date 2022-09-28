@@ -5,8 +5,12 @@ on:
     branches:
       - main
     paths-ignore:
-      - './**/*.md'
-      - 'LICENSE'
+      - "./**/*.md"
+      - "LICENSE"
+      - 'social/'
+      - '.gitignore'
+      - 'docker-compose.yml'
+      - 'Makefile'
   release:
     types:
       - published
