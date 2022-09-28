@@ -230,18 +230,28 @@ services:
     secrets:
       - source: salt-master-key
         target: master.pem
+        uid: 1000     # Or $PUID if env variable established
+        gid: 1000     # Or $GUID if env variable established
         mode: 0400
       - source: salt-master-pub
         target: master.pub
+        uid: 1000     # Or $PUID if env variable established
+        gid: 1000     # Or $GUID if env variable established
         mode: 0644
       - source: salt-master-sign-priv-key
         target: master_sign.pem
+        uid: 1000     # Or $PUID if env variable established
+        gid: 1000     # Or $GUID if env variable established
         mode: 0400
       - source: salt-master-sign-pub-key
         target: master_sign.pub
+        uid: 1000     # Or $PUID if env variable established
+        gid: 1000     # Or $GUID if env variable established
         mode: 0644
       - source: salt-master-signature
         target: master_pubkey_signature
+        uid: 1000     # Or $PUID if env variable established
+        gid: 1000     # Or $GUID if env variable established
         mode: 0644
     environment:
       SALT_MASTER_SIGN_PUBKEY: True
@@ -251,15 +261,15 @@ services:
 
 secrets:
   salt-master-pem-key:
-    file: ./keys/master.pem
+    file: keys/master.pem
   salt-master-pub-key:
-    file: ./keys/master.pub
+    file: keys/master.pub
   salt-master-sign-priv-key:
-    file: ./keys/master_sign.pem
+    file: keys/master_sign.pem
   salt-master-sign-pub-key:
-    file: ./keys/master_sign.pub
+    file: keys/master_sign.pub
   salt-master-signature:
-    file: ./keys/master_pubkey_signature
+    file: keys/master_pubkey_signature
 ```
 
 ### Salt API
