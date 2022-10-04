@@ -38,10 +38,10 @@ install_pkgs --quiet \
   python3-pygit2
 
 # Downloading bootstrap-salt.sh script
-BOOTSTRAP_VERSION='2022.08.13'
+BOOTSTRAP_VERSION='2022.10.04'
 BOOTSTRAP_URL="https://raw.githubusercontent.com/saltstack/salt-bootstrap/v${BOOTSTRAP_VERSION}/bootstrap-salt.sh"
 BOOTSTRAP_FILE='bootstrap-salt.sh'
-BOOTSTRAP_SHA256='8363e4dc2410c6d540fabab972ffc612b04bf4b5239e2ffb3e366266d9b63b70'
+BOOTSTRAP_SHA256='b1560cb4e02b604d6d4350384df02f014e8f88d7b615bb607bcad84d014e888d'
 
 download "${BOOTSTRAP_URL}" "${BOOTSTRAP_FILE}"
 check_sha256 "${BOOTSTRAP_FILE}" "${BOOTSTRAP_SHA256}"

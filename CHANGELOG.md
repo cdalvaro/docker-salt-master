@@ -1,8 +1,14 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3005 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3005.html)
+Please refer to the [Salt 3005.1 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3005.1.html)
 for the list of changes in SaltStack.
+
+**3005.1**
+
+- Upgrade `salt-master` to `3005.1` *Phosphorus*
+- Upgrade `salt-bootstrap` to version `2022.10.04`
+- Change Docker base image to `ubuntu:jammy-20220815`
 
 **3005_1**
 
