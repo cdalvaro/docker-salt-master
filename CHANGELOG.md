@@ -6,6 +6,7 @@ for the list of changes in SaltStack.
 
 **3005.1**
 
+- Upgrade `salt-bootstrap` to version `2022.10.04`
 - Change Docker base image to `ubuntu:jammy-20220815`
 
 **3005_1**
