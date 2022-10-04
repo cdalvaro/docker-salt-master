@@ -6,6 +6,7 @@ for the list of changes in SaltStack.
 
 **3005.1**
 
+- Upgrade `salt-master` to `3005.1` *Phosphorus*
 - Upgrade `salt-bootstrap` to version `2022.10.04`
 - Change Docker base image to `ubuntu:jammy-20220815`
 

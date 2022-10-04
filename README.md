@@ -7,7 +7,7 @@
 [![Architecture ARM64][arch_arm64_badge]][arch_link]
 [![Architecture ARM/v7][arch_arm_badge]][arch_link]
 
-# Dockerized Salt Master v3005 _Phosphorus_
+# Dockerized Salt Master v3005.1 _Phosphorus_
 
 Dockerfile to build a [Salt Project](https://saltproject.io) Master image for the Docker opensource container platform.
 
@@ -24,7 +24,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3005_1
+docker pull ghcr.io/cdalvaro/docker-salt-master:3005.1
 ```
 
 You can also pull the latest tag which is built from the repository `HEAD`
@@ -717,9 +717,9 @@ Many thanks to:
 - https://docs.saltproject.io/en/getstarted/
 - https://docs.saltproject.io/en/latest/contents.html
 
-[saltproject_badge]: https://img.shields.io/badge/Salt-v3005-lightgrey.svg?logo=Saltstack
+[saltproject_badge]: https://img.shields.io/badge/Salt-v3005.1-lightgrey.svg?logo=Saltstack
 
-[saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3005.html "Salt Project Release Notes"
+[saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3005.1.html "Salt Project Release Notes"
 
 [ubuntu_badge]: https://img.shields.io/badge/ubuntu-jammy--20220815-E95420.svg?logo=Ubuntu
 
