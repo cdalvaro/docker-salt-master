@@ -5,11 +5,15 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    assignees:
+      - cdalvaro
 
   # Configuration for Dockerfile
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
-      # Disable all pull requests for Docker dependencies
+    assignees:
+      - cdalvaro
+    # Disable all pull requests for Docker dependencies
     open-pull-requests-limit: 0
