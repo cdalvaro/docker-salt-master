@@ -123,7 +123,9 @@ jobs:
           build-args: |
             VCS_REF=${{ needs.metadata.outputs.vcs_ref }}
             BUILD_DATE=${{ needs.metadata.outputs.created_on }}
-          cache-from: type=local,src=${{ env.CACHE_PATH }}
+          cache-from: |
+            type=local,src=${{ env.CACHE_PATH }}
+            ghcr.io/cdalvaro/docker-salt-master:latest
           cache-to: type=local,dest=${{ env.CACHE_PATH }}
           push: true
           tags: ${{ needs.metadata.outputs.tags }}

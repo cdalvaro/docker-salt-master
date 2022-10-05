@@ -16,6 +16,8 @@ case "${1}" in
 
     case "${1}" in
       app:start)
+        salt-master --versions
+
         log_info "Starting supervisord ..."
         exec /usr/bin/supervisord -nc /etc/supervisor/supervisord.conf
         ;;
