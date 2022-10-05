@@ -90,7 +90,7 @@ function start_container_and_wait()
 
   docker run --rm --detach --name "${CONTAINER_NAME}" \
   --publish 4505:4505 --publish 4506:4506 \
-  --env PUID=$(id -u) --env PGID=$(id -g) \
+  --env PUID="$(id -u)" --env PGID="$(id -g)" \
   --platform "${PLATFORM}" ${DOCKER_ARGS[@]} \
   "${IMAGE_NAME}" || return 1
 
