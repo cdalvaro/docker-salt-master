@@ -13,7 +13,9 @@ function check_for_config_changes()
 
 while check_for_config_changes; do
   log_info "Configuration changes detected. Reloading salt-master ..."
+  supervisorctl stop salt-api
   supervisorctl stop salt-master
   killall salt-master; killall -9 salt-master
   supervisorctl start salt-master
+  supervisorctl start salt-api
 done
