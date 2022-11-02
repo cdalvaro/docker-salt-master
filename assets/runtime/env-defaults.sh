@@ -21,7 +21,7 @@ SALT_WORKER_THREADS=${SALT_WORKER_THREADS:-5}
 #####         Logging settings       #####
 # https://docs.saltstack.com/en/latest/ref/configuration/master.html#master-logging-settings
 SALT_LOG_LEVEL=${SALT_LOG_LEVEL:-warning}
-SALT_LEVEL_LOGFILE=${SALT_LEVEL_LOGFILE:-warning}
+SALT_LEVEL_LOGFILE=${SALT_LEVEL_LOGFILE:-${SALT_LOG_LEVEL}}
 
 #####        Security settings       #####
 # https://docs.saltstack.com/en/latest/ref/configuration/master.html#master-security-settings
