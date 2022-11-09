@@ -131,12 +131,15 @@ jobs:
           python-version: '3.10'
 
       - name: Execute basic tests
+        if: always()
         run: tests/basic/test.sh
 
       - name: Execute salt-api tests
+        if: always()
         run: tests/salt-api/test.sh
 
       - name: Execute gitfs tests
+        if: always()
         env:
           GITFS_KEYS_DIR: tests/gitfs/data/keys/gitfs
           SSH_PRIVATE_KEY: ${{ secrets.TESTS_REPO_PRIVATE_KEY }}
@@ -150,6 +153,7 @@ jobs:
           tests/gitfs/test.sh
 
       - name: Execute config-reloader tests
+        if: always()
         run: tests/config-reloader/test.sh
 
       - name: Cleanup
