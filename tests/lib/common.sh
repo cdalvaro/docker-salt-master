@@ -187,7 +187,7 @@ function setup_and_start_salt_minion()
 {
   local SALT_MINION_CONF_DIR=/etc/salt/minion.d
 
-  sudo rm -rf "${SALT_MINION_CONF_DIR}"
+  sudo rm -rf '/etc/salt'
   sudo mkdir -p "${SALT_MINION_CONF_DIR}"
 
   sudo tee "${SALT_MINION_CONF_DIR}/minion.conf" > /dev/null <<EOF
