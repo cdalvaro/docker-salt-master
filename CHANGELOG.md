@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3005.1 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3005.1.html)
 for the list of changes in SaltStack.
 
+**3005.1_2**
+
+- CI: Improve build times.
+
 **3005.1_1**
 
 - If `SALT_LEVEL_LOGFILE` is not defined, then fallback to `SALT_LOG_LEVEL`.

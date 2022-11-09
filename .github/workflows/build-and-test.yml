@@ -15,7 +15,7 @@ on:
 env:
   IMAGE_NAME: localhost:5000/cdalvaro/docker-salt-master:${{ github.sha }}
   REGISTRY_PATH: ${{ github.workspace }}/registry
-  CACHE_PATH: /tmp/.buildx-cache
+  CACHE_PATH: ${{ github.workspace }}/.buildx-cache
 
 jobs:
   build:
@@ -40,12 +40,24 @@ jobs:
             --name registry registry:2
 
       - name: Cache Docker layers
+        id: cache-docker-layers
         uses: actions/cache@v3
         with:
           path: ${{ env.CACHE_PATH }}
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
+
+      - name: Cache hit
+        continue-on-error: true
+        env:
+          CACHE_HIT: ${{ steps.cache-docker-layers.outputs.cache-hit }}
+        run: |
+          if [[ "${CACHE_HIT}" != 'true' ]]; then
+            echo "No cache hit" >&2
+            exit 1
+          fi
+          echo "Cache contents available at: ${CACHE_PATH}"
 
       - name: Build docker-salt-master image
         uses: docker/build-push-action@v3.2.0
@@ -57,6 +69,7 @@ jobs:
             type=local,src=${{ env.CACHE_PATH }}
             ghcr.io/cdalvaro/docker-salt-master:latest
           cache-to: type=local,dest=${{ env.CACHE_PATH }}
+          pull: true
           push: true
           tags: ${{ env.IMAGE_NAME }}
 
