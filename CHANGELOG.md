@@ -6,6 +6,8 @@ for the list of changes in SaltStack.
 
 **3005.1_2**
 
+- Remove `GitPython` documentation, since it has some
+  [using warnings](https://docs.saltproject.io/en/latest/topics/tutorials/gitfs.html#id2).
 - Add _Development_ section to [README.md](README.md).
 - CI(tests): Install `salt-minion` for integration tests.
 - CI(tests): Improve log support.
