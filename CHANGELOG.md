@@ -6,6 +6,7 @@ for the list of changes in SaltStack.
 
 **3005.1_2**
 
+- Add _Development_ section to [README.md](README.md).
 - CI(tests): Install `salt-minion` for integration tests.
 - CI(tests): Improve log support.
 - CI(tests): Always run tests.
