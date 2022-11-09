@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+set -o errexit
+set -o pipefail
+
+if [[ "${DEBUG,,}" == true ]]; then
+  set -o verbose
+  set -o xtrace
+fi
+
 #---  ENV VARIABLE  ---------------------------------------------------------------------------------------------------
 #          NAME:  IMAGE_NAME
 #   DESCRIPTION:  The name and tag of the Docker image. Default: 'cdalvaro/docker-salt-master:latest'.

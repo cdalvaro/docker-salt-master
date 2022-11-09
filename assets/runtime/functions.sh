@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-set -e
+set -o errexit
+set -o pipefail
 
 # shellcheck source=assets/runtime/env-defaults.sh
 ENV_DEFAULTS_FILE="${SALT_RUNTIME_DIR}/env-defaults.sh"

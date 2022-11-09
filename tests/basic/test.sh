@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-[ "${DEBUG,,}" == true ] && set -vx
-
 echo "🧪 Running basic tests ..."
 
 # https://stackoverflow.com/a/4774063/3398062
