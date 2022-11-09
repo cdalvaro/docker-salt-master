@@ -6,6 +6,7 @@ for the list of changes in SaltStack.
 
 **3005.1_2**
 
+- Add support for GPG keys.
 - Ensure `salt-minion` is not installed.
 - Remove `GitPython` documentation, since it has some
   [using warnings](https://docs.saltproject.io/en/latest/topics/tutorials/gitfs.html#id2).

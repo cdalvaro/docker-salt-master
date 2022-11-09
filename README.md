@@ -426,6 +426,56 @@ Alternately, you may create a new RSA key with SHA2 hashing like so:
 ssh-keygen -t rsa-sha2-512 -b 4096 -f gitfs_ssh -C 'gitfs_rsa4096@example.com'
 ```
 
+### GPG keys for renderers
+
+Salt can use GPG keys to decrypt pillar data. This image is ready to import your GPG keys from the `gpgkeys` directory
+inside the `keys` directory.
+
+The private key must be named `private.key` and the public key `pubkey.gpg`.
+
+If you want to provide these keys via secrets, you can set `SALT_GPG_PRIVATE_KEY_FILE` and `SALT_GPG_PUBLIC_KEY_FILE`
+env variables to specify the path to the files inside the container.
+
+For example:
+
+```yml
+SALT_GPG_PRIVATE_KEY_FILE: /run/secrets/private.key
+SALT_GPG_PUBLIC_KEY_FILE: /run/secrets/pubkey.gpg
+```
+
+In this case, keys will be symlinked to the `gpgkeys` directory.
+
+It is important that the private key doesn't have passphrase in order to be imported by salt.
+
+To generate a GPG key and export the private/public pair you can use the following commands:
+
+```sh
+# Generate key - REMEMBER: Leave empty the passphrase!
+gpg --gen-key
+
+# Check GPG keys
+gpg --list-secret-keys
+gpg: checking the trustdb
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+gpg: next trustdb check due at 2024-11-09
+/tmp/gpgkeys/pubring.kbx
+--------------------
+sec   rsa3072 2022-11-10 [SC] [expires: 2024-11-09]
+      CB032BA54F21722945FDDE399CE3DB8AE37D28B7
+uid           [ultimate] Carlos Alvaro <github@cdalvaro.io>
+ssb   rsa3072 2022-11-10 [E] [expires: 2024-11-09]
+
+# Export public and private keys
+mkdir -p keys/gpgkeys
+KEY_ID=github@cdalvaro.io
+gpg --armor --export "${KEY_ID}" > keys/gpgkeys/pubkey.gpg
+gpg --export-secret-keys --export-options export-backup -o keys/gpgkeys/private.key "${KEY_ID}"
+```
+
+More information about this feature is available at the
+[official documentation](https://docs.saltproject.io/en/latest/ref/renderers/all/salt.renderers.gpg.html).
+
 ### 3rd Party Formulas
 
 You can add third party formulas to your configuration simply by adding them to your `gitfs_remotes`:
@@ -623,6 +673,8 @@ installation.
 | [`SALT_MASTER_PUBKEY_SIGNATURE`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-pubkey-signature)         | The name of the file in the master's pki-directory that holds the pre-calculated signature of the master's public-key. Default: `master_pubkey_signature`.                                                                                                                                    |
 | `SALT_MASTER_PUBKEY_SIGNATURE_FILE`                                                                                                   | The path of the salt-master public key file with the pre-calculated signature. It will be copied inside the pki directory if a file with name `SALT_MASTER_PUBKEY_SIGNATURE` doesn't exist. Useful to load the password from secrets. _Unset_ by default.                                     |
 | `SALT_MASTER_ROOT_USER`                                                                                                               | Forces `salt-master` to be run as `root` instead of `salt`. Default: `False`.                                                                                                                                                                                                                 |
+| `SALT_GPG_PRIVATE_KEY_FILE`                                                                                                           | The path to the GPG private key for GPG renderers. Useful to load the key from secrets. _Unset_ by default.                                                                                                                                                                                   |
+| `SALT_GPG_PUBLIC_KEY_FILE`                                                                                                            | The path to the GPG public key for GPG renderers. Useful to load the key from secrets. _Unset_ by default.                                                                                                                                                                                    |
 | [`SALT_REACTOR_WORKER_THREADS`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#reactor-worker-threads)           | The number of workers for the runner/wheel in the reactor. Default: `10`.                                                                                                                                                                                                                     |
 | [`SALT_WORKER_THREADS`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#worker-threads)                           | The number of threads to start for receiving commands and replies from minions. Default: `5`.                                                                                                                                                                                                 |
 | [`SALT_BASE_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#file-roots)                                     | The `base` path in `file_roots` to look for `salt` and `pillar` directories. Default: `/home/salt/data/srv`.                                                                                                                                                                                  |

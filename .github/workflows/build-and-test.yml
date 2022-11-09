@@ -165,6 +165,10 @@ jobs:
         if: always()
         run: tests/config-reloader/test.sh
 
+      - name: Execute GPG tests
+        if: always()
+        run: tests/gpg/test.sh
+
       - name: Cleanup
         if: always()
         run: |
