@@ -157,5 +157,6 @@ jobs:
         run: tests/config-reloader/test.sh
 
       - name: Cleanup
+        if: always()
         run: |
-          docker stop registry
+          docker rm --force registry

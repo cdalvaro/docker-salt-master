@@ -7,6 +7,7 @@ for the list of changes in SaltStack.
 **3005.1_2**
 
 - CI(tests): Always run tests.
+- CI: Always perform cleanup tasks.
 - CI: Improve build times.
 
 **3005.1_1**
