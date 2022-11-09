@@ -25,3 +25,10 @@ ok "salt-master version"
 echo "==> Executing healthcheck ..."
 docker-exec /usr/local/sbin/healthcheck | grep -i true || error "healthcheck"
 ok "healthcheck"
+
+# Test minion connection
+setup_and_start_salt_minion || error "salt-minion started"
+ok "salt-minion started"
+
+salt "${TEST_MINION_ID}" test.ping || error "${TEST_MINION_ID} ping"
+ok "${TEST_MINION_ID} ping"

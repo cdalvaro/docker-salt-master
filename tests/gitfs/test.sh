@@ -22,7 +22,6 @@ ok "gitfs keys"
 # Run test instance
 echo "==> Starting docker-salt-master (${PLATFORM}) with ed25519 ssh key ..."
 start_container_and_wait \
-  --volume "${SCRIPT_PATH}/config":/home/salt/data/config:ro \
   --volume "$(pwd)/${GITFS_KEYS_DIR%%/gitfs}":/home/salt/data/keys \
 || error "container started"
 ok "container started"

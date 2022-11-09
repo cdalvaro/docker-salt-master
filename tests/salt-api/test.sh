@@ -14,12 +14,11 @@ export SALTAPI_URL="https://localhost:8000/"
 export SALTAPI_USER=salt_api
 export SALTAPI_PASS=4wesome-Pass0rd
 export SALTAPI_EAUTH=pam
-export SALTAPI_TMP_DIR=${SALTAPI_TMP_DIR:-/tmp/salt-api}
 
 # Create configuration files
 echo "==> Creating salt-api configuration file ..."
-mkdir -p "${SALTAPI_TMP_DIR}/config/"
-cat > "${SALTAPI_TMP_DIR}/config/salt-api.conf" <<EOF
+mkdir -p "${SCRIPT_PATH}/config"
+cat > "${SCRIPT_PATH}/config/salt-api.conf" <<EOF
 external_auth:
   ${SALTAPI_EAUTH}:
     ${SALTAPI_USER}:
@@ -36,7 +35,6 @@ start_container_and_wait \
   --publish 8000:8000 \
   --env SALT_API_SERVICE_ENABLED=True \
   --env SALT_API_USER_PASS="${SALTAPI_PASS}" \
-  --volume "${SALTAPI_TMP_DIR}/config":/home/salt/data/config:ro \
 || error "container started"
 ok "container started"
 
@@ -82,7 +80,6 @@ start_container_and_wait \
   --publish 8000:8000 \
   --env SALT_API_SERVICE_ENABLED=True \
   --env SALT_API_USER_PASS_FILE="/run/secrets/${SALT_API_USER_PASS_FILE}" \
-  --volume "${SALTAPI_TMP_DIR}/config":/home/salt/data/config:ro \
   --volume "$(pwd)/${SALT_API_USER_PASS_FILE}":/run/secrets/${SALT_API_USER_PASS_FILE}:ro \
 || error "container started"
 ok "container started"

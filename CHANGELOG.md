@@ -6,6 +6,7 @@ for the list of changes in SaltStack.
 
 **3005.1_2**
 
+- CI(tests): Install `salt-minion` for integration tests.
 - CI(tests): Improve log support.
 - CI(tests): Always run tests.
 - CI: Always perform cleanup tasks.

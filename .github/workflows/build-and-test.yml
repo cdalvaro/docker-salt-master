@@ -130,6 +130,15 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Install and configure salt-minion
+        run: |
+          # Install salt-minion from salt repos
+          curl -o bootstrap-salt.sh -L https://bootstrap.saltproject.io
+          chmod +x bootstrap-salt.sh
+          sudo ./bootstrap-salt.sh -dXP stable $(cat VERSION)
+          sudo systemctl stop salt-minion
+          sudo systemctl disable salt-minion
+
       - name: Execute basic tests
         if: always()
         run: tests/basic/test.sh
