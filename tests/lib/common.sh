@@ -71,12 +71,30 @@ function salt-call()
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  container_log
+#   DESCRIPTION:  Print container log.
+#----------------------------------------------------------------------------------------------------------------------
+function container_log()
+{
+  local CONTAINER_ID="$(docker container ls --all --filter NAME="${CONTAINER_NAME}" --quiet)"
+  [ -n "${CONTAINER_ID}" ] || return 0
+
+  echo "📝 container log (${CONTAINER_NAME})"
+  docker logs -t "${CONTAINER_ID}"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  master_log
 #   DESCRIPTION:  Print salt-master log.
 #----------------------------------------------------------------------------------------------------------------------
 function master_log()
 {
-  docker-exec cat data/logs/salt/master
+  local LOGS_DIR="${SCRIPT_PATH}/logs"
+  local SALT_MASTER_LOG="${LOGS_DIR}/salt/master"
+
+  [ -f "${SALT_MASTER_LOG}" ] || return 0
+  echo "📝 salt-master log (${SALT_MASTER_LOG})"
+  sudo cat "${SALT_MASTER_LOG}"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -87,11 +105,15 @@ function start_container_and_wait()
 {
   # shellcheck disable=SC2206
   local DOCKER_ARGS=( $@ )
+  local LOGS_DIR="${SCRIPT_PATH}/logs"
+  mkdir -p "${LOGS_DIR}"
 
-  docker run --rm --detach --name "${CONTAINER_NAME}" \
+  docker run --detach --name "${CONTAINER_NAME}" \
   --publish 4505:4505 --publish 4506:4506 \
   --env PUID="$(id -u)" --env PGID="$(id -g)" \
+  --env SALT_LOG_LEVEL='info' \
   --platform "${PLATFORM}" ${DOCKER_ARGS[@]} \
+  --volume "${LOGS_DIR}/":/home/salt/data/logs/ \
   "${IMAGE_NAME}" || return 1
 
   echo "==> Waiting ${BOOTUP_WAIT_SECONDS} seconds for the container to be ready ..."
@@ -100,7 +122,7 @@ function start_container_and_wait()
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  ok
-#   DESCRIPTION:  Print a successfull message.
+#   DESCRIPTION:  Print a success message.
 #----------------------------------------------------------------------------------------------------------------------
 function ok()
 {
@@ -113,8 +135,9 @@ function ok()
 #----------------------------------------------------------------------------------------------------------------------
 function error()
 {
-  echo "🔥 $*"
-  master_log
+  echo "🔥 $*" >&2
+  container_log >&2
+  master_log >&2
   return 1
 }
 
