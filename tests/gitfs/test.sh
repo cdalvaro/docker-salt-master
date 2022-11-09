@@ -3,6 +3,7 @@
 echo "🧪 Running gitfs tests ..."
 
 # https://stackoverflow.com/a/4774063/3398062
+# shellcheck disable=SC2164
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # shellcheck source=assets/build/functions.sh
