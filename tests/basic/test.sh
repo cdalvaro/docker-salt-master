@@ -26,6 +26,15 @@ echo "==> Executing healthcheck ..."
 docker-exec /usr/local/sbin/healthcheck | grep -i true || error "healthcheck"
 ok "healthcheck"
 
+# Check salt-minion is not installed
+# shellcheck disable=SC2016
+docker-exec bash -c 'test -z "$(command -v salt-minion)"' || error "salt-minion is installed inside the container"
+ok "salt-minion is not installed inside the container"
+
+# shellcheck disable=SC2016
+docker-exec bash -c 'test -z "$(ps aux | grep salt-minion | grep -v grep)"' || error "salt-minion is running inside the container"
+ok "salt-minion is not running inside the container"
+
 # Test minion connection
 setup_and_start_salt_minion || error "salt-minion started"
 ok "salt-minion started"
