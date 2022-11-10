@@ -276,11 +276,9 @@ function _check_and_link_gpgkey() {
     return 1
   fi
 
-  mkdir -p "$(dirname "${TARGET_GPGKEY}")"
-
   log_info "Linking '${SOURCE_GPGKEY}' to '${TARGET_GPGKEY}' ..."
+  mkdir -p "$(dirname "${TARGET_GPGKEY}")"
   ln -sfn "${SOURCE_GPGKEY}" "${TARGET_GPGKEY}"
-  chown "${SALT_USER}:${SALT_USER}" "${TARGET_GPGKEY}"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
