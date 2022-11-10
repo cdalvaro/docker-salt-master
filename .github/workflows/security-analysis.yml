@@ -13,7 +13,7 @@ jobs:
     name: Trivy scan
     runs-on: ubuntu-latest
     env:
-      CACHE_PATH: /tmp/.buildx-cache
+      CACHE_PATH: ${{ github.workspace }}/.buildx-cache
 
     steps:
       - name: Checkout repository
@@ -47,6 +47,7 @@ jobs:
             type=local,src=${{ env.CACHE_PATH }}
             ghcr.io/cdalvaro/docker-salt-master:latest
           cache-to: type=local,dest=${{ env.CACHE_PATH }}
+          pull: true
           load: true
           tags: ghcr.io/cdalvaro/docker-salt-master:${{ github.sha }}
 

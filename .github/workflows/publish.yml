@@ -25,13 +25,8 @@ jobs:
   metadata:
     name: Metadata
     runs-on: ubuntu-latest
-    outputs:
-      tags: ${{ steps.tags.outputs.tags }}
-      vcs_ref: ${{ steps.vcs_ref.outputs.vcs_ref }}
-      created_on: ${{ steps.created_on.outputs.created_on }}
     steps:
       - name: Image Tags
-        id: tags
         run: |
           IMAGE_TAG="${{ github.event.release.tag_name }}"
           [ -z "${IMAGE_TAG}" ] && IMAGE_TAG='latest'
@@ -46,24 +41,19 @@ jobs:
           echo "Docker image: '${DOCKER_IMAGE}'"
           echo "Tags: ${TAGS}"
 
-          # FIXME: set-output is deprecated
-          echo ::set-output name=tags::${TAGS}
+          echo "TAGS=${TAGS}" >> $GITHUB_ENV
 
       - name: VCS ref
-        id: vcs_ref
         run: |
           VCS_REF="${GITHUB_SHA::8}"
           echo "VCS ref: ${VCS_REF}"
-          # FIXME: set-output is deprecated
-          echo ::set-output name=vcs_ref::${VCS_REF}
+          echo "VCS_REF=${VCS_REF}" >> $GITHUB_ENV
 
       - name: Created On
-        id: created_on
         run: |
           CREATED_ON="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           echo "Created on: ${CREATED_ON}"
-          # FIXME: set-output is deprecated
-          echo ::set-output name=created_on::${CREATED_ON}
+          echo "CREATED_ON=${CREATED_ON}" >> $GITHUB_ENV
 
       - name: Dump environment
         if: contains(toJSON(github.event.commits.*.message), 'ci(debug)') == true
@@ -136,12 +126,12 @@ jobs:
           file: ./Dockerfile
           platforms: ${{ env.PLATFORMS }}
           build-args: |
-            VCS_REF=${{ needs.metadata.outputs.vcs_ref }}
-            BUILD_DATE=${{ needs.metadata.outputs.created_on }}
+            VCS_REF=${{ env.VCS_REF }}
+            BUILD_DATE=${{ env.CREATED_ON }}
           cache-from: |
             type=local,src=${{ env.CACHE_PATH }}
             ghcr.io/cdalvaro/docker-salt-master:latest
           cache-to: type=local,dest=${{ env.CACHE_PATH }}
           pull: true
           push: true
-          tags: ${{ needs.metadata.outputs.tags }}
+          tags: ${{ env.TAGS }}
