@@ -19,8 +19,9 @@ ok "container started"
 # Check salt version
 echo "==> Checking salt-master version ..."
 docker-exec salt-master --versions
-[[ "$(docker-exec salt-master --version)" == "salt-master $(cat VERSION)" ]] || error "salt-master version"
-ok "salt-master version"
+EXPECTED_VERSION="$(cat VERSION)"
+CURRENT_VERSION="$(docker-exec salt-master --version)"
+check_equal "${CURRENT_VERSION}" "salt-master ${EXPECTED_VERSION%%-*}" "salt-master --version"
 
 # Test image calling healthcheck
 echo "==> Executing healthcheck ..."
