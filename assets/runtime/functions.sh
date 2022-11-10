@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-set -e
+set -o errexit
+set -o pipefail
 
 # shellcheck source=assets/runtime/env-defaults.sh
 ENV_DEFAULTS_FILE="${SALT_RUNTIME_DIR}/env-defaults.sh"
@@ -72,14 +73,14 @@ function map_uidgid()
     groupmod -o -g "${PGID}" "${SALT_USER}"
     sed -i -e "s|:${ORIG_PUID}:${PGID}:|:${PUID}:${PGID}:|" /etc/passwd
     find "${SALT_HOME}" \
-        -not -path "${SALT_CONFS_DIR}*" \
-        -not -path "${SALT_KEYS_DIR}*" \
-        -not -path "${SALT_BASE_DIR}*" \
-        -not -path "${SALT_LOGS_DIR}*" \
-        -not -path "${SALT_FORMULAS_DIR}*" \
-        -path "${SALT_DATA_DIR}/*" \
-        \( ! -uid "${ORIG_PUID}" -o ! -gid "${ORIG_PGID}" \) \
-        -print0 | xargs -0 chown -h "${SALT_USER}": "${SALT_HOME}"
+      -not -path "${SALT_CONFS_DIR}*" \
+      -not -path "${SALT_KEYS_DIR}*" \
+      -not -path "${SALT_BASE_DIR}*" \
+      -not -path "${SALT_LOGS_DIR}*" \
+      -not -path "${SALT_FORMULAS_DIR}*" \
+      -path "${SALT_DATA_DIR}/*" \
+      \( ! -uid "${ORIG_PUID}" -o ! -gid "${ORIG_PGID}" \) \
+      -print0 | xargs -0 chown -h "${SALT_USER}": "${SALT_HOME}"
   fi
 }
 
@@ -185,8 +186,8 @@ function _setup_master_keys()
   else
     if [ -n "${SALT_MASTER_KEY_FILE}" ]; then
       # If a master key is provided via SALT_MASTER_KEY_FILE, check it is the same as the one in the keys directory
-      if ! cmp -s "${SALT_MASTER_KEY_FILE}.pem" "${SALT_KEYS_DIR}/master.pem" \
-      || ! cmp -s "${SALT_MASTER_KEY_FILE}.pub" "${SALT_KEYS_DIR}/master.pub"; then
+      if ! cmp -s "${SALT_MASTER_KEY_FILE}.pem" "${SALT_KEYS_DIR}/master.pem" ||
+         ! cmp -s "${SALT_MASTER_KEY_FILE}.pub" "${SALT_KEYS_DIR}/master.pub"; then
         log_error "SALT_MASTER_KEY_FILE is set to '${SALT_MASTER_KEY_FILE}' but keys don't match the master keys inside '${SALT_KEYS_DIR}'."
         return 1
       fi
@@ -223,8 +224,8 @@ function _setup_master_sign_keys()
   else
     if [ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]; then
       # If a master_sign key-pair is provided via SALT_MASTER_SIGN_KEY_FILE, check it is the same as the one in the keys directory
-      if ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pem" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" \
-      || ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pub" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub"; then
+      if ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pem" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ||
+         ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pub" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub"; then
         log_error "SALT_MASTER_SIGN_KEY_FILE is set to '${SALT_MASTER_SIGN_KEY_FILE}' but keys don't match the master_sign keys inside '${SALT_KEYS_DIR}'."
         return 1
       fi
@@ -251,14 +252,84 @@ function _setup_master_sign_keys()
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _check_and_link_gpgkey
+#   DESCRIPTION:  Check and link a gpgkey if env variable is set.
+#     ARGUMENTS:
+#           - 1: The name of the GPG env variable
+#           - 2: The target gpg file
+#----------------------------------------------------------------------------------------------------------------------
+function _check_and_link_gpgkey() {
+  local GPGKEY_VARIABLE_NAME="$1"
+  local TARGET_GPGKEY="$2"
+  local SOURCE_GPGKEY="${!GPGKEY_VARIABLE_NAME}"
+
+  [ -n "${SOURCE_GPGKEY}" ] || return 0
+
+  if [[ ! -f "${SOURCE_GPGKEY}" ]]; then
+    log_warn "'${GPGKEY_VARIABLE_NAME}' (=${SOURCE_GPGKEY}) is set, but file does not exist."
+    return 0
+  fi
+
+  if [[ -f "${TARGET_GPGKEY}" ]] && ! cmp -s "${SOURCE_GPGKEY}" "${TARGET_GPGKEY}"; then
+    log_error "'${GPGKEY_VARIABLE_NAME}' (=${SOURCE_GPGKEY}) is set and ${TARGET_GPGKEY} exists, but they dont match." \
+      " Please, unset '${GPGKEY_VARIABLE_NAME}' or remove '${TARGET_GPGKEY}'."
+    return 1
+  fi
+
+  log_info "Linking '${SOURCE_GPGKEY}' to '${TARGET_GPGKEY}' ..."
+  ln -sfn "${SOURCE_GPGKEY}" "${TARGET_GPGKEY}"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _setup_gpgkeys
+#   DESCRIPTION:  Setup GPG keys.
+#----------------------------------------------------------------------------------------------------------------------
+function _setup_gpgkeys()
+{
+  [[ -d "${SALT_KEYS_GPGKEYS_DIR}" && -n "$(ls -A "${SALT_KEYS_GPGKEYS_DIR}")" ]] || return 0
+
+  log_info " ==> Setting up GPG keys ..."
+  local private_key="${SALT_KEYS_GPGKEYS_DIR}/private.key"
+  local public_key="${SALT_KEYS_GPGKEYS_DIR}/pubkey.gpg"
+
+  _check_and_link_gpgkey 'SALT_GPG_PRIVATE_KEY_FILE' "${private_key}"
+  _check_and_link_gpgkey 'SALT_GPG_PUBLIC_KEY_FILE' "${public_key}"
+
+  if [[ ! -f "${private_key}" || ! -f "${public_key}" ]]; then
+    log_error "GPG keys are not valid. Please, check the documentation for more information:"
+    log_error "  - https://github.com/cdalvaro/docker-salt-master#gpg-keys-for-renderers"
+    [ -f "${private_key}" ] || log_error "GPG private key: '${private_key##*/}' doesn't exist"
+    [ -f "${public_key}" ] || log_error "GPG public key: '${public_key##*/}' doesn't exist"
+    return 1
+  fi
+
+  log_info "Importing GPG keys ..."
+
+  local SALT_GPGKEYS_DIR="${SALT_ROOT_DIR}"/gpgkeys
+  mkdir -p "${SALT_GPGKEYS_DIR}"
+  chown "${SALT_USER}:${SALT_USER}" "${SALT_GPGKEYS_DIR}"
+  chmod 700 "${SALT_GPGKEYS_DIR}"
+
+  local GPG_COMMON_OPTS=(--no-tty --homedir="${SALT_GPGKEYS_DIR}")
+
+  exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --import "${private_key}"
+  exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --import "${public_key}"
+
+  log_info "Setting trust level to ultimate ..."
+  local key_id="$(exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --list-packets "${private_key}" | awk '/keyid:/{ print $2 }' | head -1)"
+  (echo trust & echo 5 & echo y & echo quit) | exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --command-fd 0 --edit-key "${key_id}"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  setup_salt_keys
-#   DESCRIPTION:  Repair keys permissions and creates keys if neaded.
+#   DESCRIPTION:  Repair keys permissions and creates keys if needed.
 #----------------------------------------------------------------------------------------------------------------------
 function setup_salt_keys()
 {
   log_info "Setting up salt keys ..."
   _setup_master_keys
   [ "${SALT_MASTER_SIGN_PUBKEY}" == True ] && _setup_master_sign_keys
+  _setup_gpgkeys
 
   log_info "Setting up salt keys permissions ..."
   while IFS= read -r -d '' pub_key

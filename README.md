@@ -24,7 +24,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3005.1
+docker pull ghcr.io/cdalvaro/docker-salt-master:3005.1_2
 ```
 
 You can also pull the latest tag which is built from the repository `HEAD`
@@ -389,21 +389,13 @@ docker run --name salt_stack -it --rm \
 
 ### Git Fileserver
 
-This image uses [GitPython](https://github.com/gitpython-developers/GitPython) and [PyGit2](https://www.pygit2.org) as
-gitfs backends to allow Salt to serve files from git repositories.
+This image uses [PyGit2](https://www.pygit2.org) as gitfs backend to allow Salt to serve files from git repositories.
 
 It can be enabled by adding `gitfs` to
 the [`fileserver_backend`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std:conf_master-fileserver_backend)
 list (see [Available Configuration Parameters](#available-configuration-parameters)), and configuring one or more
 repositories
 in [`gitfs_remotes`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std:conf_master-gitfs_remotes).
-
-#### GitPython
-
-The default name for the ssh key is `gitfs_ssh` but it can be changed with the env
-variables `SALT_GITFS_SSH_PRIVATE_KEY` and `SALT_GITFS_SSH_PUBLIC_KEY`.
-
-This keys must be placed inside `/home/salt/data/keys` directory.
 
 #### PyGit2
 
@@ -433,6 +425,56 @@ Alternately, you may create a new RSA key with SHA2 hashing like so:
 ```sh
 ssh-keygen -t rsa-sha2-512 -b 4096 -f gitfs_ssh -C 'gitfs_rsa4096@example.com'
 ```
+
+### GPG keys for renderers
+
+Salt can use GPG keys to decrypt pillar data. This image is ready to import your GPG keys from the `gpgkeys` directory
+inside the `keys` directory.
+
+The private key must be named `private.key` and the public key `pubkey.gpg`.
+
+If you want to provide these keys via secrets, you can set `SALT_GPG_PRIVATE_KEY_FILE` and `SALT_GPG_PUBLIC_KEY_FILE`
+env variables to specify the path to the files inside the container.
+
+For example:
+
+```yml
+SALT_GPG_PRIVATE_KEY_FILE: /run/secrets/private.key
+SALT_GPG_PUBLIC_KEY_FILE: /run/secrets/pubkey.gpg
+```
+
+In this case, keys will be symlinked to the `gpgkeys` directory.
+
+It is important that the private key doesn't have passphrase in order to be imported by salt.
+
+To generate a GPG key and export the private/public pair you can use the following commands:
+
+```sh
+# Generate key - REMEMBER: Leave empty the passphrase!
+gpg --gen-key
+
+# Check GPG keys
+gpg --list-secret-keys
+gpg: checking the trustdb
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+gpg: next trustdb check due at 2024-11-09
+/tmp/gpgkeys/pubring.kbx
+--------------------
+sec   rsa3072 2022-11-10 [SC] [expires: 2024-11-09]
+      CB032BA54F21722945FDDE399CE3DB8AE37D28B7
+uid           [ultimate] Carlos Alvaro <github@cdalvaro.io>
+ssb   rsa3072 2022-11-10 [E] [expires: 2024-11-09]
+
+# Export public and private keys
+mkdir -p keys/gpgkeys
+KEY_ID=github@cdalvaro.io
+gpg --armor --export "${KEY_ID}" > keys/gpgkeys/pubkey.gpg
+gpg --export-secret-keys --export-options export-backup -o keys/gpgkeys/private.key "${KEY_ID}"
+```
+
+More information about this feature is available at the
+[official documentation](https://docs.saltproject.io/en/latest/ref/renderers/all/salt.renderers.gpg.html).
 
 ### 3rd Party Formulas
 
@@ -607,36 +649,36 @@ use docker-compose.
 Below you can find a list with the available options that can be used to customize your `docker-salt-master`
 installation.
 
-| Parameter                                                                                                                             | Description                                                                                                                                                                                                                                               |
-|:--------------------------------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `DEBUG`                                                                                                                               | Set this to `True` to enable entrypoint debugging.                                                                                                                                                                                                        |
-| `TIMEZONE` / `TZ`                                                                                                                     | Set the container timezone. Defaults to `UTC`. Values are expected to be in Canonical format. Example: `Europe/Madrid`. See the list of [acceptable values](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).                                |
-| `PUID`                                                                                                                                | Sets the uid for user `salt` to the specified uid. Default: `1000`.                                                                                                                                                                                       |
-| `PGID`                                                                                                                                | Sets the gid for user `salt` to the specified gid. Default: `1000`.                                                                                                                                                                                       |
-| `SALT_RESTART_MASTER_ON_CONFIG_CHANGE`                                                                                                | Set this to `True` to restart `salt-master` service when configuration files change. Default: `False`.                                                                                                                                                    |
-| [`SALT_LOG_LEVEL`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#log-level)                                     | The level of messages to send to the console. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning`.                                                                                                              |
-| `SALT_LOG_ROTATE_FREQUENCY`                                                                                                           | Logrotate frequency for salt logs. Available options are 'daily', 'weekly', 'monthly', and 'yearly'. Default: `weekly`.                                                                                                                                   |
-| `SALT_LOG_ROTATE_RETENTION`                                                                                                           | Keep x files before deleting old log files. Defaults: `52`.                                                                                                                                                                                               |
-| [`SALT_LEVEL_LOGFILE`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#log-level-logfile)                         | The level of messages to send to the log file. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `SALT_LOG_LEVEL`.                                                                                                      |
-| `SALT_MASTER_KEY_FILE`                                                                                                                | The path to the master-key-pair {pem,pub} files without suffixes. Keys will be copied into the pki directory. Useful to load the password from secrets. _Unset_ by default.                                                                               |
-| [`SALT_API_SERVICE_ENABLED`](https://docs.saltproject.io/en/latest/ref/cli/salt-api.html)                                             | Enable `salt-api` service. Default: `False`.                                                                                                                                                                                                              |
-| `SALT_API_USER`                                                                                                                       | Set username for `salt-api` service. Default: `salt_api`.                                                                                                                                                                                                 |
-| `SALT_API_USER_PASS_FILE`                                                                                                             | `SALT_API_USER` password file path. Use this variable to set the path of a file containing the password for the `SALT_API_USER`. Useful to load the password from secrets. Has priority over `SALT_API_USER_PASS`. _Unset_ by default.                    |
-| `SALT_API_USER_PASS`                                                                                                                  | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `True`, `SALT_API_USER` is not empty and `SALT_API_USER_PASS_FILE` is unset. _Unset_ by default.                                                                                      |
-| `SALT_API_CERT_CN`                                                                                                                    | Common name in the request. Default: `localhost`.                                                                                                                                                                                                         |
-| [`SALT_MASTER_SIGN_PUBKEY`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-sign-pubkey)                   | Sign the master auth-replies with a cryptographic signature of the master's public key. Possible values: 'True' or 'False'. Default: `False`.                                                                                                             |
-| [`SALT_MASTER_USE_PUBKEY_SIGNATURE`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-use-pubkey-signature) | Instead of computing the signature for each auth-reply, use a pre-calculated signature. This option requires `SALT_MASTER_SIGN_PUBKEY` set to 'True'. Possible values: 'True' or 'False'. Default: `True`.                                                |
-| [`SALT_MASTER_SIGN_KEY_NAME`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-sign-key-name)               | The customizable name of the signing-key-pair without suffix. Default: `master_sign`.                                                                                                                                                                     |
-| `SALT_MASTER_SIGN_KEY_FILE`                                                                                                           | The path to the signing-key-pair {pem,pub} without suffixes. The pair will be copied into the pki directory if they don't exists previously. Useful to load the password from secrets. _Unset_ by default.                                                |
-| [`SALT_MASTER_PUBKEY_SIGNATURE`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-pubkey-signature)         | The name of the file in the master's pki-directory that holds the pre-calculated signature of the master's public-key. Default: `master_pubkey_signature`.                                                                                                |
-| `SALT_MASTER_PUBKEY_SIGNATURE_FILE`                                                                                                   | The path of the salt-master public key file with the pre-calculated signature. It will be copied inside the pki directory if a file with name `SALT_MASTER_PUBKEY_SIGNATURE` doesn't exist. Useful to load the password from secrets. _Unset_ by default. |
-| `SALT_MASTER_ROOT_USER`                                                                                                               | Forces `salt-master` to be run as `root` instead of `salt`. Default: `False`.                                                                                                                                                                             |
-| `SALT_GITFS_SSH_PRIVATE_KEY`                                                                                                          | The name of the ssh private key for gitfs. Default: `gitfs_ssh`.                                                                                                                                                                                          |
-| `SALT_GITFS_SSH_PUBLIC_KEY`                                                                                                           | The name of the ssh public key for gitfs. Default: `gitfs_ssh`.pub`.                                                                                                                                                                                      |
-| [`SALT_REACTOR_WORKER_THREADS`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#reactor-worker-threads)           | The number of workers for the runner/wheel in the reactor. Default: `10`.                                                                                                                                                                                 |
-| [`SALT_WORKER_THREADS`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#worker-threads)                           | The number of threads to start for receiving commands and replies from minions. Default: `5`.                                                                                                                                                             |
-| [`SALT_BASE_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#file-roots)                                     | The `base` path in `file_roots` to look for `salt` and `pillar` directories. Default: `/home/salt/data/srv`.                                                                                                                                              |
-| [`SALT_CONFS_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std-conf_master-default_include)               | The master will automatically include all config files from this directory. Default: `/home/salt/data/config`.                                                                                                                                            |
+| Parameter                                                                                                                             | Description                                                                                                                                                                                                                                                                                   |
+|:--------------------------------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `DEBUG`                                                                                                                               | Set this to `True` to enable entrypoint debugging.                                                                                                                                                                                                                                            |
+| `TIMEZONE` / `TZ`                                                                                                                     | Set the container timezone. Defaults to `UTC`. Values are expected to be in Canonical format. Example: `Europe/Madrid`. See the list of [acceptable values](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).                                                                    |
+| `PUID`                                                                                                                                | Sets the uid for user `salt` to the specified uid. Default: `1000`.                                                                                                                                                                                                                           |
+| `PGID`                                                                                                                                | Sets the gid for user `salt` to the specified gid. Default: `1000`.                                                                                                                                                                                                                           |
+| `SALT_RESTART_MASTER_ON_CONFIG_CHANGE`                                                                                                | Set this to `True` to restart `salt-master` service when configuration files change. Default: `False`.                                                                                                                                                                                        |
+| [`SALT_LOG_LEVEL`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#log-level)                                     | The level of messages to send to the console. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning`.                                                                                                                                                  |
+| `SALT_LOG_ROTATE_FREQUENCY`                                                                                                           | Logrotate frequency for salt logs. Available options are 'daily', 'weekly', 'monthly', and 'yearly'. Default: `weekly`.                                                                                                                                                                       |
+| `SALT_LOG_ROTATE_RETENTION`                                                                                                           | Keep x files before deleting old log files. Defaults: `52`.                                                                                                                                                                                                                                   |
+| [`SALT_LEVEL_LOGFILE`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#log-level-logfile)                         | The level of messages to send to the log file. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `SALT_LOG_LEVEL`.                                                                                                                                          |
+| `SALT_MASTER_KEY_FILE`                                                                                                                | The path to the master-key-pair {pem,pub} files without suffixes. Keys will be copied into the pki directory. Useful to load the password from secrets. _Unset_ by default.                                                                                                                   |
+| [`SALT_API_SERVICE_ENABLED`](https://docs.saltproject.io/en/latest/ref/cli/salt-api.html)                                             | Enable `salt-api` service. Default: `False`.                                                                                                                                                                                                                                                  |
+| `SALT_API_USER`                                                                                                                       | Set username for `salt-api` service. Default: `salt_api`.                                                                                                                                                                                                                                     |
+| `SALT_API_USER_PASS_FILE`                                                                                                             | `SALT_API_USER` password file path. Use this variable to set the path of a file containing the password for the `SALT_API_USER`. Useful to load the password from secrets. Has priority over `SALT_API_USER_PASS`. _Unset_ by default.                                                        |
+| `SALT_API_USER_PASS`                                                                                                                  | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `True`, `SALT_API_USER` is not empty and `SALT_API_USER_PASS_FILE` is unset. _Unset_ by default.                                                                                                                          |
+| `SALT_API_CERT_CN`                                                                                                                    | Common name in the request. Default: `localhost`.                                                                                                                                                                                                                                             |
+| [`SALT_MASTER_SIGN_PUBKEY`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-sign-pubkey)                   | Sign the master auth-replies with a cryptographic signature of the master's public key. Possible values: 'True' or 'False'. Default: `False`.                                                                                                                                                 |
+| [`SALT_MASTER_USE_PUBKEY_SIGNATURE`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-use-pubkey-signature) | Instead of computing the signature for each auth-reply, use a pre-calculated signature. This option requires `SALT_MASTER_SIGN_PUBKEY` set to 'True'. Possible values: 'True' or 'False'. Default: `True`.                                                                                    |
+| [`SALT_MASTER_SIGN_KEY_NAME`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-sign-key-name)               | The customizable name of the signing-key-pair without suffix. Default: `master_sign`.                                                                                                                                                                                                         |
+| `SALT_MASTER_SIGN_KEY_FILE`                                                                                                           | The path to the signing-key-pair {pem,pub} without suffixes. The pair will be copied into the pki directory if they don't exists previously. Useful to load the password from secrets. _Unset_ by default.                                                                                    |
+| [`SALT_MASTER_PUBKEY_SIGNATURE`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-pubkey-signature)         | The name of the file in the master's pki-directory that holds the pre-calculated signature of the master's public-key. Default: `master_pubkey_signature`.                                                                                                                                    |
+| `SALT_MASTER_PUBKEY_SIGNATURE_FILE`                                                                                                   | The path of the salt-master public key file with the pre-calculated signature. It will be copied inside the pki directory if a file with name `SALT_MASTER_PUBKEY_SIGNATURE` doesn't exist. Useful to load the password from secrets. _Unset_ by default.                                     |
+| `SALT_MASTER_ROOT_USER`                                                                                                               | Forces `salt-master` to be run as `root` instead of `salt`. Default: `False`.                                                                                                                                                                                                                 |
+| `SALT_GPG_PRIVATE_KEY_FILE`                                                                                                           | The path to the GPG private key for GPG renderers. Useful to load the key from secrets. _Unset_ by default.                                                                                                                                                                                   |
+| `SALT_GPG_PUBLIC_KEY_FILE`                                                                                                            | The path to the GPG public key for GPG renderers. Useful to load the key from secrets. _Unset_ by default.                                                                                                                                                                                    |
+| [`SALT_REACTOR_WORKER_THREADS`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#reactor-worker-threads)           | The number of workers for the runner/wheel in the reactor. Default: `10`.                                                                                                                                                                                                                     |
+| [`SALT_WORKER_THREADS`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#worker-threads)                           | The number of threads to start for receiving commands and replies from minions. Default: `5`.                                                                                                                                                                                                 |
+| [`SALT_BASE_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#file-roots)                                     | The `base` path in `file_roots` to look for `salt` and `pillar` directories. Default: `/home/salt/data/srv`.                                                                                                                                                                                  |
+| [`SALT_CONFS_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std-conf_master-default_include)               | The master will automatically include all config files from this directory. Default: `/home/salt/data/config`.                                                                                                                                                                                |
 
 Any parameter not listed in the above table and available in the
 following [link](https://docs.saltproject.io/en/latest/ref/configuration/examples.html#configuration-examples-master),
@@ -691,7 +733,16 @@ You can restart containers services by running the following command:
 docker exec -it salt_master entrypoint.sh app:restart [salt-service]
 ```
 
-Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVICE_ENABLED` is set to `True`)
+Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVICE_ENABLED` is set to `True`).
+
+## 🔨 Development
+
+Everyone is wellcome to contribute to this project, and I really appreciate your support. So don't be shy!
+
+Before you start making changes, read carefully the following notes in order to avoid issues.
+
+- ⚠️ Some tests start and stop a _**non-isolated**_ `salt-minion` instance. So don't run tests locally.
+  Tests are automatically executed on GitHub when you push commits to your PR.
 
 ## 👏 Credits
 

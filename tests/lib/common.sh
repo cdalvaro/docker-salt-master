@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+set -o errexit
+set -o pipefail
+
+if [[ "${DEBUG,,}" == true ]]; then
+  set -o verbose
+  set -o xtrace
+fi
+
 #---  ENV VARIABLE  ---------------------------------------------------------------------------------------------------
 #          NAME:  IMAGE_NAME
 #   DESCRIPTION:  The name and tag of the Docker image. Default: 'cdalvaro/docker-salt-master:latest'.
@@ -11,6 +19,12 @@ export IMAGE_NAME=${IMAGE_NAME:-'cdalvaro/docker-salt-master:latest'}
 #   DESCRIPTION:  The name of the container. Default: 'salt-master'.
 #----------------------------------------------------------------------------------------------------------------------
 export CONTAINER_NAME=salt-master
+
+#---  ENV VARIABLE  ---------------------------------------------------------------------------------------------------
+#          NAME:  TEST_MINION_ID
+#   DESCRIPTION:  The id of the salt-minion for testing. Default: 'test.minion'.
+#----------------------------------------------------------------------------------------------------------------------
+export TEST_MINION_ID=test.minion
 
 #---  ENV VARIABLE  ---------------------------------------------------------------------------------------------------
 #          NAME:  PLATFORM
@@ -30,8 +44,21 @@ export BOOTUP_WAIT_SECONDS=${BOOTUP_WAIT_SECONDS:-60}
 #----------------------------------------------------------------------------------------------------------------------
 function cleanup()
 {
-  echo "🧹 Removing ${CONTAINER_NAME} ..."
-  docker container rm --force "${CONTAINER_NAME}"
+  echo "🧹 Running cleanup tasks ..."
+
+  local salt_master_container="$(docker container ls --filter NAME="${CONTAINER_NAME}" --quiet)"
+  if [ -n "${salt_master_container}" ]; then
+    echo "  - Removing ${CONTAINER_NAME} docker container ..."
+    docker container rm --force --volumes "${salt_master_container}" > /dev/null
+  fi
+
+  if [ -n "$(pgrep -f salt-minion)" ]; then
+    echo "  - Stopping salt-minion ..."
+    sudo killall salt-minion
+    sudo rm -f /var/log/salt/minion
+  fi
+
+  echo "🧹 All cleanup tasks done!"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -71,12 +98,52 @@ function salt-call()
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  salt
+#   DESCRIPTION:  Execute the salt command inside the container.
+#----------------------------------------------------------------------------------------------------------------------
+function salt()
+{
+  docker-exec salt "$@"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  container_log
+#   DESCRIPTION:  Print container log.
+#----------------------------------------------------------------------------------------------------------------------
+function container_log()
+{
+  local CONTAINER_ID="$(docker container ls --all --filter NAME="${CONTAINER_NAME}" --quiet)"
+  [ -n "${CONTAINER_ID}" ] || return 0
+
+  echo "📝 container log (${CONTAINER_NAME})"
+  docker logs -t "${CONTAINER_ID}"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  master_log
 #   DESCRIPTION:  Print salt-master log.
 #----------------------------------------------------------------------------------------------------------------------
 function master_log()
 {
-  docker-exec cat data/logs/salt/master
+  local LOGS_DIR="${SCRIPT_PATH}/logs"
+  local SALT_MASTER_LOG="${LOGS_DIR}/salt/master"
+
+  [ -f "${SALT_MASTER_LOG}" ] || return 0
+  echo "📝 salt-master log (${SALT_MASTER_LOG})"
+  sudo cat "${SALT_MASTER_LOG}"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  minion_log
+#   DESCRIPTION:  Print salt-minion log.
+#----------------------------------------------------------------------------------------------------------------------
+function minion_log()
+{
+  local SALT_MINION_LOG='/var/log/salt/minion'
+
+  [ -f "${SALT_MINION_LOG}" ] || return 0
+  echo "📝 salt-minion log (${SALT_MINION_LOG})"
+  sudo cat "${SALT_MINION_LOG}"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -87,11 +154,25 @@ function start_container_and_wait()
 {
   # shellcheck disable=SC2206
   local DOCKER_ARGS=( $@ )
+  local LOGS_DIR="${SCRIPT_PATH}/logs"
+  mkdir -p "${LOGS_DIR}"
 
-  docker run --rm --detach --name "${CONTAINER_NAME}" \
+  # Common config
+  mkdir -p "${SCRIPT_PATH}/config/autosign_grains"
+  cat > "${SCRIPT_PATH}"/config/autosign_grains.conf <<EOF
+autosign_grains_dir: /home/salt/data/config/autosign_grains
+EOF
+  cat > "${SCRIPT_PATH}"/config/autosign_grains/id <<EOF
+${TEST_MINION_ID}
+EOF
+
+  docker run --detach --name "${CONTAINER_NAME}" \
   --publish 4505:4505 --publish 4506:4506 \
   --env PUID="$(id -u)" --env PGID="$(id -g)" \
+  --env SALT_LOG_LEVEL='info' \
   --platform "${PLATFORM}" ${DOCKER_ARGS[@]} \
+  --volume "${LOGS_DIR}/":/home/salt/data/logs/ \
+  --volume "${SCRIPT_PATH}/config/":/home/salt/data/config/:ro \
   "${IMAGE_NAME}" || return 1
 
   echo "==> Waiting ${BOOTUP_WAIT_SECONDS} seconds for the container to be ready ..."
@@ -99,8 +180,38 @@ function start_container_and_wait()
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  setup_and_start_salt_minion
+#   DESCRIPTION:  Setup and start salt-minion.
+#----------------------------------------------------------------------------------------------------------------------
+function setup_and_start_salt_minion()
+{
+  local SALT_MINION_CONF_DIR=/etc/salt/minion.d
+
+  sudo rm -rf '/etc/salt'
+  sudo mkdir -p "${SALT_MINION_CONF_DIR}"
+
+  sudo tee "${SALT_MINION_CONF_DIR}/minion.conf" > /dev/null <<EOF
+id: ${TEST_MINION_ID}
+master: localhost
+verify_master_pubkey_sign: False
+master_alive_interval: 10
+retry_dns: 5
+retry_dns_count: 4
+autosign_grains:
+  - uuid
+  - id
+EOF
+
+  echo "==> Starting salt-minion ..."
+  sudo salt-minion --log-file-level=info --daemon &
+  sleep 40
+
+  test -n "$(pgrep -f salt-minion)"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  ok
-#   DESCRIPTION:  Print a successfull message.
+#   DESCRIPTION:  Print a success message.
 #----------------------------------------------------------------------------------------------------------------------
 function ok()
 {
@@ -113,8 +224,10 @@ function ok()
 #----------------------------------------------------------------------------------------------------------------------
 function error()
 {
-  echo "🔥 $*"
-  master_log
+  echo "🔥 $*" >&2
+  container_log >&2
+  master_log >&2
+  minion_log >&2
   return 1
 }
 

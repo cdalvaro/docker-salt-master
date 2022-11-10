@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 
-set -e
-[ "${DEBUG,,}" == true ] && set -vx
-
 echo "🧪 Running gitfs tests ..."
 
 # https://stackoverflow.com/a/4774063/3398062
+# shellcheck disable=SC2164
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # shellcheck source=assets/build/functions.sh
@@ -25,7 +23,6 @@ ok "gitfs keys"
 # Run test instance
 echo "==> Starting docker-salt-master (${PLATFORM}) with ed25519 ssh key ..."
 start_container_and_wait \
-  --volume "${SCRIPT_PATH}/config":/home/salt/data/config:ro \
   --volume "$(pwd)/${GITFS_KEYS_DIR%%/gitfs}":/home/salt/data/keys \
 || error "container started"
 ok "container started"
@@ -37,9 +34,26 @@ UPDATE_REPOS="$( salt-run fileserver.update )"
 echo "${UPDATE_REPOS}" | grep -qi true || error "update gitfs"
 ok "update gitfs"
 
-# Check pillars
+# Check gitfs files
 echo "==> Checking gitfs files ..."
 FILE_LIST=$( salt-run fileserver.file_list )
 echo "${FILE_LIST}"
 [[ "${FILE_LIST}" == *test.txt* ]] || error "gitfs files"
 ok "gitfs files"
+
+# Test minion connection
+setup_and_start_salt_minion || error "salt-minion started"
+ok "salt-minion started"
+
+# Test pillar
+echo "==> Checking gitfs pillar docker-salt-master-test:email content from minion ..."
+PILLAR_CONTENT="$( salt "${TEST_MINION_ID}" pillar.get 'docker-salt-master-test:email' || error "Unable to get pillar 'docker-salt-master-test:email'" )"
+echo "${PILLAR_CONTENT}"
+echo -n "${PILLAR_CONTENT}" | grep -q 'github@cdalvaro.io' || error "Check gitfs pillar 'docker-salt-master-test:email'"
+ok "Check gitfs pillar 'docker-salt-master-test:email'"
+
+# Test gitfs deploy
+echo "==> Checking gitfs top.sls (state.apply) ..."
+salt "${TEST_MINION_ID}" state.apply
+[ -f /tmp/my_file.txt ] || error "Check gitfs top.sls applied"
+ok "Check gitfs top.sls applied"

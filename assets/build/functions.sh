@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-set -e
+set -o errexit
+set -o pipefail
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  log_debug

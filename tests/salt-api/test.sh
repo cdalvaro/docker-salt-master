@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 
-set -e
-[ "${DEBUG,,}" == true ] && set -vx
-
 echo "🧪 Running salt-api tests ..."
 
 # https://stackoverflow.com/a/4774063/3398062
+# shellcheck disable=SC2164
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # shellcheck source=assets/build/functions.sh
@@ -17,12 +15,11 @@ export SALTAPI_URL="https://localhost:8000/"
 export SALTAPI_USER=salt_api
 export SALTAPI_PASS=4wesome-Pass0rd
 export SALTAPI_EAUTH=pam
-export SALTAPI_TMP_DIR=${SALTAPI_TMP_DIR:-/tmp/salt-api}
 
 # Create configuration files
 echo "==> Creating salt-api configuration file ..."
-mkdir -p "${SALTAPI_TMP_DIR}/config/"
-cat > "${SALTAPI_TMP_DIR}/config/salt-api.conf" <<EOF
+mkdir -p "${SCRIPT_PATH}/config"
+cat > "${SCRIPT_PATH}/config/salt-api.conf" <<EOF
 external_auth:
   ${SALTAPI_EAUTH}:
     ${SALTAPI_USER}:
@@ -39,7 +36,6 @@ start_container_and_wait \
   --publish 8000:8000 \
   --env SALT_API_SERVICE_ENABLED=True \
   --env SALT_API_USER_PASS="${SALTAPI_PASS}" \
-  --volume "${SALTAPI_TMP_DIR}/config":/home/salt/data/config:ro \
 || error "container started"
 ok "container started"
 
@@ -64,16 +60,6 @@ curl -sSk "${SALTAPI_URL}" \
 | grep -i true || error "curl command"
 ok "curl command"
 
-# Install salt-pepper
-echo "==> Installing salt-pepper ..."
-pip3 install salt-pepper || error "pepper installed"
-ok "pepper installed"
-
-# Test salt-pepper
-echo "==> Testing salt-pepper ..."
-pepper --client runner test.stream || error "pepper test.stream"
-ok "pepper test.stream"
-
 # Stop and start with salt-api pass via file
 echo "==> Stopping previous container ..."
 cleanup
@@ -85,7 +71,6 @@ start_container_and_wait \
   --publish 8000:8000 \
   --env SALT_API_SERVICE_ENABLED=True \
   --env SALT_API_USER_PASS_FILE="/run/secrets/${SALT_API_USER_PASS_FILE}" \
-  --volume "${SALTAPI_TMP_DIR}/config":/home/salt/data/config:ro \
   --volume "$(pwd)/${SALT_API_USER_PASS_FILE}":/run/secrets/${SALT_API_USER_PASS_FILE}:ro \
 || error "container started"
 ok "container started"
@@ -110,3 +95,17 @@ curl -sSk "${SALTAPI_URL}" \
   -d fun=test.stream \
 | grep -i true || error "curl command"
 ok "curl command"
+
+# Install salt-pepper
+echo "==> Installing salt-pepper ..."
+pip3 install salt-pepper || error "pepper installed"
+ok "pepper installed"
+
+# Test minion connection
+setup_and_start_salt_minion || error "salt-minion started"
+ok "salt-minion started"
+
+# Test pepper with salt-minion
+echo "==> Testing pepper with salt-minion (test.ping) ..."
+pepper "${TEST_MINION_ID}" test.ping || error "pepper test.ping"
+ok "pepper test.ping"

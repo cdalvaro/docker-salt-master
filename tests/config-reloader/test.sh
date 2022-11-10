@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 
-set -e
-[ "${DEBUG,,}" == true ] && set -vx
-
 echo "🧪 Running config-reloader tests ..."
 
 # https://stackoverflow.com/a/4774063/3398062
+# shellcheck disable=SC2164
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # shellcheck source=assets/build/functions.sh
@@ -17,7 +15,6 @@ trap cleanup EXIT
 echo "==> Starting docker-salt-master (${PLATFORM}) ..."
 start_container_and_wait \
   --env SALT_RESTART_MASTER_ON_CONFIG_CHANGE=True \
-  --volume "${SCRIPT_PATH}/config":/home/salt/data/config:ro \
 || error "container started"
 ok "container started"
 

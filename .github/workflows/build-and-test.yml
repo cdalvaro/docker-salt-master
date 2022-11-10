@@ -15,7 +15,7 @@ on:
 env:
   IMAGE_NAME: localhost:5000/cdalvaro/docker-salt-master:${{ github.sha }}
   REGISTRY_PATH: ${{ github.workspace }}/registry
-  CACHE_PATH: /tmp/.buildx-cache
+  CACHE_PATH: ${{ github.workspace }}/.buildx-cache
 
 jobs:
   build:
@@ -40,12 +40,24 @@ jobs:
             --name registry registry:2
 
       - name: Cache Docker layers
+        id: cache-docker-layers
         uses: actions/cache@v3
         with:
           path: ${{ env.CACHE_PATH }}
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
+
+      - name: Cache hit
+        continue-on-error: true
+        env:
+          CACHE_HIT: ${{ steps.cache-docker-layers.outputs.cache-hit }}
+        run: |
+          if [[ "${CACHE_HIT}" != 'true' ]]; then
+            echo "No cache hit" >&2
+            exit 1
+          fi
+          echo "Cache contents available at: ${CACHE_PATH}"
 
       - name: Build docker-salt-master image
         uses: docker/build-push-action@v3.2.0
@@ -57,6 +69,7 @@ jobs:
             type=local,src=${{ env.CACHE_PATH }}
             ghcr.io/cdalvaro/docker-salt-master:latest
           cache-to: type=local,dest=${{ env.CACHE_PATH }}
+          pull: true
           push: true
           tags: ${{ env.IMAGE_NAME }}
 
@@ -117,13 +130,25 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Install and configure salt-minion
+        run: |
+          # Install salt-minion from salt repos
+          curl -o bootstrap-salt.sh -L https://bootstrap.saltproject.io
+          chmod +x bootstrap-salt.sh
+          sudo ./bootstrap-salt.sh -dXP stable $(cat VERSION)
+          sudo systemctl stop salt-minion
+          sudo systemctl disable salt-minion
+
       - name: Execute basic tests
+        if: always()
         run: tests/basic/test.sh
 
       - name: Execute salt-api tests
+        if: always()
         run: tests/salt-api/test.sh
 
       - name: Execute gitfs tests
+        if: always()
         env:
           GITFS_KEYS_DIR: tests/gitfs/data/keys/gitfs
           SSH_PRIVATE_KEY: ${{ secrets.TESTS_REPO_PRIVATE_KEY }}
@@ -137,8 +162,14 @@ jobs:
           tests/gitfs/test.sh
 
       - name: Execute config-reloader tests
+        if: always()
         run: tests/config-reloader/test.sh
 
+      - name: Execute GPG tests
+        if: always()
+        run: tests/gpg/test.sh
+
       - name: Cleanup
+        if: always()
         run: |
-          docker stop registry
+          docker rm --force registry

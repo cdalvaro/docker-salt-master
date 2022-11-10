@@ -4,6 +4,19 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3005.1 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3005.1.html)
 for the list of changes in SaltStack.
 
+**3005.1_2**
+
+- Add support for GPG keys.
+- Ensure `salt-minion` is not installed.
+- Remove `GitPython` documentation, since it has some
+  [using warnings](https://docs.saltproject.io/en/latest/topics/tutorials/gitfs.html#id2).
+- Add _Development_ section to [README.md](README.md).
+- CI(tests): Install `salt-minion` for integration tests.
+- CI(tests): Improve log support.
+- CI(tests): Always run tests.
+- CI: Always perform cleanup tasks.
+- CI: Improve build times.
+
 **3005.1_1**
 
 - If `SALT_LEVEL_LOGFILE` is not defined, then fallback to `SALT_LOG_LEVEL`.

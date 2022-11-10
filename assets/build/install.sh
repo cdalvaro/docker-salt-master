@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-set -e
+set -o errexit
+set -o pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -47,7 +48,7 @@ download "${BOOTSTRAP_URL}" "${BOOTSTRAP_FILE}"
 check_sha256 "${BOOTSTRAP_FILE}" "${BOOTSTRAP_SHA256}"
 
 # Bootstrap script options:
-# https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html#command-line-options
+# https://docs.saltproject.io/salt/install-guide/en/latest/topics/bootstrap.html
 ## -M: install Salt Master by default
 ## -N: Do not install salt-minion
 ## -X: Do not start daemons after installation
@@ -63,6 +64,13 @@ log_info "Installing saltstack ..."
 log_debug "Options: ${SALT_BOOTSTRAP_OPTS[@]}"
 sh "${BOOTSTRAP_FILE}" ${SALT_BOOTSTRAP_OPTS[@]} git "v${SALT_VERSION}"
 chown -R "${SALT_USER}": "${SALT_ROOT_DIR}"
+
+# Patch to remove salt-minion
+SALT_MINION="$(command -v salt-minion)"
+if [[ -n "${SALT_MINION}" ]]; then
+  log_warn "Removing salt-minion ..."
+  rm -f "${SALT_MINION}"
+fi
 
 # Configure ssh
 log_info "Configuring ssh ..."

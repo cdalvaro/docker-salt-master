@@ -7,7 +7,7 @@ set -o pipefail
 FUNCTIONS_FILE="${SALT_RUNTIME_DIR}/functions.sh"
 source "${FUNCTIONS_FILE}"
 
-[[ "${DEBUG,,}" == true ]] && set -x
+[[ "${DEBUG,,}" == true ]] && set -o xtrace
 
 case "${1}" in
   app:start|app:gen-signed-keys)
@@ -35,7 +35,7 @@ case "${1}" in
         exec supervisorctl restart "${1}"
         ;;
       *)
-        log_error "Unable to restart ${1} serice. Service is unknown"
+        log_error "Unable to restart ${1} service. Service is unknown"
         exit 1
         ;;
     esac
