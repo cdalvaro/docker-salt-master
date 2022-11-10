@@ -24,7 +24,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3005.1-2
+docker pull ghcr.io/cdalvaro/docker-salt-master:3005.1-2_1
 ```
 
 You can also pull the latest tag which is built from the repository `HEAD`
