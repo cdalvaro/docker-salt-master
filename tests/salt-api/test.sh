@@ -60,16 +60,6 @@ curl -sSk "${SALTAPI_URL}" \
 | grep -i true || error "curl command"
 ok "curl command"
 
-# Install salt-pepper
-echo "==> Installing salt-pepper ..."
-pip3 install salt-pepper || error "pepper installed"
-ok "pepper installed"
-
-# Test salt-pepper
-echo "==> Testing salt-pepper ..."
-pepper --client runner test.stream || error "pepper test.stream"
-ok "pepper test.stream"
-
 # Stop and start with salt-api pass via file
 echo "==> Stopping previous container ..."
 cleanup
@@ -105,3 +95,17 @@ curl -sSk "${SALTAPI_URL}" \
   -d fun=test.stream \
 | grep -i true || error "curl command"
 ok "curl command"
+
+# Install salt-pepper
+echo "==> Installing salt-pepper ..."
+pip3 install salt-pepper || error "pepper installed"
+ok "pepper installed"
+
+# Test minion connection
+setup_and_start_salt_minion || error "salt-minion started"
+ok "salt-minion started"
+
+# Test pepper with salt-minion
+echo "==> Testing pepper with salt-minion (test.ping) ..."
+pepper "${TEST_MINION_ID}" test.ping || error "pepper test.ping"
+ok "pepper test.ping"
