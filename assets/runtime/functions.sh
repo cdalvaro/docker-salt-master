@@ -276,8 +276,11 @@ function _check_and_link_gpgkey() {
     return 1
   fi
 
+  mkdir -p "$(dirname "${TARGET_GPGKEY}")"
+
   log_info "Linking '${SOURCE_GPGKEY}' to '${TARGET_GPGKEY}' ..."
   ln -sfn "${SOURCE_GPGKEY}" "${TARGET_GPGKEY}"
+  chown "${SALT_USER}:${SALT_USER}" "${TARGET_GPGKEY}"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -286,14 +289,18 @@ function _check_and_link_gpgkey() {
 #----------------------------------------------------------------------------------------------------------------------
 function _setup_gpgkeys()
 {
-  [[ -d "${SALT_KEYS_GPGKEYS_DIR}" && -n "$(ls -A "${SALT_KEYS_GPGKEYS_DIR}")" ]] || return 0
-
   log_info " ==> Setting up GPG keys ..."
+
   local private_key="${SALT_KEYS_GPGKEYS_DIR}/private.key"
   local public_key="${SALT_KEYS_GPGKEYS_DIR}/pubkey.gpg"
 
   _check_and_link_gpgkey 'SALT_GPG_PRIVATE_KEY_FILE' "${private_key}"
   _check_and_link_gpgkey 'SALT_GPG_PUBLIC_KEY_FILE' "${public_key}"
+
+  if [[ ! -d "${SALT_KEYS_GPGKEYS_DIR}" || -z "$(ls -A "${SALT_KEYS_GPGKEYS_DIR}")" ]]; then
+    log_info "Could not find GPG keys. GPG setup skipped."
+    return 0
+  fi
 
   if [[ ! -f "${private_key}" || ! -f "${public_key}" ]]; then
     log_error "GPG keys are not valid. Please, check the documentation for more information:"
