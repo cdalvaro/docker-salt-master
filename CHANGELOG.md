@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3005.1 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3005.1.html)
 for the list of changes in SaltStack.
 
+**3005.1-2**
+
+- Upgrade `salt-master` to `3005.1-2` *Phosphorus*.
+
 **3005.1_2**
 
 - Add support for GPG keys.
