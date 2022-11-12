@@ -476,6 +476,25 @@ gpg --export-secret-keys --export-options export-backup -o keys/gpgkeys/private.
 More information about this feature is available at the
 [official documentation](https://docs.saltproject.io/en/latest/ref/renderers/all/salt.renderers.gpg.html).
 
+#### How to encrypt data
+
+You can encrypt strings using the following example:
+
+```sh
+echo -n 'Super secret pillar' | gpg --armor --batch --trust-model always --encrypt --recipient "${KEY_ID}"
+```
+
+Or you can encrypt files using the example bellow:
+
+```sh
+gpg --armor --batch --trust-model always --encrypt --recipient "${KEY_ID}" \
+  --output /tmp/gpg_id_ed25519 ~/.ssh/id_ed25519
+cat /tmp/gpg_id_ed25519
+```
+
+On macOS you can pipe the output to `pbcopy` to copy the encrypted data to the clipboard. If you are using Linux, you
+can use `xclip` or `xsel`.
+
 ### 3rd Party Formulas
 
 You can add third party formulas to your configuration simply by adding them to your `gitfs_remotes`:
