@@ -795,9 +795,9 @@ Many thanks to:
 
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
 
-[github_publish_badge]: https://img.shields.io/github/workflow/status/cdalvaro/docker-salt-master/Publish%20Docker%20image?label=build&logo=GitHub&logoColor=%23181717
+[github_publish_badge]: https://github.com/cdalvaro/docker-salt-master/actions/workflows/publish.yml/badge.svg
 
-[github_publish_workflow]: https://github.com/cdalvaro/docker-salt-master/actions?query=workflow%3A%22Publish+Docker+image%22
+[github_publish_workflow]: https://github.com/cdalvaro/docker-salt-master/actions/workflows/publish.yml
 
 [docker_size_badge]: https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED
 
