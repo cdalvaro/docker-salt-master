@@ -133,10 +133,8 @@ jobs:
       - name: Install and configure salt-minion
         run: |
           # Install salt-minion from salt repos
-          VERSION=$(cat VERSION)
           curl -o bootstrap-salt.sh -L https://bootstrap.saltproject.io
-          chmod +x bootstrap-salt.sh
-          sudo ./bootstrap-salt.sh -dXP stable "${VERSION%%-*}"
+          sudo sh bootstrap-salt.sh -dXP stable
           sudo systemctl stop salt-minion
           sudo systemctl disable salt-minion
           sudo rm -f /var/log/salt/minion

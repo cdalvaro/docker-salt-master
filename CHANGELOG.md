@@ -1,11 +1,13 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3005.1 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3005.1.html)
+Please refer to the [Salt 3006 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3006.html)
 for the list of changes in SaltStack.
 
-**3006**
+**3006.0**
 
+- Upgrade `salt-master` to `3006.0` *Sulfur*.
+- Upgrade `salt-bootstrap` to version `2023.04.06`.
 - Change Docker base image to `ubuntu:jammy-20230308`.
 
 **3005.1-2_1**
