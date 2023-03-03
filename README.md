@@ -791,7 +791,7 @@ Many thanks to:
 
 [saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3005.1.html "Salt Project Release Notes"
 
-[ubuntu_badge]: https://img.shields.io/badge/ubuntu-jammy--20221101-E95420.svg?logo=Ubuntu
+[ubuntu_badge]: https://img.shields.io/badge/ubuntu-jammy--20230308-E95420.svg?logo=Ubuntu
 
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
 

@@ -1,4 +1,4 @@
-FROM ubuntu:jammy-20221101
+FROM ubuntu:jammy-20230308
 
 ARG BUILD_DATE
 ARG VCS_REF
@@ -71,8 +71,7 @@ LABEL org.opencontainers.image.vendor="cdalvaro"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 LABEL org.opencontainers.image.version="${IMAGE_VERSION}"
 LABEL org.opencontainers.image.revision="${VCS_REF}"
-LABEL org.opencontainers.image.base.digest="sha256:42ba2dfce475de1113d55602d40af18415897167d47c2045ec7b6d9746ff148f"
-LABEL org.opencontainers.image.base.name="ubuntu:jammy-20221101"
+LABEL org.opencontainers.image.base.name="ubuntu:jammy-20230308"
 LABEL org.opencontainers.image.licenses="MIT"
 
 WORKDIR ${SALT_HOME}
