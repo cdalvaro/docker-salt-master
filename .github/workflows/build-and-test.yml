@@ -133,7 +133,7 @@ jobs:
       - name: Install and configure salt-minion
         run: |
           # Install salt-minion from salt repos
-          VERSION=$(cat VERSION)
+          VERSION=3005.1
           curl -o bootstrap-salt.sh -L https://bootstrap.saltproject.io
           chmod +x bootstrap-salt.sh
           sudo ./bootstrap-salt.sh -dXP stable "${VERSION%%-*}"
