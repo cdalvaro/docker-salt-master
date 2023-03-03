@@ -19,7 +19,7 @@ ok "container started"
 # Check salt version
 echo "==> Checking salt-master version ..."
 docker-exec salt-master --versions
-EXPECTED_VERSION="$(cat VERSION)"
+EXPECTED_VERSION="$(cat VERSION) (Sulfur)"
 CURRENT_VERSION="$(docker-exec salt-master --version)"
 check_equal "${CURRENT_VERSION}" "salt-master ${EXPECTED_VERSION%%-*}" "salt-master --version"
 
