@@ -20,6 +20,16 @@ export SALTAPI_EAUTH=pam
 echo "==> Creating salt-api configuration file ..."
 mkdir -p "${SCRIPT_PATH}/config"
 cat > "${SCRIPT_PATH}/config/salt-api.conf" <<EOF
+# Breaking change from 3006
+# https://docs.saltproject.io/en/latest/topics/netapi/netapi-enable-clients.html
+netapi_enable_clients:
+  - local
+  - local_async
+  - local_batch
+  - local_subset
+  - runner
+  - runner_async
+
 external_auth:
   ${SALTAPI_EAUTH}:
     ${SALTAPI_USER}:
@@ -51,13 +61,15 @@ ok "salt-api token"
 
 # Test salt-api command
 echo "==> Testing curl command ..."
-curl -sSk "${SALTAPI_URL}" \
+CURL_OUTPUT="$(curl -sSk "${SALTAPI_URL}" \
   -H "Accept: application/x-yaml" \
   -H "X-Auth-Token: ${SALTAPI_TOKEN}" \
   -d client=runner \
   -d tgt='*' \
-  -d fun=test.stream \
-| grep -i true || error "curl command"
+  -d fun=test.stream)"
+echo "${CURL_OUTPUT}"
+
+echo -n "${CURL_OUTPUT}" | grep -i true || error "curl command"
 ok "curl command"
 
 # Stop and start with salt-api pass via file
@@ -85,16 +97,18 @@ SALTAPI_TOKEN=$(curl -sSk "${SALTAPI_URL%/}/login" \
 [ -n "${SALTAPI_TOKEN}" ] || error "salt-api token"
 ok "salt-api token"
 
-# Test salt-api command
+# Test salt-api command via curl
 echo "==> Testing curl command (pass via file) ..."
-curl -sSk "${SALTAPI_URL}" \
+CURL_OUTPUT="$(curl -sSk "${SALTAPI_URL}" \
   -H "Accept: application/x-yaml" \
   -H "X-Auth-Token: ${SALTAPI_TOKEN}" \
   -d client=runner \
   -d tgt='*' \
-  -d fun=test.stream \
-| grep -i true || error "curl command"
-ok "curl command"
+  -d fun=test.stream)"
+echo "${CURL_OUTPUT}"
+
+echo -n "${CURL_OUTPUT}" | grep -i true || error "curl command (pass via file)"
+ok "curl command (pass via file)"
 
 # Install salt-pepper
 echo "==> Installing salt-pepper ..."
