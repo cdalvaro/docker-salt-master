@@ -14,8 +14,8 @@ trap cleanup EXIT
 # Run test instance
 echo "==> Starting docker-salt-master (${PLATFORM}) config ..."
 start_container_and_wait \
-  --volume "${SCRIPT_PATH}/roots/":/home/salt/data/srv/:ro \
-  --volume "${SCRIPT_PATH}/keys/":/home/salt/data/keys/ \
+  --volume "${SCRIPT_PATH}/roots":/home/salt/data/srv:ro \
+  --volume "${SCRIPT_PATH}/keys":/home/salt/data/keys \
 || error "container started"
 ok "container started"
 

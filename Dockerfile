@@ -30,9 +30,7 @@ WORKDIR ${SALT_BUILD_DIR}
 # hadolint ignore=DL3008
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
-    sudo ca-certificates openssl apt-transport-https wget locales openssh-client gpg \
-    python3 python3-dev libpython3-dev \
-    python3-pip python3-setuptools python3-wheel \
+    sudo ca-certificates apt-transport-https wget locales openssh-client gpg gpg-agent \
     supervisor logrotate git gettext-base tzdata inotify-tools psmisc \
  && DEBIAN_FRONTEND=noninteractive update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \
     locale-gen en_US.UTF-8 \

@@ -51,11 +51,15 @@ ok "container started"
 
 # Test salt-api authentication
 echo "==> Getting salt-api token ..."
-SALTAPI_TOKEN=$(curl -sSk "${SALTAPI_URL%/}/login" \
+CURL_OUTPUT="$(curl -sSk "${SALTAPI_URL%/}/login" \
   -H "Accept: application/x-yaml" \
   -d username="${SALTAPI_USER}" \
   -d password="${SALTAPI_PASS}" \
-  -d eauth="${SALTAPI_EAUTH}" | grep 'token:' | cut -d' ' -f 4)
+  -d eauth="${SALTAPI_EAUTH}")"
+echo "${CURL_OUTPUT}"
+
+SALTAPI_TOKEN=
+SALTAPI_TOKEN="$(echo -n "${CURL_OUTPUT}" | grep -Ei 'token: ([^\s]+)' | awk '{print $2}')"
 [ -n "${SALTAPI_TOKEN}" ] || error "salt-api token"
 ok "salt-api token"
 
@@ -89,11 +93,15 @@ ok "container started"
 
 # Test salt-api authentication
 echo "==> Getting salt-api token (pass via file) ..."
-SALTAPI_TOKEN=$(curl -sSk "${SALTAPI_URL%/}/login" \
+CURL_OUTPUT="$(curl -sSk "${SALTAPI_URL%/}/login" \
   -H "Accept: application/x-yaml" \
   -d username="${SALTAPI_USER}" \
   -d password="${SALTAPI_PASS}" \
-  -d eauth="${SALTAPI_EAUTH}" | grep 'token:' | cut -d' ' -f 4)
+  -d eauth="${SALTAPI_EAUTH}")"
+echo "${CURL_OUTPUT}"
+
+SALTAPI_TOKEN=
+SALTAPI_TOKEN="$(echo -n "${CURL_OUTPUT}" | grep -Ei 'token: ([^\s]+)' | awk '{print $2}')"
 [ -n "${SALTAPI_TOKEN}" ] || error "salt-api token"
 ok "salt-api token"
 

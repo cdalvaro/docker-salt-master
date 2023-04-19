@@ -64,7 +64,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64,linux/arm64
           cache-from: |
             type=local,src=${{ env.CACHE_PATH }}
             ghcr.io/cdalvaro/docker-salt-master:latest
@@ -88,11 +88,11 @@ jobs:
     needs: build
     strategy:
       matrix:
-        platform: [linux/amd64, linux/arm64, linux/arm/v7]
+        platform: [linux/amd64, linux/arm64]
     env:
       DOCKER_CLI_EXPERIMENTAL: enabled
       PLATFORM: ${{ matrix.platform }}
-      BOOTUP_WAIT_SECONDS: 90
+      BOOTUP_WAIT_SECONDS: 60
 
     steps:
       - name: Checkout repository

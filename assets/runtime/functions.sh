@@ -448,7 +448,7 @@ EOF
 priority=10
 directory=${SALT_HOME}
 environment=HOME=${SALT_HOME}
-command=/usr/local/bin/salt-api
+command=/usr/bin/salt-api
 user=root
 autostart=true
 autorestart=true
