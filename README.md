@@ -5,7 +5,6 @@
 [![Docker Image Size][docker_size_badge]][docker_hub_tags]
 [![Architecture AMD64][arch_amd64_badge]][arch_link]
 [![Architecture ARM64][arch_arm64_badge]][arch_link]
-[![Architecture ARM/v7][arch_arm_badge]][arch_link]
 
 # Dockerized Salt Master v3006.0 _Sulfur_
 
@@ -816,8 +815,6 @@ Many thanks to:
 [slack_community]: https://saltstackcommunity.herokuapp.com
 
 [arch_amd64_badge]: https://img.shields.io/badge/arch-amd64-inactive.svg
-
-[arch_arm_badge]: https://img.shields.io/badge/arch-arm/v7-inactive.svg
 
 [arch_arm64_badge]: https://img.shields.io/badge/arch-arm64-inactive.svg
 

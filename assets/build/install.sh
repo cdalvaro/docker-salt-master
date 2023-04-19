@@ -11,66 +11,35 @@ source "${FUNCTIONS_FILE}"
 
 log_info "Installing required packages and build dependencies ..."
 REQUIRED_PACKAGES=(
-  libssl3 zlib1g libffi7 libpcre3 libgssapi3-heimdal
+  binutils patchelf
 )
 
-BUILD_DEPENDENCIES=(
-  make gcc g++
-)
+BUILD_DEPENDENCIES=()
+
+log_info "Adding salt repository..."
+add_salt_repository
 
 apt-get update
 install_pkgs "${REQUIRED_PACKAGES[@]}" "${BUILD_DEPENDENCIES[@]}"
 
 # Create salt user
+# https://manpages.ubuntu.com/manpages/xenial/en/man8/useradd.8.html
 log_info "Creating ${SALT_USER} user ..."
-useradd -d "${SALT_HOME}" -ms /bin/bash -U -G root,sudo,shadow "${SALT_USER}"
+useradd --home-dir "${SALT_HOME}" --create-home \
+  --shell /bin/bash --user-group "${SALT_USER}" \
+  --groups shadow
 
 # Set PATH
 exec_as_salt cat >> "${SALT_HOME}/.profile" <<EOF
 PATH=/usr/local/sbin:/usr/local/bin:\$PATH
 EOF
 
-# Install python3 packages
-log_info "Installing python3 packages ..."
-install_pkgs --quiet \
-  python3-mako python3-pycryptodome python3-cherrypy3 \
-  python3-git python3-requests python3-redis python3-gnupg \
-  python3-mysqldb python3-dateutil python3-libnacl python3-openssl \
-  python3-pygit2
+# Install salt packages
+log_info "Installing salt packages ..."
+install_pkgs salt-master="${SALT_VERSION}" salt-api="${SALT_VERSION}"
 
-# Downloading bootstrap-salt.sh script
-BOOTSTRAP_VERSION='2023.04.06'
-BOOTSTRAP_URL="https://github.com/saltstack/salt-bootstrap/releases/download/v${BOOTSTRAP_VERSION}/bootstrap-salt.sh"
-BOOTSTRAP_FILE='bootstrap-salt.sh'
-BOOTSTRAP_SHA256='994bf7e8bd92fe6d70d291c7562aff299f5651046b4e76dfa506cee0d9bb0843'
-
-download "${BOOTSTRAP_URL}" "${BOOTSTRAP_FILE}"
-check_sha256 "${BOOTSTRAP_FILE}" "${BOOTSTRAP_SHA256}"
-
-# Bootstrap script options:
-# https://docs.saltproject.io/salt/install-guide/en/latest/topics/bootstrap.html
-## -M: install Salt Master by default
-## -N: Do not install salt-minion
-## -X: Do not start daemons after installation
-## -d: Disables checking if Salt services are enabled to start on system boot
-## -P: Allow pip based installations
-## -p: Extra-package to install
-SALT_BOOTSTRAP_OPTS=( -M -N -X -d -P -p salt-api -p salt-call )
-
-## -I: allow insecure connections while downloading any files
-is_arm32 && SALT_BOOTSTRAP_OPTS+=( -I )
-
-log_info "Installing saltstack ..."
-log_debug "Options: ${SALT_BOOTSTRAP_OPTS[@]}"
-sh "${BOOTSTRAP_FILE}" ${SALT_BOOTSTRAP_OPTS[@]} git "v${SALT_VERSION}"
-chown -R "${SALT_USER}": "${SALT_ROOT_DIR}"
-
-# Patch to remove salt-minion
-SALT_MINION="$(command -v salt-minion)"
-if [[ -n "${SALT_MINION}" ]]; then
-  log_warn "Removing salt-minion ..."
-  rm -f "${SALT_MINION}"
-fi
+# Install python packages
+exec_as_salt salt-pip install pygit2==1.12.0
 
 # Configure ssh
 log_info "Configuring ssh ..."
@@ -81,11 +50,13 @@ sed -i -e "s|^[# ]*StrictHostKeyChecking.*$|    StrictHostKeyChecking no|" /etc/
   echo "#   IdentityFile salt_ssh_key"
 } >> /etc/ssh/ssh_config
 
+SUPERVISOR_CONFIG_FILE=/etc/supervisor/supervisord.conf
+
 # Configure logrotate
 log_info "Configuring logrotate ..."
 
 # move supervisord.log file to ${SALT_LOGS_DIR}/supervisor/
-sed -i "s|^[#]*logfile=.*|logfile=${SALT_LOGS_DIR}/supervisor/supervisord.log ;|" /etc/supervisor/supervisord.conf
+sed -i "s|^[#]*logfile=.*|logfile=${SALT_LOGS_DIR}/supervisor/supervisord.log ;|" "${SUPERVISOR_CONFIG_FILE}"
 
 # fix "unknown group 'syslog'" error preventing logrotate from functioning
 sed -i "s|^su root syslog$|su root root|" /etc/logrotate.conf
@@ -93,13 +64,20 @@ sed -i "s|^su root syslog$|su root root|" /etc/logrotate.conf
 # Configure supervisor
 log_info "Configuring supervisor ..."
 
+# run supervisord as root
+if grep -E "^user=" "${SUPERVISOR_CONFIG_FILE}"; then
+  sed -i "s|^user=.*|user=root|" "${SUPERVISOR_CONFIG_FILE}"
+else
+  sed -i "s|^\[supervisord\]\$|[supervisord]\nuser=root|" "${SUPERVISOR_CONFIG_FILE}"
+fi
+
 # configure supervisord to start salt-master
 cat > /etc/supervisor/conf.d/salt-master.conf <<EOF
 [program:salt-master]
 priority=5
 directory=${SALT_HOME}
 environment=HOME=${SALT_HOME}
-command=/usr/local/bin/salt-master
+command=/usr/bin/salt-master
 user=root
 autostart=true
 autorestart=true
@@ -122,7 +100,7 @@ stderr_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
 EOF
 
 # Purge build dependencies and cleanup apt
-apt-get purge -y --auto-remove "${BUILD_DEPENDENCIES[@]}"
+(( ${#BUILD_DEPENDENCIES[@]} != 0 )) && apt-get purge -y --auto-remove "${BUILD_DEPENDENCIES[@]}"
 apt-get clean --yes
 rm -rf /var/lib/apt/lists/*
 

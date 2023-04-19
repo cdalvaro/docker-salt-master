@@ -17,7 +17,7 @@ on:
 
 env:
   IMAGE_NAME: cdalvaro/docker-salt-master
-  PLATFORMS: linux/amd64,linux/arm64,linux/arm/v7
+  PLATFORMS: linux/amd64,linux/arm64
   CACHE_PATH: ${{ github.workspace }}/.buildx-cache
   EXTRA_REGISTRIES: ghcr.io quay.io
 

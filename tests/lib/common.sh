@@ -171,8 +171,8 @@ EOF
   --env PUID="$(id -u)" --env PGID="$(id -g)" \
   --env SALT_LOG_LEVEL='info' \
   --platform "${PLATFORM}" ${DOCKER_ARGS[@]} \
-  --volume "${LOGS_DIR}/":/home/salt/data/logs/ \
-  --volume "${SCRIPT_PATH}/config/":/home/salt/data/config/:ro \
+  --volume "${LOGS_DIR}":/home/salt/data/logs \
+  --volume "${SCRIPT_PATH}/config":/home/salt/data/config:ro \
   "${IMAGE_NAME}" || return 1
 
   echo "==> Waiting ${BOOTUP_WAIT_SECONDS} seconds for the container to be ready ..."

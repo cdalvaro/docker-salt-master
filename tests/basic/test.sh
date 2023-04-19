@@ -18,10 +18,13 @@ ok "container started"
 
 # Check salt version
 echo "==> Checking salt-master version ..."
-docker-exec salt-master --versions
-EXPECTED_VERSION="$(cat VERSION) (Sulfur)"
-CURRENT_VERSION="$(docker-exec salt-master --version)"
-check_equal "${CURRENT_VERSION}" "salt-master ${EXPECTED_VERSION%%-*}" "salt-master --version"
+output=$(docker-exec salt-master --versions)
+echo "${output}"
+
+# shellcheck disable=SC2016
+CURRENT_VERSION="$(echo -n "${output}" | grep -Ei 'salt: ([^\s]+)' | awk '{print $2}')"
+EXPECTED_VERSION="$(cat VERSION)"
+check_equal "${CURRENT_VERSION%%-*}" "${EXPECTED_VERSION%%-*}" "salt-master version"
 
 # Test image calling healthcheck
 echo "==> Executing healthcheck ..."
