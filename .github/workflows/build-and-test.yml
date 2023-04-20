@@ -92,7 +92,7 @@ jobs:
     env:
       DOCKER_CLI_EXPERIMENTAL: enabled
       PLATFORM: ${{ matrix.platform }}
-      BOOTUP_WAIT_SECONDS: 60
+      BOOTUP_WAIT_SECONDS: 90
 
     steps:
       - name: Checkout repository
