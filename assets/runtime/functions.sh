@@ -449,7 +449,7 @@ priority=10
 directory=${SALT_HOME}
 environment=HOME=${SALT_HOME}
 command=/usr/bin/salt-api
-user=root
+user=${SALT_USER}
 autostart=true
 autorestart=true
 stopsignal=QUIT

@@ -78,7 +78,7 @@ priority=5
 directory=${SALT_HOME}
 environment=HOME=${SALT_HOME}
 command=/usr/bin/salt-master
-user=root
+user=${SALT_USER}
 autostart=true
 autorestart=true
 stopsignal=QUIT
