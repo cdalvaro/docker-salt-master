@@ -10,3 +10,7 @@ tests/
 
 # Ignoring social media
 social/
+
+# Ignore IDEs
+.idea/
+.vscode/
