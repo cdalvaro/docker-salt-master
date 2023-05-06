@@ -4,7 +4,7 @@ ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
-ENV SALT_VERSION="3006.0"
+ENV SALT_VERSION="3006.1"
 ENV IMAGE_VERSION="${SALT_VERSION}"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
