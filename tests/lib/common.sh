@@ -47,14 +47,15 @@ function cleanup()
   echo "🧹 Running cleanup tasks ..."
 
   local salt_master_container="$(docker container ls --filter NAME="${CONTAINER_NAME}" --quiet)"
-  if [ -n "${salt_master_container}" ]; then
+  if [[ -n "${salt_master_container}" ]]; then
     echo "  - Removing ${CONTAINER_NAME} docker container ..."
     docker container rm --force --volumes "${salt_master_container}" > /dev/null
   fi
 
-  if [ -n "$(pgrep -f salt-minion)" ]; then
+  local SALT_MINION_PIDS=$(pgrep -f salt-minion)
+  if [[ -n "${SALT_MINION_PIDS}" ]]; then
     echo "  - Stopping salt-minion ..."
-    sudo killall salt-minion
+    sudo kill "${SALT_MINION_PIDS}"
     sudo rm -f /var/log/salt/minion
   fi
 
@@ -113,7 +114,7 @@ function salt()
 function container_log()
 {
   local CONTAINER_ID="$(docker container ls --all --filter NAME="${CONTAINER_NAME}" --quiet)"
-  [ -n "${CONTAINER_ID}" ] || return 0
+  [[ -n "${CONTAINER_ID}" ]] || return 0
 
   echo "📝 container log (${CONTAINER_NAME})"
   docker logs -t "${CONTAINER_ID}"
@@ -128,7 +129,7 @@ function master_log()
   local LOGS_DIR="${SCRIPT_PATH}/logs"
   local SALT_MASTER_LOG="${LOGS_DIR}/salt/master"
 
-  [ -f "${SALT_MASTER_LOG}" ] || return 0
+  [[ -f "${SALT_MASTER_LOG}" ]] || return 0
   echo "📝 salt-master log (${SALT_MASTER_LOG})"
   sudo cat "${SALT_MASTER_LOG}"
 }
@@ -141,7 +142,7 @@ function minion_log()
 {
   local SALT_MINION_LOG='/var/log/salt/minion'
 
-  [ -f "${SALT_MINION_LOG}" ] || return 0
+  [[ -f "${SALT_MINION_LOG}" ]] || return 0
   echo "📝 salt-minion log (${SALT_MINION_LOG})"
   sudo cat "${SALT_MINION_LOG}"
 }
