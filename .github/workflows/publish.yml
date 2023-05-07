@@ -31,6 +31,9 @@ jobs:
       created_on: ${{ steps.created_on.outputs.created_on }}
       salt_version: ${{ steps.salt_version.outputs.salt_version }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
       - name: Image Tags
         id: tags
         run: |
