@@ -126,7 +126,7 @@ function configure_timezone()
   log_info "Configuring container timezone ..."
 
   # Perform sanity check of provided timezone value
-  if [ -e "/usr/share/zoneinfo/${TIMEZONE}" ]; then
+  if [[ -e "/usr/share/zoneinfo/${TIMEZONE}" ]]; then
     log_info "Setting TimeZone -> ${TIMEZONE} ..."
 
     # Set localtime
@@ -165,16 +165,16 @@ function _setup_master_keys()
 {
   log_info " ==> Setting up master keys ..."
 
-  if [ -n "${SALT_MASTER_KEY_FILE}" ]; then
+  if [[ -n "${SALT_MASTER_KEY_FILE}" ]]; then
     if [[ ! -f "${SALT_MASTER_KEY_FILE}.pem" || ! -f "${SALT_MASTER_KEY_FILE}.pub" ]]; then
-      [ -f "${SALT_MASTER_KEY_FILE}.pem" ] || log_error "'${SALT_MASTER_KEY_FILE}.pem' doesn't exist"
-      [ -f "${SALT_MASTER_KEY_FILE}.pub" ] || log_error "'${SALT_MASTER_KEY_FILE}.pub' doesn't exist"
+      [[ -f "${SALT_MASTER_KEY_FILE}.pem" ]] || log_error "'${SALT_MASTER_KEY_FILE}.pem' doesn't exist"
+      [[ -f "${SALT_MASTER_KEY_FILE}.pub" ]] || log_error "'${SALT_MASTER_KEY_FILE}.pub' doesn't exist"
       return 1
     fi
   fi
 
-  if [ ! -f "${SALT_KEYS_DIR}/master.pem" ]; then
-    if [ -n "${SALT_MASTER_KEY_FILE}" ]; then
+  if [[ ! -f "${SALT_KEYS_DIR}/master.pem" ]]; then
+    if [[ -n "${SALT_MASTER_KEY_FILE}" ]]; then
       # Copy master keys provided via external files
       log_info "Linking '${SALT_MASTER_KEY_FILE}' keys to '${SALT_KEYS_DIR}/master.{pem,pub}' ..."
       ln -sfn "${SALT_MASTER_KEY_FILE}.pem" "${SALT_KEYS_DIR}/master.pem"
@@ -184,7 +184,7 @@ function _setup_master_keys()
       salt-key --gen-keys master --gen-keys-dir "${SALT_KEYS_DIR}"
     fi
   else
-    if [ -n "${SALT_MASTER_KEY_FILE}" ]; then
+    if [[ -n "${SALT_MASTER_KEY_FILE}" ]]; then
       # If a master key is provided via SALT_MASTER_KEY_FILE, check it is the same as the one in the keys directory
       if ! cmp -s "${SALT_MASTER_KEY_FILE}.pem" "${SALT_KEYS_DIR}/master.pem" ||
          ! cmp -s "${SALT_MASTER_KEY_FILE}.pub" "${SALT_KEYS_DIR}/master.pub"; then
@@ -203,16 +203,16 @@ function _setup_master_sign_keys()
 {
   log_info " ==> Setting up master_sign keys ..."
 
-  if [ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]; then
+  if [[ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]]; then
     if [[ ! -f "${SALT_MASTER_SIGN_KEY_FILE}.pem" || ! -f "${SALT_MASTER_SIGN_KEY_FILE}.pub" ]]; then
-      [ -f "${SALT_MASTER_SIGN_KEY_FILE}.pem" ] || log_error "'${SALT_MASTER_SIGN_KEY_FILE}.pem' doesn't exist"
-      [ -f "${SALT_MASTER_SIGN_KEY_FILE}.pub" ] || log_error "'${SALT_MASTER_SIGN_KEY_FILE}.pub' doesn't exist"
+      [[ -f "${SALT_MASTER_SIGN_KEY_FILE}.pem" ]] || log_error "'${SALT_MASTER_SIGN_KEY_FILE}.pem' doesn't exist"
+      [[ -f "${SALT_MASTER_SIGN_KEY_FILE}.pub" ]] || log_error "'${SALT_MASTER_SIGN_KEY_FILE}.pub' doesn't exist"
       return 1
     fi
   fi
 
-  if [ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ]; then
-    if [ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]; then
+  if [[ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ]]; then
+    if [[ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]]; then
       # Copy master_sign keys provided via external files
       log_info "Linking '${SALT_MASTER_SIGN_KEY_FILE}' keys to '${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.{pem,pub}' ..."
       ln -sfn "${SALT_MASTER_SIGN_KEY_FILE}.pem" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem"
@@ -222,7 +222,7 @@ function _setup_master_sign_keys()
       salt-key --gen-signature --auto-create --pub "${SALT_KEYS_DIR}/master.pub" --signature-path "${SALT_KEYS_DIR}"
     fi
   else
-    if [ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]; then
+    if [[ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]]; then
       # If a master_sign key-pair is provided via SALT_MASTER_SIGN_KEY_FILE, check it is the same as the one in the keys directory
       if ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pem" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ||
          ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pub" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub"; then
@@ -232,13 +232,13 @@ function _setup_master_sign_keys()
     fi
   fi
 
-  if [ -n "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" ]; then
-    if [ ! -f "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" ]; then
+  if [[ -n "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" ]]; then
+    if [[ ! -f "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" ]]; then
       log_error "SALT_MASTER_PUBKEY_SIGNATURE_FILE is set to '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' but it doesn't exist."
       return 1
     fi
 
-    if [ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}" ]; then
+    if [[ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}" ]]; then
       log_info "Linking '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' to '${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}' ..."
       ln -sfn "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}"
     else
@@ -263,7 +263,7 @@ function _check_and_link_gpgkey() {
   local TARGET_GPGKEY="$2"
   local SOURCE_GPGKEY="${!GPGKEY_VARIABLE_NAME}"
 
-  [ -n "${SOURCE_GPGKEY}" ] || return 0
+  [[ -n "${SOURCE_GPGKEY}" ]] || return 0
 
   if [[ ! -f "${SOURCE_GPGKEY}" ]]; then
     log_warn "'${GPGKEY_VARIABLE_NAME}' (=${SOURCE_GPGKEY}) is set, but file does not exist."
@@ -303,8 +303,8 @@ function _setup_gpgkeys()
   if [[ ! -f "${private_key}" || ! -f "${public_key}" ]]; then
     log_error "GPG keys are not valid. Please, check the documentation for more information:"
     log_error "  - https://github.com/cdalvaro/docker-salt-master#gpg-keys-for-renderers"
-    [ -f "${private_key}" ] || log_error "GPG private key: '${private_key##*/}' doesn't exist"
-    [ -f "${public_key}" ] || log_error "GPG public key: '${public_key##*/}' doesn't exist"
+    [[ -f "${private_key}" ]] || log_error "GPG private key: '${private_key##*/}' doesn't exist"
+    [[ -f "${public_key}" ]] || log_error "GPG public key: '${public_key##*/}' doesn't exist"
     return 1
   fi
 
@@ -333,7 +333,7 @@ function setup_salt_keys()
 {
   log_info "Setting up salt keys ..."
   _setup_master_keys
-  [ "${SALT_MASTER_SIGN_PUBKEY}" == True ] && _setup_master_sign_keys
+  [[ "${SALT_MASTER_SIGN_PUBKEY}" == True ]] && _setup_master_sign_keys
   _setup_gpgkeys
 
   log_info "Setting up salt keys permissions ..."
@@ -610,7 +610,7 @@ EOF
 function configure_config_reloader()
 {
   rm -f /etc/supervisor/conf.d/config-reloader.conf
-  [ "${SALT_RESTART_MASTER_ON_CONFIG_CHANGE,,}" == true ] || return 0
+  [[ "${SALT_RESTART_MASTER_ON_CONFIG_CHANGE,,}" == true ]] || return 0
 
   log_info "Configuring config reloader ..."
 
