@@ -8,6 +8,8 @@ for the list of changes in SaltStack.
 
 - Stream `salt-master` output to stdout and stderr.
 - Do not capture `salt-api` output with supervisord.
+- Add `.log` extension to master and api log files.
+- Change stop signal for master and api processes to `TERM`.
 
 **3006.1**
 
