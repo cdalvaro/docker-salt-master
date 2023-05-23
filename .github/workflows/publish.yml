@@ -29,7 +29,6 @@ jobs:
       tags: ${{ steps.tags.outputs.tags }}
       vcs_ref: ${{ steps.vcs_ref.outputs.vcs_ref }}
       created_on: ${{ steps.created_on.outputs.created_on }}
-      salt_version: ${{ steps.salt_version.outputs.salt_version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -65,13 +64,6 @@ jobs:
           CREATED_ON="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           echo "Created on: ${CREATED_ON}"
           echo "created_on=${CREATED_ON}" >> $GITHUB_OUTPUT
-
-      - name: Salt Version
-        id: salt_version
-        run: |
-          SALT_VERSION=$(cat VERSION)
-          echo "Salt Version: ${SALT_VERSION}"
-          echo "salt_version=${SALT_VERSION}"
 
       - name: Dump environment
         if: contains(toJSON(github.event.commits.*.message), 'ci(debug)') == true
@@ -147,7 +139,7 @@ jobs:
             VCS_REF=${{ needs.metadata.outputs.vcs_ref }}
             BUILD_DATE=${{ needs.metadata.outputs.created_on }}
           outputs: |
-            type=image,annotation-index.org.opencontainers.image.description=salt-master ${{ needs.metadata.outputs.salt_version }} containerized
+            type=image,annotation-index.org.opencontainers.image.description=https://github.com/cdalvaro/docker-salt-master
           cache-from: |
             type=local,src=${{ env.CACHE_PATH }}
             ghcr.io/cdalvaro/docker-salt-master:latest
