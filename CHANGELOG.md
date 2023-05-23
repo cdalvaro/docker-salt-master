@@ -4,6 +4,11 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3006.1 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3006.1.html)
 for the list of changes in SaltStack.
 
+**3006.1_1**
+
+- Stream `salt-master` output to stdout and stderr.
+- Do not capture `salt-api` output with supervisord.
+
 **3006.1**
 
 - Upgrade `salt-master` to `3006.1` *Sulfur*.
