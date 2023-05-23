@@ -37,7 +37,7 @@ jobs:
         id: tags
         run: |
           IMAGE_TAG="${{ github.event.release.tag_name }}"
-          [ -z "${IMAGE_TAG}" ] && IMAGE_TAG='latest'
+          [[ -z "${IMAGE_TAG}" ]] && IMAGE_TAG='latest'
 
           DOCKER_IMAGE="${IMAGE_NAME}:${IMAGE_TAG}"
           TAGS="${DOCKER_IMAGE}"
