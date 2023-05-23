@@ -127,7 +127,7 @@ function container_log()
 function master_log()
 {
   local LOGS_DIR="${SCRIPT_PATH}/logs"
-  local SALT_MASTER_LOG="${LOGS_DIR}/salt/master"
+  local SALT_MASTER_LOG="${LOGS_DIR}/salt/master.log"
 
   [[ -f "${SALT_MASTER_LOG}" ]] || return 0
   echo "📝 salt-master log (${SALT_MASTER_LOG})"

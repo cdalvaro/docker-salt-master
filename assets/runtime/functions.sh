@@ -434,7 +434,7 @@ function configure_salt_api()
 #####        salt-api settings       #####
 ##########################################
 # Basic configuration for salt-api
-api_logfile: ${SALT_LOGS_DIR}/salt/api
+api_logfile: ${SALT_LOGS_DIR}/salt/api.log
 
 rest_cherrypy:
   port: 8000
@@ -574,7 +574,7 @@ EOF
 
   # configure salt master, minion and key log rotation
   cat > /etc/logrotate.d/salt <<EOF
-${SALT_LOGS_DIR}/salt/master {
+${SALT_LOGS_DIR}/salt/master.log {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
@@ -582,15 +582,7 @@ ${SALT_LOGS_DIR}/salt/master {
   notifempty
 }
 
-${SALT_LOGS_DIR}/salt/minion {
-  ${SALT_LOG_ROTATE_FREQUENCY}
-  missingok
-  rotate ${SALT_LOG_ROTATE_RETENTION}
-  compress
-  notifempty
-}
-
-${SALT_LOGS_DIR}/salt/key {
+${SALT_LOGS_DIR}/salt/key.log {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
@@ -603,7 +595,7 @@ EOF
     # configure salt-api log rotation
     cat >> /etc/logrotate.d/salt <<EOF
 
-${SALT_LOGS_DIR}/salt/api {
+${SALT_LOGS_DIR}/salt/api.log {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
