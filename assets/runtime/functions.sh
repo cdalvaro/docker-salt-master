@@ -453,8 +453,10 @@ user=${SALT_USER}
 autostart=true
 autorestart=true
 stopsignal=QUIT
-stdout_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
-stderr_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
+stdout_logfile=/dev/null
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/null
+stderr_logfile_maxbytes=0
 EOF
 
 }
