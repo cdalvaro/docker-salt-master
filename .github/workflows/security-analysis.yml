@@ -39,7 +39,7 @@ jobs:
 
       - name: Build docker-salt-master image
         if: github.event_name != 'schedule'
-        uses: docker/build-push-action@v4.0.0
+        uses: docker/build-push-action@v4.1.1
         with:
           context: .
           file: ./Dockerfile
