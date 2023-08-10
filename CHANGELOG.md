@@ -7,6 +7,7 @@ for the list of changes in SaltStack.
 **3006.2**
 
 - Upgrade `salt-master` to `3006.2` *Sulfur*.
+- Change Docker base image to `ubuntu:jammy-20230624`.
 
 **3006.1_1**
 
