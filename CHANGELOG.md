@@ -1,8 +1,12 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3006.1 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3006.1.html)
+Please refer to the [Salt 3006.2 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3006.2.html)
 for the list of changes in SaltStack.
+
+**3006.2**
+
+- Upgrade `salt-master` to `3006.2` *Sulfur*.
 
 **3006.1_1**
 

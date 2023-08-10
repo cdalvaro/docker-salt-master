@@ -12,6 +12,7 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
+
 1. Minimum salt configuration file
 2. Minimum salt state to reproduce the error
 3. Additional required files to reproduce the error
@@ -25,9 +26,9 @@ The full log with the outputted error.
 
 **Version report (please complete the following information):**
 
-  - Host OS: [e.g. `uname -a`]
-  - Docker: [e.g. `docker --version`]
-  - Image tag: [e.g. `3006.1_1`]
+- Host OS: [e.g. `uname -a`]
+- Docker: [e.g. `docker --version`]
+- Image tag: [e.g. `3006.2`]
 
 **Additional context**
 Add any other context about the problem here.

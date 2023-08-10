@@ -18,7 +18,7 @@ build:
 
 release: build
 	@docker tag cdalvaro/docker-salt-master:latest \
-		cdalvaro/docker-salt-master:$(shell cat VERSION)_1
+		cdalvaro/docker-salt-master:$(shell cat VERSION)
 
 quickstart:
 	@echo "Starting docker-salt-master container..."

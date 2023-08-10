@@ -6,7 +6,7 @@
 [![Architecture AMD64][arch_amd64_badge]][arch_link]
 [![Architecture ARM64][arch_arm64_badge]][arch_link]
 
-# Dockerized Salt Master v3006.1 _Sulfur_
+# Dockerized Salt Master v3006.2 _Sulfur_
 
 Dockerfile to build a [Salt Project](https://saltproject.io) Master image for the Docker opensource container platform.
 
@@ -23,7 +23,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3006.1
+docker pull ghcr.io/cdalvaro/docker-salt-master:3006.2
 ```
 
 You can also pull the latest tag which is built from the repository `HEAD`
@@ -786,9 +786,9 @@ Many thanks to:
 - https://docs.saltproject.io/en/getstarted/
 - https://docs.saltproject.io/en/latest/contents.html
 
-[saltproject_badge]: https://img.shields.io/badge/Salt-v3006.1-lightgrey.svg?logo=Saltstack
+[saltproject_badge]: https://img.shields.io/badge/Salt-v3006.2-lightgrey.svg?logo=Saltstack
 
-[saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3006.1.html "Salt Project Release Notes"
+[saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3006.2.html "Salt Project Release Notes"
 
 [ubuntu_badge]: https://img.shields.io/badge/ubuntu-jammy--20230425-E95420.svg?logo=Ubuntu
 
