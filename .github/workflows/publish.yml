@@ -31,7 +31,7 @@ jobs:
       created_on: ${{ steps.created_on.outputs.created_on }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Image Tags
         id: tags
@@ -81,7 +81,7 @@ jobs:
     if: contains(toJSON(github.event.commits.*.message), 'ci(debug)') == false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
