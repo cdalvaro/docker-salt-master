@@ -39,7 +39,8 @@ log_info "Installing salt packages ..."
 install_pkgs salt-master="${SALT_VERSION}" salt-api="${SALT_VERSION}"
 
 # Install python packages
-exec_as_salt salt-pip install pygit2==1.12.0
+log_info "Installing python packages ..."
+salt-pip install pygit2==1.12.2
 
 # Configure ssh
 log_info "Configuring ssh ..."
