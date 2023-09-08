@@ -556,8 +556,11 @@ function initialize_datadir()
 function configure_logrotate()
 {
   log_info "Configuring logrotate ..."
+  local LOGROTATE_CONFIG_DIR='/etc/logrotate.d/salt'
+  local LOGROTATE_CONFIG_FILE="${LOGROTATE_CONFIG_DIR}/salt-common.logrotate"
 
-  rm -f /etc/logrotate.d/salt-common
+  rm -rf "${LOGROTATE_CONFIG_DIR}"
+  mkdir -p "${LOGROTATE_CONFIG_DIR}"
 
   # configure supervisord log rotation
   cat > /etc/logrotate.d/supervisord <<EOF
@@ -573,13 +576,14 @@ ${SALT_LOGS_DIR}/supervisor/*.log {
 EOF
 
   # configure salt master, minion and key log rotation
-  cat > /etc/logrotate.d/salt <<EOF
+  cat > "${LOGROTATE_CONFIG_FILE}" <<EOF
 ${SALT_LOGS_DIR}/salt/master.log {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
   compress
   notifempty
+  create 0640 ${SALT_USER} ${SALT_USER}
 }
 
 ${SALT_LOGS_DIR}/salt/key.log {
@@ -588,20 +592,23 @@ ${SALT_LOGS_DIR}/salt/key.log {
   rotate ${SALT_LOG_ROTATE_RETENTION}
   compress
   notifempty
+  create 0640 ${SALT_USER} ${SALT_USER}
 }
+
 EOF
 
   if [[ "${SALT_API_SERVICE_ENABLED,,}" == true ]]; then
     # configure salt-api log rotation
-    cat >> /etc/logrotate.d/salt <<EOF
-
+    cat >> "${LOGROTATE_CONFIG_FILE}" <<EOF
 ${SALT_LOGS_DIR}/salt/api.log {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
   compress
   notifempty
+  create 0640 ${SALT_USER} ${SALT_USER}
 }
+
 EOF
   fi
 
