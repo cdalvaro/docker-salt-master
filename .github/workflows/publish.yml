@@ -110,20 +110,20 @@ jobs:
           echo "Cache contents available at: ${CACHE_PATH}"
 
       - name: Login to Docker Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.CR_PAT }}
 
       - name: Login to Quay.io Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: quay.io
           username: ${{ secrets.QUAYIO_USERNAME }}
