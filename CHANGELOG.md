@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3006.3 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3006.3.html)
 for the list of changes in SaltStack.
 
+**3006.3_1**
+
+- Fix salt home directory permissions. Issue #211
+
 **3006.3**
 
 - Upgrade `salt-master` to `3006.3` *Sulfur*.

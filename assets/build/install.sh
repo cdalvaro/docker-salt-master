@@ -108,3 +108,7 @@ apt-get clean --yes
 rm -rf /var/lib/apt/lists/*
 
 export -n DEBIAN_FRONTEND
+
+# Set home directory permissions
+log_info "Setting ${SALT_USER} home directory permissions ..."
+chown -R "${SALT_USER}:${SALT_USER}" "${SALT_HOME}"

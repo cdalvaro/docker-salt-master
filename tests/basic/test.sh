@@ -46,3 +46,8 @@ ok "salt-minion started"
 
 salt "${TEST_MINION_ID}" test.ping || error "${TEST_MINION_ID} ping"
 ok "${TEST_MINION_ID} ping"
+
+# Test salt home permissions
+# shellcheck disable=SC2016
+docker-exec bash -c 'test $(stat -c "%U:%G" "${SALT_HOME}") = "${SALT_USER}:${SALT_USER}"' || error "salt home permissions"
+ok "salt home permissions"
