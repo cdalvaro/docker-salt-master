@@ -753,7 +753,7 @@ docker exec -it salt_master entrypoint.sh app:restart [salt-service]
 
 Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVICE_ENABLED` is set to `True`).
 
-## 🔨 Development
+## 🔨 Contributing
 
 Everyone is wellcome to contribute to this project, and I really appreciate your support. So don't be shy!
 
