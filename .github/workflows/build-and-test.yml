@@ -60,7 +60,7 @@ jobs:
           echo "Cache contents available at: ${CACHE_PATH}"
 
       - name: Build docker-salt-master image
-        uses: docker/build-push-action@v5.0.0
+        uses: docker/build-push-action@v5.1.0
         with:
           context: .
           file: ./Dockerfile
