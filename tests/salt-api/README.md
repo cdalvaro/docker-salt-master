@@ -2,6 +2,6 @@
 
 Checks:
 
-  - `salt-api` provides a token via `curl`.
-  - executes `salt-api` command via `curl`.
-  - installs and tries `salt-pepper`.
+- `salt-api` provides a token via `curl`.
+- Executes `salt-api` command via `curl`.
+- Installs and tries `salt-pepper`.

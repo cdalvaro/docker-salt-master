@@ -2,4 +2,4 @@
 
 Checks:
 
-  - `salt-master` is reloaded after config changes
+- `salt-master` is reloaded after config changes.

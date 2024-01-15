@@ -2,5 +2,5 @@
 
 Checks:
 
-  - the image has the right `salt-master` version installed.
-  - the `healthcheck` is working.
+- The image has the right `salt-master` version installed.
+- The `healthcheck` is working.
