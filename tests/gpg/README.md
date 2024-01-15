@@ -2,4 +2,4 @@
 
 Checks:
 
-  - get gpg encrypted pillar.
+- Get gpg encrypted pillar.
