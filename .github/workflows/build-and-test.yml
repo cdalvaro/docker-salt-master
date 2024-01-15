@@ -145,6 +145,10 @@ jobs:
         if: always()
         run: tests/basic/test.sh
 
+      - name: Execute healthcheck tests
+        if: always()
+        run: tests/healthcheck/test.sh
+
       - name: Execute salt-api tests
         if: always()
         run: tests/salt-api/test.sh

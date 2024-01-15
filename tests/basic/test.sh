@@ -26,11 +26,6 @@ CURRENT_VERSION="$(echo -n "${output}" | grep -Ei 'salt: ([^\s]+)' | awk '{print
 EXPECTED_VERSION="$(cat VERSION)"
 check_equal "${CURRENT_VERSION%%-*}" "${EXPECTED_VERSION%%-*}" "salt-master version"
 
-# Test image calling healthcheck
-echo "==> Executing healthcheck ..."
-docker-exec /usr/local/sbin/healthcheck | grep -i true || error "healthcheck"
-ok "healthcheck"
-
 # Check salt-minion is not installed
 # shellcheck disable=SC2016
 docker-exec bash -c 'test -z "$(command -v salt-minion)"' || error "salt-minion is installed inside the container"
