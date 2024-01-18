@@ -30,7 +30,7 @@ jobs:
 
       - name: Cache Docker layers
         if: github.event_name != 'schedule'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.CACHE_PATH }}
           key: ${{ runner.os }}-buildx-${{ github.sha }}

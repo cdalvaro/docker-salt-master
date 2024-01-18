@@ -91,7 +91,7 @@ jobs:
 
       - name: Cache Docker layers
         id: cache-docker-layers
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.CACHE_PATH }}
           key: ${{ runner.os }}-buildx-${{ github.sha }}
