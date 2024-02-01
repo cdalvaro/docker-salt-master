@@ -27,6 +27,14 @@ start_container_and_wait \
 || error "container started"
 ok "container started"
 
+# Check pygit2 is installed
+output=$(docker-exec salt-master --versions)
+
+# shellcheck disable=SC2016
+CURRENT_VERSION="$(echo -n "${output}" | grep -Ei 'pygit2: ([^\s]+)' | awk '{print $2}')"
+EXPECTED_VERSION="1.14.0"
+check_equal "${CURRENT_VERSION%%-*}" "${EXPECTED_VERSION%%-*}" "pygit2 version"
+
 # Update repositories
 echo "==> Updating gitfs repositories ..."
 salt-run cache.clear_git_lock gitfs type=update
@@ -55,5 +63,5 @@ ok "Check gitfs pillar 'docker-salt-master-test:email'"
 # Test gitfs deploy
 echo "==> Checking gitfs top.sls (state.apply) ..."
 salt "${TEST_MINION_ID}" state.apply
-[ -f /tmp/my_file.txt ] || error "Check gitfs top.sls applied"
+[[ -f /tmp/my_file.txt ]] || error "Check gitfs top.sls applied"
 ok "Check gitfs top.sls applied"
