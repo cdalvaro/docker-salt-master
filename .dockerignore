@@ -5,8 +5,9 @@
 # Ignoring tests files
 tests/
 
-# Ignoring markdown files
+# Ignoring markdown files and documentation
 *.md
+docs/
 
 # Ignoring social media
 social/

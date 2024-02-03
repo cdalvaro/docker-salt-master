@@ -11,6 +11,7 @@ on:
       - '.gitignore'
       - 'docker-compose.yml'
       - 'Makefile'
+      - 'docs/'
 
 env:
   IMAGE_NAME: localhost:5000/cdalvaro/docker-salt-master:${{ github.sha }}
