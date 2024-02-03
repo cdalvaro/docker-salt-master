@@ -706,7 +706,7 @@ installation.
 | [`SALT_MASTER_USE_PUBKEY_SIGNATURE`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-use-pubkey-signature) | Instead of computing the signature for each auth-reply, use a pre-calculated signature. This option requires `SALT_MASTER_SIGN_PUBKEY` set to `True`. Possible values: `True` or `False`. Default: `True`.                                                  |
 | [`SALT_MASTER_SIGN_KEY_NAME`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-sign-key-name)               | The customizable name of the signing-key-pair without suffix. Default: `master_sign`.                                                                                                                                                                       |
 | `SALT_MASTER_SIGN_KEY_FILE`                                                                                                           | The path to the signing-key-pair {pem,pub} without suffixes. The pair will be copied into the pki directory if they don't exists previously. Useful to load the password from secrets. _Unset_ by default.                                                  |
-| [`SALT_MASTER_PUBKEY_SIGNATURE`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-pubkey-signature)         | The name of the file in the master's `pki` directory that holds the pre-calculated signature of the master's public-key. Default: `master_pubkey_signature`.                                                                                                  |
+| [`SALT_MASTER_PUBKEY_SIGNATURE`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-pubkey-signature)         | The name of the file in the master's `pki` directory that holds the pre-calculated signature of the master's public-key. Default: `master_pubkey_signature`.                                                                                                |
 | `SALT_MASTER_PUBKEY_SIGNATURE_FILE`                                                                                                   | The path of the salt-master public key file with the pre-calculated signature. It will be copied inside the `pki` directory if a file with name `SALT_MASTER_PUBKEY_SIGNATURE` doesn't exist. Useful to load the password from secrets. _Unset_ by default. |
 | `SALT_MASTER_ROOT_USER`                                                                                                               | Forces `salt-master` to be run as `root` instead of `salt`. Default: `False`.                                                                                                                                                                               |
 | `SALT_GPG_PRIVATE_KEY_FILE`                                                                                                           | The path to the GPG private key for GPG renderers. Useful to load the key from secrets. _Unset_ by default.                                                                                                                                                 |
@@ -791,8 +791,8 @@ Many thanks to:
 - [The Stargazers](https://github.com/cdalvaro/docker-salt-master/stargazers) for showing their support
 
 <div style="display: flex; align-items: center; justify-content: space-around;">
-  <img src="social/SaltProject_verticallogo_teal.png" alt="SaltProject" height="128px">
-  <img src="social/jb_beam.svg" alt="JetBrains Beam" height="128px">
+  <img src="/social/SaltProject_verticallogo_teal.png" alt="SaltProject" height="128px">
+  <img src="/social/jb_beam.svg" alt="JetBrains Beam" height="128px">
 </div>
 
 ## 📖 References

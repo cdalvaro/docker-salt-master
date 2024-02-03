@@ -726,8 +726,8 @@ Muchas gracias:
 - A [los Stargazers](https://github.com/cdalvaro/docker-salt-master/stargazers) por mostrar vuestro apoyo.
 
 <div style="display: flex; align-items: center; justify-content: space-around;">
-  <img src="social/SaltProject_verticallogo_teal.png" alt="SaltProject" height="128px">
-  <img src="social/jb_beam.svg" alt="JetBrains Beam" height="128px">
+  <img src="/social/SaltProject_verticallogo_teal.png" alt="SaltProject" height="128px">
+  <img src="/social/jb_beam.svg" alt="JetBrains Beam" height="128px">
 </div>
 
 ## 📖 Referencias
