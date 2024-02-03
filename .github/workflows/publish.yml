@@ -11,6 +11,7 @@ on:
       - '.gitignore'
       - 'docker-compose.yml'
       - 'Makefile'
+      - 'docs/'
   release:
     types:
       - published
