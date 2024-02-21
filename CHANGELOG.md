@@ -8,6 +8,7 @@ for the list of changes in SaltStack.
 
 - Upgrade `salt-master` to `3006.7` *Sulfur*.
 - Change Docker base image to `ubuntu:jammy-20240212`.
+- Update `pygit2` to version `1.14.1`.
 
 **3006.6**
 
