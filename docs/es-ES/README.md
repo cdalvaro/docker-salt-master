@@ -1,14 +1,12 @@
-# Salt Master v3006.6 _Sulfur_ Contenerizado
+# Salt Master v3006.7 _Sulfur_ Contenerizado
+
+![Banner](/social/docker-salt-master-social.jpg)
 
 [![Salt Project][saltproject_badge]][saltproject_release_notes]
 [![Ubuntu Image][ubuntu_badge]][ubuntu_hub_docker]
-[![Publish Workflow][github_publish_badge]][github_publish_workflow]
-
 [![Docker Image Size][docker_size_badge]][docker_hub_tags]
 [![Architecture AMD64][arch_amd64_badge]][arch_link]
 [![Architecture ARM64][arch_arm64_badge]][arch_link]
-
-![Banner](/social/docker-salt-master-social.jpg)
 
 Otros idiomas: [🇺🇸 English](/docs/en-US/README.md)
 
@@ -27,7 +25,7 @@ Para otros métodos de instalación de `salt-master`, por favor consulta la [gu�
 Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) y es el método recomendado para la instalación.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3006.6
+docker pull ghcr.io/cdalvaro/docker-salt-master:3006.7
 ```
 
 También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
@@ -739,12 +737,10 @@ Muchas gracias:
 - https://docs.saltproject.io/en/getstarted/
 - https://docs.saltproject.io/en/latest/contents.html
 
-[saltproject_badge]: https://img.shields.io/badge/Salt-v3006.6-lightgrey.svg?logo=Saltstack
-[saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3006.6.html "Salt Project Release Notes"
+[saltproject_badge]: https://img.shields.io/badge/Salt-v3006.7-lightgrey.svg?logo=Saltstack
+[saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3006.7.html "Salt Project Release Notes"
 [ubuntu_badge]: https://img.shields.io/badge/ubuntu-jammy--20231004-E95420.svg?logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
-[github_publish_badge]: https://github.com/cdalvaro/docker-salt-master/actions/workflows/publish.yml/badge.svg
-[github_publish_workflow]: https://github.com/cdalvaro/docker-salt-master/actions/workflows/publish.yml
 [docker_size_badge]: https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED
 [docker_hub_tags]: https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags
 [reddit_badge]: https://img.shields.io/badge/reddit-saltstack-orange?logo=reddit&logoColor=FF4500&color=FF4500
