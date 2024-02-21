@@ -804,7 +804,7 @@ Many thanks to:
 
 [saltproject_badge]: https://img.shields.io/badge/Salt-v3006.7-lightgrey.svg?logo=Saltstack
 [saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3006.7.html "Salt Project Release Notes"
-[ubuntu_badge]: https://img.shields.io/badge/ubuntu-jammy--20231004-E95420.svg?logo=Ubuntu
+[ubuntu_badge]: https://img.shields.io/badge/ubuntu-jammy--20240212-E95420.svg?logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
 [docker_size_badge]: https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED
 [docker_hub_tags]: https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags
