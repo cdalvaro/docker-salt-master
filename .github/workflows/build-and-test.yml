@@ -146,6 +146,10 @@ jobs:
         if: always()
         run: tests/basic/test.sh
 
+      - name: Execute keys mount point tests
+        if: always()
+        run: tests/keys-mount-point/test.sh
+
       - name: Execute healthcheck tests
         if: always()
         run: tests/healthcheck/test.sh
