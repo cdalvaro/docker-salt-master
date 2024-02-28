@@ -25,6 +25,10 @@ case "${1}" in
         shift 1
         gen_signed_keys "${1}"
         ;;
+      *)
+        log_error "Unknown command: ${1}"
+        exit 1
+        ;;
     esac
     ;;
   app:restart)
