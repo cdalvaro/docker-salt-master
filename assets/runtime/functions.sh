@@ -146,15 +146,39 @@ function configure_timezone()
 #----------------------------------------------------------------------------------------------------------------------
 function gen_signed_keys()
 {
-  local key_name=${1:-master}
+  local output_dir="$1"
 
-  mkdir -p "${SALT_KEYS_DIR}/generated/"
-  GENERATED_KEYS_DIR=$(mktemp -d -p "${SALT_KEYS_DIR}/generated/" -t "${key_name}.XXXXX")
+  if [[ ! -f "${SALT_KEYS_DIR}/master.pub" ]]; then
+    log_error "Unable to create signed keys without public key: '${SALT_KEYS_DIR}/master.pub'"
+    return 1
+  fi
 
-  salt-key --gen-keys "${key_name}" --gen-keys-dir "${GENERATED_KEYS_DIR}" > /dev/null 2>&1
-  salt-key --gen-signature --auto-create --pub "${GENERATED_KEYS_DIR}/${key_name}.pub" --signature-path "${GENERATED_KEYS_DIR}" > /dev/null 2>&1
+  local generated_keys_dir=$(exec_as_salt mktemp -d -t "master_sign.XXXXX")
+  [[ -n "${output_dir}" ]] || output_dir="${SALT_KEYS_DIR}/generated/$(basename "${generated_keys_dir}")"
 
-  echo -n "${GENERATED_KEYS_DIR}"
+  # This is a really ugly fix realted with issue #226
+  #
+  ## master's config file changing the keys directory by a temporary directory
+  ## This avoid and issue writing the signed keys in the keys directory
+  ## when this directory is mounted from the host.
+  cp "${SALT_ROOT_DIR}/master" "${generated_keys_dir}/"
+  sed -i "s#${SALT_KEYS_DIR}#${generated_keys_dir}#" "${generated_keys_dir}/master"
+
+  # Create keys
+  salt-key --gen-signature --auto-create --user "${SALT_USER}" \
+        --config-dir "${generated_keys_dir}" \
+        --pub "${SALT_KEYS_DIR}/master.pub" \
+        --signature-path "${generated_keys_dir}" > /dev/null 2>&1
+
+  # Move keys
+  exec_as_salt mkdir -p "${output_dir}"
+  mv "${generated_keys_dir}/master_sign".{pem,pub} "${output_dir}/"
+  mv "${generated_keys_dir}/master_pubkey_signature" "${output_dir}/"
+
+  # Cleanup
+  rm -rf "${generated_keys_dir}"
+
+  echo -n "${output_dir}"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -181,7 +205,11 @@ function _setup_master_keys()
       ln -sfn "${SALT_MASTER_KEY_FILE}.pub" "${SALT_KEYS_DIR}/master.pub"
     else
       log_info "Generating master keys ..."
-      salt-key --gen-keys master --gen-keys-dir "${SALT_KEYS_DIR}"
+      # Fix issue #226
+      local tmp_keys_dir="$(exec_as_salt mktemp -d)"
+      salt-key --gen-keys master --gen-keys-dir "${tmp_keys_dir}" --user "${SALT_USER}"
+      mv "${tmp_keys_dir}"/master.{pem,pub} "${SALT_KEYS_DIR}/"
+      rm -rf "${tmp_keys_dir}"
     fi
   else
     if [[ -n "${SALT_MASTER_KEY_FILE}" ]]; then
@@ -219,7 +247,7 @@ function _setup_master_sign_keys()
       ln -sfn "${SALT_MASTER_SIGN_KEY_FILE}.pub" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub"
     else
       log_info "Generating signed keys ..."
-      salt-key --gen-signature --auto-create --pub "${SALT_KEYS_DIR}/master.pub" --signature-path "${SALT_KEYS_DIR}"
+      gen_signed_keys "${SALT_KEYS_DIR}"
     fi
   else
     if [[ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]]; then

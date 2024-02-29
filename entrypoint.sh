@@ -23,7 +23,8 @@ case "${1}" in
         ;;
       app:gen-signed-keys)
         shift 1
-        gen_signed_keys "${1}"
+        new_keys_dir="$(gen_signed_keys "${1}")"
+        log_info "Generated keys are available inside the keys directory at: ${new_keys_dir##"${SALT_KEYS_DIR}"/}"
         ;;
       *)
         log_error "Unknown command: ${1}"

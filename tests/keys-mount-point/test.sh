@@ -32,10 +32,10 @@ ok "healthcheck"
 echo "==> Checking keys permissions ..."
 KEYS_PERMISSIONS="$(find keys -type f -exec stat -c "%n %a %u:%g" {} \; | sort)"
 EXPECTED_PERMISSIONS=$(cat <<EOF
-keys/master.pem 600 ${USER_UID}:${USER_GID}
+keys/master.pem 400 ${USER_UID}:${USER_GID}
 keys/master.pub 644 ${USER_UID}:${USER_GID}
 keys/master_pubkey_signature 644 ${USER_UID}:${USER_GID}
-keys/master_sign.pem 600 ${USER_UID}:${USER_GID}
+keys/master_sign.pem 400 ${USER_UID}:${USER_GID}
 keys/master_sign.pub 644 ${USER_UID}:${USER_GID}
 EOF
 )
@@ -63,9 +63,9 @@ check_equal "${SIGNED_KEYS_DIRECTORY}" "${EXPECTED_DIRECTORY}" "generated signed
 echo "==> Checking signed keys permissions ..."
 KEYS_PERMISSIONS="$(find "${SIGNED_KEYS_DIRECTORY}" -type f -exec stat -c "%n %a %u:%g" {} \; | sort)"
 EXPECTED_PERMISSIONS=$(cat <<EOF
-${SIGNED_KEYS_DIRECTORY}/master_pubkey_signature 600 ${USER_UID}:${USER_GID}
-${SIGNED_KEYS_DIRECTORY}/master_sign.pem 600 ${USER_UID}:${USER_GID}
-${SIGNED_KEYS_DIRECTORY}/master_sign.pub 600 ${USER_UID}:${USER_GID}
+${SIGNED_KEYS_DIRECTORY}/master_pubkey_signature 644 ${USER_UID}:${USER_GID}
+${SIGNED_KEYS_DIRECTORY}/master_sign.pem 400 ${USER_UID}:${USER_GID}
+${SIGNED_KEYS_DIRECTORY}/master_sign.pub 644 ${USER_UID}:${USER_GID}
 EOF
 )
 check_equal "${KEYS_PERMISSIONS}" "${EXPECTED_PERMISSIONS}" "keys permissions"
