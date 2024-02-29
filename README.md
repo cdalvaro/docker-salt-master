@@ -28,7 +28,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3006.7
+docker pull ghcr.io/cdalvaro/docker-salt-master:3006.7_1
 ```
 
 You can also pull the `latest` tag, which is built from the repository `HEAD`
@@ -200,16 +200,18 @@ service can be
 found [here](https://docs.saltproject.io/en/latest/topics/tutorials/multimaster_pki.html#prepping-the-minion-to-verify-received-public-keys)
 .
 
-Additionally, you can generate new keys by executing the following command:
+Additionally, you can generate new signed keys for your existing master key
+by executing the following command:
 
 ```sh
 docker run --name salt_stack -it --rm \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     ghcr.io/cdalvaro/docker-salt-master:latest \
-    app:gen-signed-keys new_master_sign
+    app:gen-signed-keys
 ```
 
-The newly created keys will appear inside `keys/generated/new_master_sign` directory.
+The newly created keys will appear inside `keys/generated/master_sign.XXXXX` directory.
+Where `XXXXX` is a random code to avoid possible collisions with previous generated keys.
 
 #### Working with secrets
 

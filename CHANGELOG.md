@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3006.7 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3006.7.html)
 for the list of changes in SaltStack.
 
+**3006.7_1**
+
+- Fix an issue setting keys directory permissions.
+
 **3006.7**
 
 - Upgrade `salt-master` to `3006.7` *Sulfur*.

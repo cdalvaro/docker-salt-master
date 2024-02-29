@@ -25,7 +25,7 @@ Para otros métodos de instalación de `salt-master`, por favor consulta la [gu�
 Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) y es el método recomendado para la instalación.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3006.7
+docker pull ghcr.io/cdalvaro/docker-salt-master:3006.7_1
 ```
 
 También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
@@ -183,16 +183,19 @@ docker run --name salt_stack --detach \
 
 El contenedor creará la clave `master_sign` y su firma. Para más información sobre cómo configurar el servicio del minion para aceptar estas claves consultar la [documentación oficial](https://docs.saltproject.io/en/latest/topics/tutorials/multimaster_pki.html#prepping-the-minion-to-verify-received-public-keys).
 
-Además, se pueden generar nuevas claves ejecutando el siguiente comando:
+Además, se pueden generar nuevas claves firmadas para la clave master existente
+ejecutando el siguiente comando:
 
 ```sh
 docker run --name salt_stack -it --rm \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     ghcr.io/cdalvaro/docker-salt-master:latest \
-    app:gen-signed-keys new_master_sign
+    app:gen-signed-keys
 ```
 
-Las nuevas claves estarán disponibles dentro del directorio: `keys/generated/new_master_sign`.
+Las nuevas claves estarán disponibles dentro del directorio: `keys/generated/master_sign.XXXXX`.
+Donde `XXXXX` es un código generado aleatoriamente para evitar colisiones con
+claves que se hubiesen creado previamente.
 
 #### Trabajando con _secrets_
 
