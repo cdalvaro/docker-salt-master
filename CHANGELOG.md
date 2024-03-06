@@ -7,6 +7,7 @@ for the list of changes in SaltStack.
 **3007.0**
 
 - Upgrade `salt-master` to `3007.0` *Chlorine*.
+- Change Docker base image to `ubuntu:jammy-20240227`.
 
 **3006.7_1**
 
