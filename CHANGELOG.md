@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3007.0 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.0.html)
 for the list of changes in SaltStack.
 
+**3007.0_1**
+
+- Add support for installing Python extra packages ([#234](https://github.com/cdalvaro/docker-salt-master/issues/234) for more details).
+
 **3007.0**
 
 - Upgrade `salt-master` to `3007.0` *Chlorine*.
