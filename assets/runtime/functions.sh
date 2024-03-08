@@ -10,6 +10,7 @@ source "${ENV_DEFAULTS_FILE}"
 # cdalvaro managed block string
 SELF_MANAGED_BLOCK_STRING="## cdalvaro managed block"
 
+
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  exec_as_salt
 #   DESCRIPTION:  Execute the pass command as the `SALT_USER` user.
@@ -23,6 +24,7 @@ function exec_as_salt()
   fi
 }
 
+
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  log_debug
 #   DESCRIPTION:  Echo debug information to stdout.
@@ -33,6 +35,7 @@ function log_debug() {
   fi
 }
 
+
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  log_info
 #   DESCRIPTION:  Echo information to stdout.
@@ -40,6 +43,7 @@ function log_debug() {
 function log_info() {
   echo "[INFO] - $*"
 }
+
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  log_warn
@@ -49,6 +53,7 @@ function log_warn() {
   (>&2 echo "[WARN] - $*")
 }
 
+
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  log_error
 #   DESCRIPTION:  Echo errors to stderr.
@@ -57,6 +62,7 @@ function log_error()
 {
   (>&2 echo "[ERROR] - $*")
 }
+
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  map_uidgid
@@ -83,6 +89,7 @@ function map_uidgid()
       -print0 | xargs -0 chown -h "${SALT_USER}": "${SALT_HOME}"
   fi
 }
+
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  update_template
@@ -117,6 +124,7 @@ function update_template()
   rm -f "${tmp_file}"
 }
 
+
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  configure_timezone
 #   DESCRIPTION:  Configure containers timezone.
@@ -139,6 +147,7 @@ function configure_timezone()
     return 1
   fi
 }
+
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  gen_signed_keys
@@ -181,6 +190,7 @@ function gen_signed_keys()
   echo -n "${output_dir}"
 }
 
+
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  _setup_master_keys
 #   DESCRIPTION:  Setup salt-master keys.
@@ -222,6 +232,7 @@ function _setup_master_keys()
     fi
   fi
 }
+
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  _setup_master_sign_keys
@@ -279,6 +290,7 @@ function _setup_master_sign_keys()
   fi
 }
 
+
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  _check_and_link_gpgkey
 #   DESCRIPTION:  Check and link a gpgkey if env variable is set.
@@ -308,6 +320,7 @@ function _check_and_link_gpgkey() {
   mkdir -p "$(dirname "${TARGET_GPGKEY}")"
   ln -sfn "${SOURCE_GPGKEY}" "${TARGET_GPGKEY}"
 }
+
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  _setup_gpgkeys
@@ -353,6 +366,7 @@ function _setup_gpgkeys()
   (echo trust & echo 5 & echo y & echo quit) | exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --command-fd 0 --edit-key "${key_id}"
 }
 
+
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  setup_salt_keys
 #   DESCRIPTION:  Repair keys permissions and creates keys if needed.
@@ -377,6 +391,7 @@ function setup_salt_keys()
   find "${SALT_KEYS_DIR}/minions"* -maxdepth 1 -type f -exec chmod 644 {} \;
   find "${SALT_HOME}" -path "${SALT_KEYS_DIR}/*" -print0 | xargs -0 chown -h "${SALT_USER}":
 }
+
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  configure_salt_master
@@ -409,6 +424,7 @@ function configure_salt_master()
     SALT_MASTER_PUBKEY_SIGNATURE \
     SALT_MASTER_USE_PUBKEY_SIGNATURE
 }
+
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  configure_salt_api
@@ -489,6 +505,7 @@ EOF
 
 }
 
+
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  configure_salt_formulas
 #   DESCRIPTION:  Configure salt-formulas.
@@ -511,6 +528,7 @@ function configure_salt_formulas()
   sed -i "/${begin_delim}/,/${end_delim}/!b;//!d;/${begin_delim}/r ${tmp_file}" "${SALT_ROOT_DIR}/master"
   rm "${tmp_file}"
 }
+
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  initialize_datadir
@@ -577,6 +595,7 @@ function initialize_datadir()
   chown -R "${SALT_USER}": "${SALT_LOGS_DIR}/salt"
 }
 
+
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  configure_logrotate
 #   DESCRIPTION:  Configure logrotate.
@@ -642,6 +661,11 @@ EOF
 
 }
 
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  configure_config_reloader
+#   DESCRIPTION:  Configure config reloader.
+#----------------------------------------------------------------------------------------------------------------------
 function configure_config_reloader()
 {
   rm -f /etc/supervisor/conf.d/config-reloader.conf
@@ -663,6 +687,36 @@ stderr_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
 EOF
 }
 
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  install_python_additional_packages
+#   DESCRIPTION:  Install additional python packages.
+#----------------------------------------------------------------------------------------------------------------------
+function install_python_additional_packages()
+{
+  if [[ -n "${PYTHON_PACKAGES_FILE}" ]]; then
+    log_info "Installing additional python packages from: ${PYTHON_PACKAGES_FILE} ..."
+
+    if [[ ! -f "${PYTHON_PACKAGES_FILE}" ]]; then
+      log_error "PYTHON_PACKAGES_FILE is set to '${PYTHON_PACKAGES_FILE}' but it doesn't exist."
+      return 1
+    fi
+
+    salt-pip install --no-cache-dir -r "${PYTHON_PACKAGES_FILE}"
+    local RETURN_CODE=$?
+    [[ -z "${PYTHON_PACKAGES}" ]] || log_warn "PYTHON_PACKAGES is set, but it will be ignored because PYTHON_PACKAGES_FILE is set."
+    return "${RETURN_CODE}"
+  fi
+
+  if [[ -n "${PYTHON_PACKAGES}" ]]; then
+    IFS=" " read -ra PYTHON_PACKAGES <<< "${PYTHON_PACKAGES}"
+    log_info "Installing additional python packages: ${PYTHON_PACKAGES[@]} ..."
+    salt-pip install --no-cache-dir "${PYTHON_PACKAGES[@]}"
+    return $?
+  fi
+}
+
+
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  initialize_system
 #   DESCRIPTION:  Initialize the system.
@@ -678,5 +732,6 @@ function initialize_system()
   configure_salt_formulas
   configure_config_reloader
   setup_salt_keys
+  install_python_additional_packages
   rm -rf /var/run/supervisor.sock
 }

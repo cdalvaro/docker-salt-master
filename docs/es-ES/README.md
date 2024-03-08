@@ -25,7 +25,7 @@ Para otros métodos de instalación de `salt-master`, por favor consulta la [gu�
 Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) y es el método recomendado para la instalación.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.0
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.0_1
 ```
 
 También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
@@ -524,6 +524,39 @@ docker exec -it salt_stack /sbin/entrypoint.sh app:reload-3rd-formulas
 
 El archivo de configuración `file_roots` se actualizará con las fórmulas existentes y el servicio `salt-master` se reiniciará para recargar la nueva configuración.
 
+### Paquetes Extra de Python
+
+Algunas fórmulas pueden depender de paquetes de Python que no están incluidos en la instalación por defecto de Salt. Puedes añadir estos paquetes estableciendo la variable de entorno `PYTHON_PACKAGES_FILE` con una ruta absoluta que apunte a un archivo `requirements.txt` dentro del contenedor.
+
+```sh
+docker run --name salt_master --detach \
+    --publish 4505:4505 --publish 4506:4506 \
+    --env SALT_LOG_LEVEL="info" \
+    --env PYTHON_PACKAGES_FILE=/home/salt/data/other/requirements.txt \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
+    --volume $(pwd)/requirements.txt:/home/salt/data/other/requirements.txt \
+    ghcr.io/cdalvaro/docker-salt-master:latest
+```
+
+Esto instalará los paquetes listados en el archivo `requirements.txt` en el contenedor antes de que `salt-master` arranque.
+
+Alternativamente, puedes establecer la variable de entorno `PYTHON_PACKAGES` con una lista de paquetes de Python a instalar.
+
+```sh
+docker run --name salt_master --detach \
+    --publish 4505:4505 --publish 4506:4506 \
+    --env SALT_LOG_LEVEL="info" \
+    --env PYTHON_PACKAGES="docker==7.0.0 redis" \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
+    ghcr.io/cdalvaro/docker-salt-master:latest
+```
+
+Aunque ambos métodos están soportados, son mutuamente excluyentes. Si las dos variables de entorno están definidas, `PYTHON_PACKAGES_FILE` tendrá prioridad.
+
 ### Logs
 
 La salida de `salt-master` se redirige directamente al `stdout` y `stderr` del contenedor. Sin embargo, también se escriben dentro de `/home/salt/data/logs/`.
@@ -632,6 +665,8 @@ A continuación puedes encontrar una lista con las opciones disponibles que pued
 | `TIMEZONE` / `TZ`                                                                                                                     | Establece la zona horaria del contenedor. Por defecto: `UTC`. Se espera que el valor proporcionado esté en forma canónica. Por ejemplo: `Europe/Madrid`. Lista completa de [valores válidos](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).                                                                |
 | `PUID`                                                                                                                                | Establece el uid del usuario `salt` al valor indicado. Por defecto: `1000`.                                                                                                                                                                                                                                                |
 | `PGID`                                                                                                                                | Establece el gid del usuario `salt` al valor indicado. Por defecto: `1000`.                                                                                                                                                                                                                                                |
+| `PYTHON_PACKAGES`                                                                                                                     | Lista de paquetes extra de Python a instalar. Por defecto: _Sin establecer_.                                                                                                                                                                                                                                               |
+| `PYTHON_PACKAGES_FILE`                                                                                                                | Ruta absoluta interna del contenedor apuntando a un fichero requirements.txt con paquetes de Python extra a instalar. Tiene preferencia sobre `PYTHON_PACKAGES`. Por defecto: _Sin establecer_                                                                                                                             |
 | `SALT_RESTART_MASTER_ON_CONFIG_CHANGE`                                                                                                | Establece el valor a `True` para reiniciar el servicio `salt-master` cuando se detecte un cambio en los archivos de configuración. Por defecto: `False`.                                                                                                                                                                   |
 | [`SALT_LOG_LEVEL`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#log-level)                                     | El nivel de los mensajes que se enviarán a la consola. Valores aceptados: 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Por defecto: `warning`.                                                                                                                                                      |
 | `SALT_LOG_ROTATE_FREQUENCY`                                                                                                           | Frecuencia de rotado de logs. Valores aceptados: 'daily', 'weekly', 'monthly', y 'yearly'. Por defecto: `weekly`.                                                                                                                                                                                                          |
@@ -652,10 +687,10 @@ A continuación puedes encontrar una lista con las opciones disponibles que pued
 | `SALT_MASTER_ROOT_USER`                                                                                                               | Fuerza que `salt-master` se ejecute como `root` en lugar de hacer con el usuario `salt`. Por defecto: `False`.                                                                                                                                                                                                             |
 | `SALT_GPG_PRIVATE_KEY_FILE`                                                                                                           | La ruta de la clave GPG privada para desencriptar contenidos. Útil para cargar la clave usando _secrets_. Por defecto: _No establecida_.                                                                                                                                                                                   |
 | `SALT_GPG_PUBLIC_KEY_FILE`                                                                                                            | La ruta de la calve GPG pública para desencriptar contenidos. Útil para cargar la clave usando _secrets_. Por defecto: _No establecida_.                                                                                                                                                                                   |
-| [`SALT_REACTOR_WORKER_THREADS`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#reactor-worker-threads)           | El número de procesos de runner/wheel en el reactor. Por defecto: `10`.                                                                                                                                                                                                                                                  |
-| [`SALT_WORKER_THREADS`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#worker-threads)                           | El número de hilos para recibir comandos y respuestas de los minions conectados. Por defecto: `5`.                                                                                                                                                                                                                              |
-| [`SALT_BASE_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#file-roots)                                     | La ruta `base` en `file_roots` para buscar los directorios `salt` y `pillar`. Por defecto: `/home/salt/data/srv`.                                                                                                                                                                                                               |
-| [`SALT_CONFS_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std-conf_master-default_include)               | `salt-master` cargará automáticamente los ficheros de configuración que encuentre en este directorio. Por defecto: `/home/salt/data/config`.                                                                                                                                                                                                             |
+| [`SALT_REACTOR_WORKER_THREADS`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#reactor-worker-threads)           | El número de procesos de runner/wheel en el reactor. Por defecto: `10`.                                                                                                                                                                                                                                                    |
+| [`SALT_WORKER_THREADS`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#worker-threads)                           | El número de hilos para recibir comandos y respuestas de los minions conectados. Por defecto: `5`.                                                                                                                                                                                                                         |
+| [`SALT_BASE_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#file-roots)                                     | La ruta `base` en `file_roots` para buscar los directorios `salt` y `pillar`. Por defecto: `/home/salt/data/srv`.                                                                                                                                                                                                          |
+| [`SALT_CONFS_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std-conf_master-default_include)               | `salt-master` cargará automáticamente los ficheros de configuración que encuentre en este directorio. Por defecto: `/home/salt/data/config`.                                                                                                                                                                               |
 
 Cualquier parámetro no listado en la tabla anterior y disponible en el siguiente [enlace](https://docs.saltproject.io/en/latest/ref/configuration/examples.html#configuration-examples-master), puede establecerse creando el directorio `config` y añadiendo en él un archivo `.conf` con los parámetros deseados:
 

@@ -28,7 +28,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.0
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.0_1
 ```
 
 You can also pull the `latest` tag, which is built from the repository `HEAD`
@@ -573,6 +573,40 @@ docker exec -it salt_stack /sbin/entrypoint.sh app:reload-3rd-formulas
 `file_roots` base configuration file will be updated with current existing formulas and `salt-master` service will be
 restarted to reload the new configuration.
 
+### Python Extra Packages
+
+Some formulas may depend on Python packages that are not included in the default Salt installation. You can add these packages by setting the `PYTHON_PACKAGES_FILE` environment variable with an absolute path pointing to a `requirements.txt` file inside the container.
+
+```sh
+docker run --name salt_master --detach \
+    --publish 4505:4505 --publish 4506:4506 \
+    --env SALT_LOG_LEVEL="info" \
+    --env PYTHON_PACKAGES_FILE=/home/salt/data/other/requirements.txt \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
+    --volume $(pwd)/requirements.txt:/home/salt/data/other/requirements.txt \
+    ghcr.io/cdalvaro/docker-salt-master:latest
+```
+
+This will install the packages listed in the `requirements.txt` file into the container
+before `salt-master` starts.
+
+Alternatively, you can set the `PYTHON_PACKAGES` environment variable with a list of Python packages to be installed.
+
+```sh
+docker run --name salt_master --detach \
+    --publish 4505:4505 --publish 4506:4506 \
+    --env SALT_LOG_LEVEL="info" \
+    --env PYTHON_PACKAGES="docker==7.0.0 redis" \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
+    ghcr.io/cdalvaro/docker-salt-master:latest
+```
+
+Although both methods are supported, they are mutually exclusive. If both are set, `PYTHON_PACKAGES_FILE` will take precedence.
+
 ### Logs
 
 `salt-master` output is streamed directly to the container's `stdout` and `stderr`. However, they are also written inside `/home/salt/data/logs/`.
@@ -691,6 +725,8 @@ installation.
 | `TIMEZONE` / `TZ`                                                                                                                     | Set the container timezone. Defaults to `UTC`. Values are expected to be in Canonical format. Example: `Europe/Madrid`. See the list of [acceptable values](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).                                  |
 | `PUID`                                                                                                                                | Sets the uid for user `salt` to the specified uid. Default: `1000`.                                                                                                                                                                                         |
 | `PGID`                                                                                                                                | Sets the gid for user `salt` to the specified gid. Default: `1000`.                                                                                                                                                                                         |
+| `PYTHON_PACKAGES`                                                                                                                     | Contains a list of Python packages to be installed. Default: _Unset_.                                                                                                                                                                                       |
+| `PYTHON_PACKAGES_FILE`                                                                                                                | An absolute path inside the container pointing to a requirements.txt file for installing Python extra packages. Takes preference over: `PYTHON_PACKAGES`. Default: _Unset_                                                                                  |
 | `SALT_RESTART_MASTER_ON_CONFIG_CHANGE`                                                                                                | Set this to `True` to restart `salt-master` service when configuration files change. Default: `False`.                                                                                                                                                      |
 | [`SALT_LOG_LEVEL`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#log-level)                                     | The level of messages to send to the console. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `warning`.                                                                                                                |
 | `SALT_LOG_ROTATE_FREQUENCY`                                                                                                           | Logrotate frequency for salt logs. Available options are 'daily', 'weekly', 'monthly', and 'yearly'. Default: `weekly`.                                                                                                                                     |

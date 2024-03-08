@@ -142,6 +142,11 @@ jobs:
           sudo systemctl disable salt-minion
           sudo rm -f /var/log/salt/minion
 
+      - name: Install tests utils
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
       - name: Execute basic tests
         if: always()
         run: tests/basic/test.sh
@@ -179,6 +184,10 @@ jobs:
       - name: Execute GPG tests
         if: always()
         run: tests/gpg/test.sh
+
+      - name: Python Extra Packages tests
+        if: always()
+        run: tests/python-extra-packages/test.sh
 
       - name: Cleanup
         if: always()
