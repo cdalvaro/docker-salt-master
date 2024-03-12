@@ -284,7 +284,7 @@ secrets:
 
 ### Salt API
 
-You can enable `salt-api` service by setting env variable `SALT_API_ENABLEDue`.
+You can enable `salt-api` service by setting env variable `SALT_API_ENABLED` to `True`.
 
 A self-signed SSL certificate will be automatically generated and the following configuration will be added to the
 master configuration file:
@@ -733,7 +733,7 @@ installation.
 | `SALT_LOG_ROTATE_RETENTION`                                                                                                           | Keep x files before deleting old log files. Defaults: `52`.                                                                                                                                                                                                 |
 | [`SALT_LEVEL_LOGFILE`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#log-level-logfile)                         | The level of messages to send to the log file. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `SALT_LOG_LEVEL`.                                                                                                        |
 | `SALT_MASTER_KEY_FILE`                                                                                                                | The path to the master-key-pair {pem,pub} files without suffixes. Keys will be copied into the `pki` directory. Useful to load the password from secrets. _Unset_ by default.                                                                               |
-| [`SALT_API_ENABLED`](https://docs.saltproject.io/en/latest/ref/cli/salt-api.html)                                             | Enable `salt-api` service. Default: `False`.                                                                                                                                                                                                                |
+| [`SALT_API_ENABLED`](https://docs.saltproject.io/en/latest/ref/cli/salt-api.html)                                                     | Enable `salt-api` service. Default: `False`.                                                                                                                                                                                                                |
 | `SALT_API_USER`                                                                                                                       | Set username for `salt-api` service. Default: `salt_api`.                                                                                                                                                                                                   |
 | `SALT_API_USER_PASS_FILE`                                                                                                             | `SALT_API_USER` password file path. Use this variable to set the path of a file containing the password for the `SALT_API_USER`. Useful to load the password from secrets. Has priority over `SALT_API_USER_PASS`. _Unset_ by default.                      |
 | `SALT_API_USER_PASS`                                                                                                                  | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `True`, `SALT_API_USER` is not empty and `SALT_API_USER_PASS_FILE` is unset. _Unset_ by default.                                                                                        |
