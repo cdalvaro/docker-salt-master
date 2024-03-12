@@ -36,7 +36,7 @@ EOF
 
 # Install salt packages
 log_info "Installing salt packages ..."
-install_pkgs salt-master="${SALT_VERSION}" salt-api="${SALT_VERSION}"
+install_pkgs salt-master="${SALT_VERSION}" salt-minion="${SALT_VERSION}" salt-api="${SALT_VERSION}"
 
 # Install python packages
 log_info "Installing python packages ..."

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2016
 
 echo "🧪 Running basic tests ..."
 
@@ -16,22 +17,23 @@ echo "==> Starting docker-salt-master (${PLATFORM}) ..."
 start_container_and_wait || error "container started"
 ok "container started"
 
-# Check salt version
+# Check salt versions
+EXPECTED_VERSION="$(cat VERSION)"
+
 echo "==> Checking salt-master version ..."
 output=$(docker-exec salt-master --versions)
 echo "${output}"
 
-# shellcheck disable=SC2016
-CURRENT_VERSION="$(echo -n "${output}" | grep -Ei 'salt: ([^\s]+)' | awk '{print $2}')"
-EXPECTED_VERSION="$(cat VERSION)"
-check_equal "${CURRENT_VERSION%%-*}" "${EXPECTED_VERSION%%-*}" "salt-master version"
+CURRENT_MASTER_VERSION="$(echo -n "${output}" | grep -Ei 'salt: ([^\s]+)' | awk '{print $2}')"
+check_equal "${CURRENT_MASTER_VERSION%%-*}" "${EXPECTED_VERSION%%-*}" "salt-master version"
 
-# Check salt-minion is not installed
-# shellcheck disable=SC2016
-docker-exec bash -c 'test -z "$(command -v salt-minion)"' || error "salt-minion is installed inside the container"
-ok "salt-minion is not installed inside the container"
+echo "==> Checking salt-minion version ..."
+output=$(docker-exec salt-minion --versions)
+echo "#{output}"
 
-# shellcheck disable=SC2016
+CURRENT_MINION_VERSION="$(echo -n "${output}" | grep -Ei 'salt: ([^\s]+)' | awk '{print $2}')"
+check_equal "${CURRENT_MINION_VERSION%%-*}" "${EXPECTED_VERSION%%-*}" "salt-minion version"
+
 docker-exec bash -c 'test -z "$(ps aux | grep salt-minion | grep -v grep)"' || error "salt-minion is running inside the container"
 ok "salt-minion is not running inside the container"
 
@@ -43,6 +45,5 @@ salt "${TEST_MINION_ID}" test.ping || error "${TEST_MINION_ID} ping"
 ok "${TEST_MINION_ID} ping"
 
 # Test salt home permissions
-# shellcheck disable=SC2016
 docker-exec bash -c 'test $(stat -c "%U:%G" "${SALT_HOME}") = "${SALT_USER}:${SALT_USER}"' || error "salt home permissions"
 ok "salt home permissions"
