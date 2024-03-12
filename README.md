@@ -284,7 +284,7 @@ secrets:
 
 ### Salt API
 
-You can enable `salt-api` service by setting env variable `SALT_API_SERVICE_ENABLED` to `True`.
+You can enable `salt-api` service by setting env variable `SALT_API_ENABLEDue`.
 
 A self-signed SSL certificate will be automatically generated and the following configuration will be added to the
 master configuration file:
@@ -302,7 +302,7 @@ your `docker run` command:
 ```sh
 docker run --name salt_stack --detach \
     --publish 4505:4505 --publish 4506:4506 --publish 8000:8000 \
-    --env 'SALT_API_SERVICE_ENABLED=True' \
+    --env 'SALT_API_ENABLED=True' \
     --env 'SALT_API_USER_PASS=4wesome-Pass0rd' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
@@ -319,7 +319,7 @@ variable `SALT_API_USER_PASS`.
 You can also change the salt-api _username_ by setting `SALT_API_USER`. It is possible to disable this user by
 explicitly setting this variable to an empty string: `SALT_API_USER=''` if you are going to use an `LDAP` server.
 
-As a security measure, if `SALT_API_SERVICE_ENABLED` is set to `True` and you don't disable `SALT_API_USER`, you'll be
+As a security measure, if `SALT_API_ENABLED` is set to `True` and you don't disable `SALT_API_USER`, you'll be
 required to set `SALT_API_USER_PASS`. Otherwise, the setup process will fail and your container won't work.
 
 `SALT_API_USER_PASS_FILE` env variable is available to provide the password via a file. This is useful when using Docker
@@ -733,7 +733,7 @@ installation.
 | `SALT_LOG_ROTATE_RETENTION`                                                                                                           | Keep x files before deleting old log files. Defaults: `52`.                                                                                                                                                                                                 |
 | [`SALT_LEVEL_LOGFILE`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#log-level-logfile)                         | The level of messages to send to the log file. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `SALT_LOG_LEVEL`.                                                                                                        |
 | `SALT_MASTER_KEY_FILE`                                                                                                                | The path to the master-key-pair {pem,pub} files without suffixes. Keys will be copied into the `pki` directory. Useful to load the password from secrets. _Unset_ by default.                                                                               |
-| [`SALT_API_SERVICE_ENABLED`](https://docs.saltproject.io/en/latest/ref/cli/salt-api.html)                                             | Enable `salt-api` service. Default: `False`.                                                                                                                                                                                                                |
+| [`SALT_API_ENABLED`](https://docs.saltproject.io/en/latest/ref/cli/salt-api.html)                                             | Enable `salt-api` service. Default: `False`.                                                                                                                                                                                                                |
 | `SALT_API_USER`                                                                                                                       | Set username for `salt-api` service. Default: `salt_api`.                                                                                                                                                                                                   |
 | `SALT_API_USER_PASS_FILE`                                                                                                             | `SALT_API_USER` password file path. Use this variable to set the path of a file containing the password for the `SALT_API_USER`. Useful to load the password from secrets. Has priority over `SALT_API_USER_PASS`. _Unset_ by default.                      |
 | `SALT_API_USER_PASS`                                                                                                                  | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `True`, `SALT_API_USER` is not empty and `SALT_API_USER_PASS_FILE` is unset. _Unset_ by default.                                                                                        |
@@ -805,7 +805,7 @@ You can restart containers services by running the following command:
 docker exec -it salt_master entrypoint.sh app:restart [salt-service]
 ```
 
-Where `salt-service` is one of: `salt-master` os `salt-api` (if `SALT_API_SERVICE_ENABLED` is set to `True`).
+Where `salt-service` is one of: `salt-master` or `salt-api` (if `SALT_API_ENABLED` is set to `True`).
 
 ## 🔨 Contributing
 

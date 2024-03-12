@@ -433,7 +433,13 @@ function configure_salt_master()
 function configure_salt_api()
 {
   rm -f /etc/supervisor/conf.d/salt-api.conf
-  [[ ${SALT_API_SERVICE_ENABLED,,} == true ]] || return 0
+
+  if [[ -n "${SALT_API_SERVICE_ENABLED}" ]]; then
+    log_warn "SALT_API_SERVICE_ENABLED is deprecated and it will be removed starting from version 3007.2. Use SALT_API_ENABLED instead."
+    export SALT_API_ENABLED="${SALT_API_SERVICE_ENABLED}"
+  fi
+
+  [[ ${SALT_API_ENABLED,,} == true ]] || return 0
 
   if [[ -n "${SALT_API_USER}" ]]; then
 
@@ -644,7 +650,7 @@ ${SALT_LOGS_DIR}/salt/key.log {
 
 EOF
 
-  if [[ "${SALT_API_SERVICE_ENABLED,,}" == true ]]; then
+  if [[ "${SALT_API_ENABLED,,}" == true ]]; then
     # configure salt-api log rotation
     cat >> "${LOGROTATE_CONFIG_FILE}" <<EOF
 ${SALT_LOGS_DIR}/salt/api.log {

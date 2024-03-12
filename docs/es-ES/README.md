@@ -268,7 +268,7 @@ secrets:
 
 ### Salt API
 
-El servicio `salt-api` puede habilitarse estableciendo la variable de entorno `SALT_API_SERVICE_ENABLED` a `True`.
+El servicio `salt-api` puede habilitarse estableciendo la variable de entorno `SALT_API_ENABLED` a `True`.
 
 Un certificado SSL autofirmado se generará automáticamente y la siguiente configuración se añadirá al archivo de configuración del master:
 
@@ -284,7 +284,7 @@ El contenedor expone el puerto `8000` por defecto, aunque puedes asociar este pu
 ```sh
 docker run --name salt_stack --detach \
     --publish 4505:4505 --publish 4506:4506 --publish 8000:8000 \
-    --env 'SALT_API_SERVICE_ENABLED=True' \
+    --env 'SALT_API_ENABLED=True' \
     --env 'SALT_API_USER_PASS=4wesome-Pass0rd' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
@@ -298,7 +298,7 @@ Por defecto, se crea el usuario `salt_api` para este servicio, y puedes establec
 
 Sin embargo, es posible deshabilitar este usuario estableciendo explícitamente esta variable a una cadena vacía: `SALT_API_USER=''` si vas a usar un servidor `LDAP`, por ejemplo.
 
-Como medida de seguridad, si `SALT_API_SERVICE_ENABLED` se establece a `True` y no deshabilitas `SALT_API_USER`, se requerirá establecer la variable `SALT_API_USER_PASS`. De lo contrario, el proceso de configuración fallará y tu contenedor no arrancará.
+Como medida de seguridad, si `SALT_API_ENABLED` se establece a `True` y no deshabilitas `SALT_API_USER`, se requerirá establecer la variable `SALT_API_USER_PASS`. De lo contrario, el proceso de configuración fallará y tu contenedor no arrancará.
 
 También se da la opción de establecer la variable de entorno `SALT_API_USER_PASS_FILE` para proporcionar la contraseña a través de un archivo. Esto es útil cuando se usan _secrets_ de Docker. Más información sobre cómo configurar secretos está disponible en la sección [_Trabajando con secrets_](#trabajando-con-secrets).
 
@@ -673,7 +673,7 @@ A continuación puedes encontrar una lista con las opciones disponibles que pued
 | `SALT_LOG_ROTATE_RETENTION`                                                                                                           | Keep x files before deleting old log files. Defaults: `52`.                                                                                                                                                                                                                                                                |
 | [`SALT_LEVEL_LOGFILE`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#log-level-logfile)                         | The level of messages to send to the log file. One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'. Default: `SALT_LOG_LEVEL`.                                                                                                                                                                       |
 | `SALT_MASTER_KEY_FILE`                                                                                                                | La ruta del par de archivos de la clave del master {pem,pub} sin sufijos. Las claves se copiarán al directorio `pki`. Es útil cuando se quieren cargar las claves usando _secrets_. Por defecto: _No establecida_.                                                                                                         |
-| [`SALT_API_SERVICE_ENABLED`](https://docs.saltproject.io/en/latest/ref/cli/salt-api.html)                                             | Habilita el servicio `salt-api`. Por defecto: `False`.                                                                                                                                                                                                                                                                     |
+| [`SALT_API_ENABLED`](https://docs.saltproject.io/en/latest/ref/cli/salt-api.html)                                             | Habilita el servicio `salt-api`. Por defecto: `False`.                                                                                                                                                                                                                                                                     |
 | `SALT_API_USER`                                                                                                                       | Establece el nombre de usuario para el servicio `salt-api`. Por defecto: `salt_api`.                                                                                                                                                                                                                                       |
 | `SALT_API_USER_PASS_FILE`                                                                                                             | Archivo con la contraseña para el usuario `SALT_API_USER`. Usa esta variable para establecer la ruta del archivo que contiene la contraseña del usuario `SALT_API_USER`. Es útil para cargar la contraseña usando _secrets_. Esta variable tiene preferencia frente a `SALT_API_USER_PASS`. Por defecto: _No establecida_. |
 | `SALT_API_USER_PASS`                                                                                                                  | Contraseña del usuario `SALT_API_USER`. Requerida si `SALT_API_SERVICE_ENBALED` es `True`, `SALT_API_USER` no está vacía y no se ha definido `SALT_API_USER_PASS_FILE`. Por defecto: _No establecida_.                                                                                                                     |
@@ -742,7 +742,7 @@ Puedes reiniciar los servicios de los contenedores ejecutando el siguiente coman
 docker exec -it salt_master entrypoint.sh app:restart [salt-service]
 ```
 
-Donde `salt-service` es uno de: `salt-master` o `salt-api` (si `SALT_API_SERVICE_ENABLED` está establecido a `True`).
+Donde `salt-service` es uno de: `salt-master` o `salt-api` (si `SALT_API_ENABLED` está establecido a `True`).
 
 ## 🔨 Contribuciones
 

@@ -44,7 +44,7 @@ ok "salt-api config created"
 echo "==> Starting docker-salt-master (${PLATFORM}) with salt-api config ..."
 start_container_and_wait \
   --publish 8000:8000 \
-  --env SALT_API_SERVICE_ENABLED=True \
+  --env SALT_API_ENABLED=True \
   --env SALT_API_USER_PASS="${SALTAPI_PASS}" \
 || error "container started"
 ok "container started"
@@ -85,7 +85,7 @@ export SALT_API_USER_PASS_FILE=salt_api_user_pass
 echo -n "${SALTAPI_PASS}" > "./${SALT_API_USER_PASS_FILE}"
 start_container_and_wait \
   --publish 8000:8000 \
-  --env SALT_API_SERVICE_ENABLED=True \
+  --env SALT_API_ENABLED=True \
   --env SALT_API_USER_PASS_FILE="/run/secrets/${SALT_API_USER_PASS_FILE}" \
   --volume "$(pwd)/${SALT_API_USER_PASS_FILE}":/run/secrets/${SALT_API_USER_PASS_FILE}:ro \
 || error "container started"
