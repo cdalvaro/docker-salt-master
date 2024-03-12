@@ -11,6 +11,11 @@ COMMON_FILE="${SCRIPT_PATH}/../lib/common.sh"
 source "${COMMON_FILE}"
 trap cleanup EXIT
 
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  pip_pkg_version
+#   DESCRIPTION:  Check whether a pip package is installed or not.
+#                 If installed, return the version, otherwise return null.
+#----------------------------------------------------------------------------------------------------------------------
 function pip_pkg_version()
 {
   local PKG_NAME="$1"
@@ -49,9 +54,9 @@ ok "container started"
 # Test salt pip installed packages
 echo "==> Checking salt-pip packages (requirements.txt) ..."
 check_equal "$(pip_pkg_version "${PYTHON_TEST_PACKAGE1_NAME}")" "${PYTHON_TEST_PACKAGE1_VERSION}" \
-  "python package ${PYTHON_TEST_PACKAGE1_NAME} installed"
-[[ "$(pip_pkg_version "${PYTHON_TEST_PACKAGE2_NAME}")" != "null" ]] || error "python package ${PYTHON_TEST_PACKAGE2_NAME} installed"
-ok "python package ${PYTHON_TEST_PACKAGE2_NAME} installed"
+  "python package ${PYTHON_TEST_PACKAGE1_NAME} is installed"
+[[ "$(pip_pkg_version "${PYTHON_TEST_PACKAGE2_NAME}")" != "null" ]] || error "python package ${PYTHON_TEST_PACKAGE2_NAME} is not installed"
+ok "python package ${PYTHON_TEST_PACKAGE2_NAME} is installed"
 
 # Stop and start with salt-api pass via file
 echo "==> Stopping previous container ..."
@@ -66,7 +71,7 @@ ok "container started"
 # Test salt pip installed packages
 echo "==> Checking salt-pip packages (environment) ..."
 check_equal "$(pip_pkg_version "${PYTHON_TEST_PACKAGE1_NAME}")" "${PYTHON_TEST_PACKAGE1_VERSION}" \
-  "python package ${PYTHON_TEST_PACKAGE1_NAME} installed"
+  "python package ${PYTHON_TEST_PACKAGE1_NAME} is installed"
 
 # Stop and start with salt-api pass via file
 echo "==> Stopping previous container ..."
@@ -83,8 +88,8 @@ ok "container started"
 # Test salt pip installed packages
 echo "==> Checking salt-pip packages (environment) ..."
 check_equal "$(pip_pkg_version "${PYTHON_TEST_PACKAGE1_NAME}")" "${PYTHON_TEST_PACKAGE1_VERSION}" \
-  "python package ${PYTHON_TEST_PACKAGE1_NAME} installed"
-[[ "$(pip_pkg_version "${PYTHON_TEST_PACKAGE2_NAME}")" != "null" ]] || error "python package ${PYTHON_TEST_PACKAGE2_NAME} installed"
-ok "python package ${PYTHON_TEST_PACKAGE2_NAME} installed"
-[[ "$(pip_pkg_version "${PYTHON_TEST_PACKAGE3_NAME}")" == "null" ]] || error "python package ${PYTHON_TEST_PACKAGE3_NAME} installed"
-ok "python package ${PYTHON_TEST_PACKAGE3_NAME} installed"
+  "python package ${PYTHON_TEST_PACKAGE1_NAME} is installed"
+[[ "$(pip_pkg_version "${PYTHON_TEST_PACKAGE2_NAME}")" != "null" ]] || error "python package ${PYTHON_TEST_PACKAGE2_NAME} is not installed"
+ok "python package ${PYTHON_TEST_PACKAGE2_NAME} is installed"
+[[ "$(pip_pkg_version "${PYTHON_TEST_PACKAGE3_NAME}")" == "null" ]] || error "python package ${PYTHON_TEST_PACKAGE3_NAME} is installed"
+ok "python package ${PYTHON_TEST_PACKAGE3_NAME} is not installed"
