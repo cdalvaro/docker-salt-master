@@ -8,6 +8,8 @@ for the list of changes in SaltStack.
 
 - Rename `SALT_API_SERVICE_ENABLED` to `SALT_API_ENABLED`.
   `SALT_API_SERVICE_ENABLED` is still supported for backward compatibility but support will be removed starting from Salt 3007.2.
+- Add support for built-in `salt-minion` service.
+  It can be enabled by setting the `SALT_MINION_ENABLED` environment variable to `true`.
 
 **3007.0_1**
 
