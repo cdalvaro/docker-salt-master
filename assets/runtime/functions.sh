@@ -192,41 +192,90 @@ function gen_signed_keys()
 
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
-#          NAME:  _setup_master_keys
-#   DESCRIPTION:  Setup salt-master keys.
+#          NAME:  _check_key_pair_exists
+#   DESCRIPTION:  Check whether the given key-pair files exist.
+#     ARGUMENTS:
+#           - 1: The path to the key-pair file
+#
 #----------------------------------------------------------------------------------------------------------------------
-function _setup_master_keys()
+function _check_key_pair_exists()
 {
-  log_info " ==> Setting up master keys ..."
+  local key_pair_file="$1"
+  if [[ ! -f "${key_pair_file}.pem" || ! -f "${key_pair_file}.pub" ]]; then
+    [[ -f "${key_pair_file}.pem" ]] || log_error "'${key_pair_file}.pem' doesn't exist"
+    [[ -f "${key_pair_file}.pub" ]] || log_error "'${key_pair_file}.pub' doesn't exist"
+    return 1
+  fi
+  return 0
+}
 
-  if [[ -n "${SALT_MASTER_KEY_FILE}" ]]; then
-    if [[ ! -f "${SALT_MASTER_KEY_FILE}.pem" || ! -f "${SALT_MASTER_KEY_FILE}.pub" ]]; then
-      [[ -f "${SALT_MASTER_KEY_FILE}.pem" ]] || log_error "'${SALT_MASTER_KEY_FILE}.pem' doesn't exist"
-      [[ -f "${SALT_MASTER_KEY_FILE}.pub" ]] || log_error "'${SALT_MASTER_KEY_FILE}.pub' doesn't exist"
-      return 1
-    fi
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _symlink_key_pair_files
+#   DESCRIPTION:  Create symlinks for the given key-pair files.
+#     ARGUMENTS:
+#           - 1: The source key-pair file
+#           - 2: The target key-pair file
+#
+#----------------------------------------------------------------------------------------------------------------------
+function _symlink_key_pair_files()
+{
+  local source_key_pair="$1"
+  local target_key_pair="$2"
+
+  ln -sfn "${source_key_pair}.pem" "${target_key_pair}.pem"
+  ln -sfn "${source_key_pair}.pub" "${target_key_pair}.pub"
+}
+
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  setup_keys_for_service
+#   DESCRIPTION:  Setup keys for the given service.
+#                 If a key-pair is provided via env variable, it will be used.
+#                 Otherwise, it will be generated.
+#     ARGUMENTS:
+#           - 1: The service name: master, minion
+#           - 2: The env variable name with the key-pair file path: SALT_MASTER_KEY_FILE, SALT_MINION_KEY_FILE
+#           - 3: The keys directory: SALT_KEYS_DIR, SALT_MINION_KEYS_DIR
+#
+#----------------------------------------------------------------------------------------------------------------------
+function setup_keys_for_service()
+{
+  local service="$1"
+  local key_file_env_var="$2"
+  local keys_dir="$3"
+
+  log_info " ==> Setting up salt-${service} keys ..."
+
+  local key_pair_file="${!key_file_env_var}"
+  if [[ -n "${key_pair_file}" ]]; then
+    # shellcheck disable=SC2310
+    _check_key_pair_exists "${key_pair_file}" || return 1
   fi
 
-  if [[ ! -f "${SALT_KEYS_DIR}/master.pem" ]]; then
-    if [[ -n "${SALT_MASTER_KEY_FILE}" ]]; then
-      # Copy master keys provided via external files
-      log_info "Linking '${SALT_MASTER_KEY_FILE}' keys to '${SALT_KEYS_DIR}/master.{pem,pub}' ..."
-      ln -sfn "${SALT_MASTER_KEY_FILE}.pem" "${SALT_KEYS_DIR}/master.pem"
-      ln -sfn "${SALT_MASTER_KEY_FILE}.pub" "${SALT_KEYS_DIR}/master.pub"
+  exec_as_salt mkdir -p "${keys_dir}"
+
+  if [[ ! -f "${keys_dir}/${service}.pem" ]]; then
+    if [[ -n "${key_pair_file}" ]]; then
+      # Link service keys provided via external files
+      local target_key_pair="${keys_dir}/${service}"
+      log_info "     Linking '${key_pair_file}' keys to '${target_key_pair}.{pem,pub}' ..."
+      _symlink_key_pair_files "${key_pair_file}" "${target_key_pair}"
     else
-      log_info "Generating master keys ..."
+      log_info "     Creating new keys ..."
       # Fix issue #226
       local tmp_keys_dir="$(exec_as_salt mktemp -d)"
-      salt-key --gen-keys master --gen-keys-dir "${tmp_keys_dir}" --user "${SALT_USER}"
-      mv "${tmp_keys_dir}"/master.{pem,pub} "${SALT_KEYS_DIR}/"
+      salt-key --gen-keys "${service}" --gen-keys-dir "${tmp_keys_dir}" --user "${SALT_USER}" > /dev/null 2>&1
+      mv "${tmp_keys_dir}"/"${service}".{pem,pub} "${keys_dir}/"
       rm -rf "${tmp_keys_dir}"
     fi
   else
-    if [[ -n "${SALT_MASTER_KEY_FILE}" ]]; then
-      # If a master key is provided via SALT_MASTER_KEY_FILE, check it is the same as the one in the keys directory
-      if ! cmp -s "${SALT_MASTER_KEY_FILE}.pem" "${SALT_KEYS_DIR}/master.pem" ||
-         ! cmp -s "${SALT_MASTER_KEY_FILE}.pub" "${SALT_KEYS_DIR}/master.pub"; then
-        log_error "SALT_MASTER_KEY_FILE is set to '${SALT_MASTER_KEY_FILE}' but keys don't match the master keys inside '${SALT_KEYS_DIR}'."
+    log_info "     Using existing keys ..."
+    if [[ -n "${key_pair_file}" ]]; then
+      # If a key is provided via key_pair_file, check whether it is the same as the one in the keys directory
+      if ! cmp -s "${key_pair_file}.pem" "${keys_dir}/${service}.pem" ||
+         ! cmp -s "${key_pair_file}.pub" "${keys_dir}/${service}.pub"; then
+        log_error "     ${key_file_env_var} is set to '${key_pair_file}' but keys don't match the ${service} keys inside '${keys_dir}'."
         return 1
       fi
     fi
@@ -243,29 +292,26 @@ function _setup_master_sign_keys()
   log_info " ==> Setting up master_sign keys ..."
 
   if [[ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]]; then
-    if [[ ! -f "${SALT_MASTER_SIGN_KEY_FILE}.pem" || ! -f "${SALT_MASTER_SIGN_KEY_FILE}.pub" ]]; then
-      [[ -f "${SALT_MASTER_SIGN_KEY_FILE}.pem" ]] || log_error "'${SALT_MASTER_SIGN_KEY_FILE}.pem' doesn't exist"
-      [[ -f "${SALT_MASTER_SIGN_KEY_FILE}.pub" ]] || log_error "'${SALT_MASTER_SIGN_KEY_FILE}.pub' doesn't exist"
-      return 1
-    fi
+    # shellcheck disable=SC2310
+    _check_key_pair_exists "${SALT_MASTER_SIGN_KEY_FILE}" || return 1
   fi
 
   if [[ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ]]; then
     if [[ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]]; then
-      # Copy master_sign keys provided via external files
-      log_info "Linking '${SALT_MASTER_SIGN_KEY_FILE}' keys to '${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.{pem,pub}' ..."
-      ln -sfn "${SALT_MASTER_SIGN_KEY_FILE}.pem" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem"
-      ln -sfn "${SALT_MASTER_SIGN_KEY_FILE}.pub" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub"
+      # Link master_sign keys provided via external files
+      local target_key_pair="${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}"
+      log_info "     Linking '${SALT_MASTER_SIGN_KEY_FILE}' keys to '${target_key_pair}.{pem,pub}' ..."
+      _symlink_key_pair_files "${SALT_MASTER_SIGN_KEY_FILE}" "${target_key_pair}"
     else
-      log_info "Generating signed keys ..."
-      gen_signed_keys "${SALT_KEYS_DIR}"
+      log_info "     Generating signed keys ..."
+      gen_signed_keys "${SALT_KEYS_DIR}" > /dev/null
     fi
   else
     if [[ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]]; then
       # If a master_sign key-pair is provided via SALT_MASTER_SIGN_KEY_FILE, check it is the same as the one in the keys directory
       if ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pem" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ||
          ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pub" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub"; then
-        log_error "SALT_MASTER_SIGN_KEY_FILE is set to '${SALT_MASTER_SIGN_KEY_FILE}' but keys don't match the master_sign keys inside '${SALT_KEYS_DIR}'."
+        log_error "     SALT_MASTER_SIGN_KEY_FILE is set to '${SALT_MASTER_SIGN_KEY_FILE}' but keys don't match the master_sign keys inside '${SALT_KEYS_DIR}'."
         return 1
       fi
     fi
@@ -273,17 +319,17 @@ function _setup_master_sign_keys()
 
   if [[ -n "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" ]]; then
     if [[ ! -f "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" ]]; then
-      log_error "SALT_MASTER_PUBKEY_SIGNATURE_FILE is set to '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' but it doesn't exist."
+      log_error "     SALT_MASTER_PUBKEY_SIGNATURE_FILE is set to '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' but it doesn't exist."
       return 1
     fi
 
     if [[ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}" ]]; then
-      log_info "Linking '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' to '${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}' ..."
+      log_info "     Linking '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' to '${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}' ..."
       ln -sfn "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}"
     else
       # If a master_pubkey_signature is provided via SALT_MASTER_PUBKEY_SIGNATURE_FILE, check it is the same as the one in the keys directory
       if ! cmp -s "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}"; then
-        log_error "SALT_MASTER_PUBKEY_SIGNATURE_FILE is set to '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' but it doesn't match the ${SALT_MASTER_PUBKEY_SIGNATURE} inside '${SALT_KEYS_DIR}'."
+        log_error "     SALT_MASTER_PUBKEY_SIGNATURE_FILE is set to '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' but it doesn't match the ${SALT_MASTER_PUBKEY_SIGNATURE} inside '${SALT_KEYS_DIR}'."
         return 1
       fi
     fi
@@ -337,19 +383,19 @@ function _setup_gpgkeys()
   _check_and_link_gpgkey 'SALT_GPG_PUBLIC_KEY_FILE' "${public_key}"
 
   if [[ ! -d "${SALT_KEYS_GPGKEYS_DIR}" || -z "$(ls -A "${SALT_KEYS_GPGKEYS_DIR}")" ]]; then
-    log_info "Could not find GPG keys. GPG setup skipped."
+    log_info "     Could not find GPG keys. GPG setup skipped."
     return 0
   fi
 
   if [[ ! -f "${private_key}" || ! -f "${public_key}" ]]; then
-    log_error "GPG keys are not valid. Please, check the documentation for more information:"
-    log_error "  - https://github.com/cdalvaro/docker-salt-master#gpg-keys-for-renderers"
+    log_error "     GPG keys are not valid. Please, check the documentation for more information:"
+    log_error "      - https://github.com/cdalvaro/docker-salt-master#gpg-keys-for-renderers"
     [[ -f "${private_key}" ]] || log_error "GPG private key: '${private_key##*/}' doesn't exist"
     [[ -f "${public_key}" ]] || log_error "GPG public key: '${public_key##*/}' doesn't exist"
     return 1
   fi
 
-  log_info "Importing GPG keys ..."
+  log_info "     Importing GPG keys ..."
 
   local SALT_GPGKEYS_DIR="${SALT_ROOT_DIR}"/gpgkeys
   mkdir -p "${SALT_GPGKEYS_DIR}"
@@ -361,7 +407,7 @@ function _setup_gpgkeys()
   exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --import "${private_key}"
   exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --import "${public_key}"
 
-  log_info "Setting trust level to ultimate ..."
+  log_info "     Setting trust level to ultimate ..."
   local key_id="$(exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --list-packets "${private_key}" | awk '/keyid:/{ print $2 }' | head -1)"
   (echo trust & echo 5 & echo y & echo quit) | exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --command-fd 0 --edit-key "${key_id}"
 }
@@ -374,7 +420,7 @@ function _setup_gpgkeys()
 function setup_salt_keys()
 {
   log_info "Setting up salt keys ..."
-  _setup_master_keys
+  setup_keys_for_service master SALT_MASTER_KEY_FILE "${SALT_KEYS_DIR}"
   [[ "${SALT_MASTER_SIGN_PUBKEY}" == True ]] && _setup_master_sign_keys
   _setup_gpgkeys
 
@@ -513,6 +559,78 @@ EOF
 
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  configure_salt_minion
+#   DESCRIPTION:  Configure salt-minion if service is set to be enabled.
+#----------------------------------------------------------------------------------------------------------------------
+function configure_salt_minion()
+{
+  rm -f /etc/supervisor/conf.d/salt-minion.conf
+  [[ ${SALT_MINION_ENABLED,,} == true ]] || return 0
+
+  log_info "Configuring salt-minion service ..."
+
+  # Get master's fingerprint
+  log_info " ==> Getting master's fingerprint ..."
+  SALT_MASTER_FINGERPRINT="$(salt-key -f master.pub | grep -Ei 'master.pub: ([^\s]+)' | awk '{print $2}')"
+
+  # Update main configuration
+  exec_as_salt cp -p "${SALT_RUNTIME_DIR}/config/minion.yml" "${SALT_ROOT_DIR}/minion"
+
+  update_template "${SALT_ROOT_DIR}/minion" \
+    SALT_MINION_ID \
+    SALT_LOG_LEVEL \
+    SALT_LEVEL_LOGFILE \
+    SALT_LOGS_DIR \
+    SALT_CACHE_DIR \
+    SALT_MINION_CONFS_DIR \
+    SALT_MINION_KEYS_DIR \
+    SALT_USER \
+    SALT_MASTER_FINGERPRINT \
+    SALT_MASTER_SIGN_PUBKEY
+
+  # Setup keys
+  setup_keys_for_service minion SALT_MINION_KEY_FILE "${SALT_MINION_KEYS_DIR}"
+
+  if [[ "${SALT_MASTER_SIGN_PUBKEY}" == True ]]; then
+    # Copy master_sign.pub into the pki minion directory
+    log_info " ==> Copying master_sign.pub ..."
+    if [[ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub" ]]; then
+      log_error "SALT_MASTER_SIGN_PUBKEY is enabled but ${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub is not found."
+      return 1
+    fi
+    cp -fp "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub" "${SALT_MINION_KEYS_DIR}/master_sign.pub"
+    chown "${SALT_USER}": "${SALT_MINION_KEYS_DIR}/master_sign.pub"
+  else
+    [[ -f "${SALT_MINION_KEYS_DIR}/master_sign.pub" ]] && rm -f "${SALT_MINION_KEYS_DIR}/master_sign.pub"
+  fi
+
+  # Preaccept minion's keys
+  log_info " ==> Preaccepting minion's keys ..."
+  cp -fp "${SALT_MINION_KEYS_DIR}/minion.pub" "${SALT_KEYS_DIR}/minions/${SALT_MINION_ID}"
+  chown "${SALT_USER}": "${SALT_KEYS_DIR}/minions/${SALT_MINION_ID}"
+
+  # Configure supervisord to start salt-minion
+  log_info " ==> Configuring supervisord to start salt-minion ..."
+  cat > /etc/supervisor/conf.d/salt-minion.conf <<EOF
+[program:salt-minion]
+priority=20
+directory=${SALT_HOME}
+environment=HOME=${SALT_HOME}
+command=/usr/bin/salt-minion
+user=root
+autostart=true
+autorestart=true
+stopsignal=TERM
+stdout_logfile=/dev/null
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/null
+stderr_logfile_maxbytes=0
+EOF
+
+}
+
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  configure_salt_formulas
 #   DESCRIPTION:  Configure salt-formulas.
 #----------------------------------------------------------------------------------------------------------------------
@@ -586,7 +704,7 @@ function initialize_datadir()
   fi
   mkdir -p "${SALT_LOGS_DIR}/salt" "${SALT_LOGS_DIR}/supervisor"
   chmod -R 0755 "${SALT_LOGS_DIR}/supervisor"
-  chown -R root: "${SALT_LOGS_DIR}/supervisor"
+  chown -R "${SALT_USER}": "${SALT_LOGS_DIR}/supervisor"
 
   # Salt formulas
   if [[ -w "${SALT_FORMULAS_DIR}" ]]; then
@@ -628,18 +746,9 @@ ${SALT_LOGS_DIR}/supervisor/*.log {
 }
 EOF
 
-  # configure salt master, minion and key log rotation
+  # configure salt logs rotation
   cat > "${LOGROTATE_CONFIG_FILE}" <<EOF
-${SALT_LOGS_DIR}/salt/master.log {
-  ${SALT_LOG_ROTATE_FREQUENCY}
-  missingok
-  rotate ${SALT_LOG_ROTATE_RETENTION}
-  compress
-  notifempty
-  create 0640 ${SALT_USER} ${SALT_USER}
-}
-
-${SALT_LOGS_DIR}/salt/key.log {
+${SALT_LOGS_DIR}/salt/*.log {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
@@ -649,21 +758,6 @@ ${SALT_LOGS_DIR}/salt/key.log {
 }
 
 EOF
-
-  if [[ "${SALT_API_ENABLED,,}" == true ]]; then
-    # configure salt-api log rotation
-    cat >> "${LOGROTATE_CONFIG_FILE}" <<EOF
-${SALT_LOGS_DIR}/salt/api.log {
-  ${SALT_LOG_ROTATE_FREQUENCY}
-  missingok
-  rotate ${SALT_LOG_ROTATE_RETENTION}
-  compress
-  notifempty
-  create 0640 ${SALT_USER} ${SALT_USER}
-}
-
-EOF
-  fi
 
 }
 
@@ -734,10 +828,13 @@ function initialize_system()
   configure_logrotate
   configure_timezone
   configure_salt_master
+  setup_salt_keys
   configure_salt_api
+  configure_salt_minion
   configure_salt_formulas
   configure_config_reloader
-  setup_salt_keys
   install_python_additional_packages
   rm -rf /var/run/supervisor.sock
+
+  log_info "System initialized successfully!"
 }

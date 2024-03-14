@@ -9,6 +9,13 @@
 # The master will automatically include all config files from:
 default_include: {{SALT_CONFS_DIR}}/*.conf
 
+# The tcp port used by the publisher:
+publish_port: 4505
+
+# The port used by the communication interface. The ret (return) port is the
+# interface used for the file server, authentication, job returns, etc.
+ret_port: 4506
+
 # The user under which the salt master will run.
 user: {{SALT_USER}}
 
@@ -42,15 +49,6 @@ master_sign_pubkey: {{SALT_MASTER_SIGN_PUBKEY}}
 master_sign_key_name: {{SALT_MASTER_SIGN_KEY_NAME}}
 master_pubkey_signature: {{SALT_MASTER_PUBKEY_SIGNATURE}}
 master_use_pubkey_signature: {{SALT_MASTER_USE_PUBKEY_SIGNATURE}}
-
-# Use TLS/SSL encrypted connection between master and minion.
-# Can be set to a dictionary containing keyword arguments corresponding to Python's
-# 'ssl.wrap_socket' method.
-# Default is None.
-#ssl:
-#    keyfile: <path_to_keyfile>
-#    certfile: <path_to_certfile>
-#    ssl_version: PROTOCOL_TLSv1_2
 
 
 #####     Salt-SSH Configuration     #####
