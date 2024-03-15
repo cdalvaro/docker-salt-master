@@ -78,7 +78,7 @@ ok "curl command"
 
 # Stop and start with salt-api pass via file
 echo "==> Stopping previous container ..."
-cleanup
+cleanup || error "Unable to stop previour container"
 
 echo "==> Starting docker-salt-master (${PLATFORM}) with salt-api config and password via file ..."
 export SALT_API_USER_PASS_FILE=salt_api_user_pass
