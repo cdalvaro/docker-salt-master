@@ -28,7 +28,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.0_1
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.0_2
 ```
 
 You can also pull the `latest` tag, which is built from the repository `HEAD`
@@ -373,6 +373,45 @@ Begin executing salt states with `pepper`:
 
 ```sh
 pepper '*' test.ping
+```
+
+### Salt Minion
+
+This image contains support for running a built-in `salt-minion` service.
+You can enable it by setting the environment variable `SALT_MINION_ENABLED` to `True`.
+
+The `salt-minion` will be automatically accepted by the master. Keys will be automatically configured,
+even if `SALT_MASTER_SIGN_PUBKEY=True`.
+
+However, minion keys can be provided via Docker secrets.
+To do that, you have to set the env variable `SALT_MINION_KEY_FILE`,
+pointing to the path inside the container of the minion-key-pair {pem,pub} files without extensions.
+
+Minion's keys will be stored inside the `keys/SALT_MINION_ID/` directory.
+
+This minion can be configured in the same way as the master.
+You can add your custom configuration files inside a `minion_config/` directory
+and mount it into `/home/salt/data/minion_config/`.
+
+The default id of the minion is `builtin.minion`.
+But you can change it by setting the environment variable `SALT_MINION_ID`.
+
+Log levels are the same as the master,
+and you can set them by using the `SALT_LOG_LEVEL` and `SALT_LEVEL_LOGFILE` environment variables.
+
+Here you have an example of how to run a `salt-master` with a built-in `salt-minion`:
+
+```sh
+docker run --name salt_stack --detach \
+    --publish 4505:4505 --publish 4506:4506 \
+    --env 'SALT_MINION_ENABLED=True' \
+    --env 'SALT_MINION_ID=control-minion' \
+    --env 'SALT_MASTER_SIGN_PUBKEY=True' \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/config/:/home/salt/data/config/ \
+    --volume $(pwd)/minion_config/:/home/salt/data/minion_config/ \
+    ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
 ### Host Mapping
@@ -738,6 +777,8 @@ installation.
 | `SALT_API_USER_PASS_FILE`                                                                                                             | `SALT_API_USER` password file path. Use this variable to set the path of a file containing the password for the `SALT_API_USER`. Useful to load the password from secrets. Has priority over `SALT_API_USER_PASS`. _Unset_ by default.                      |
 | `SALT_API_USER_PASS`                                                                                                                  | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `True`, `SALT_API_USER` is not empty and `SALT_API_USER_PASS_FILE` is unset. _Unset_ by default.                                                                                        |
 | `SALT_API_CERT_CN`                                                                                                                    | Common name in the request. Default: `localhost`.                                                                                                                                                                                                           |
+| `SALT_MINION_ENABLED`                                                                                                                 | Enable `salt-minion` service. Default: `False`.                                                                                                                                                                                                             |
+| `SALT_MINION_ID`                                                                                                                      | Set the id of the `salt-minion` service. Default: `builtin.minion`.                                                                                                                                                                                         |
 | [`SALT_MASTER_SIGN_PUBKEY`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-sign-pubkey)                   | Sign the master auth-replies with a cryptographic signature of the master's public key. Possible values: `True` or `False`. Default: `False`.                                                                                                               |
 | [`SALT_MASTER_USE_PUBKEY_SIGNATURE`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-use-pubkey-signature) | Instead of computing the signature for each auth-reply, use a pre-calculated signature. This option requires `SALT_MASTER_SIGN_PUBKEY` set to `True`. Possible values: `True` or `False`. Default: `True`.                                                  |
 | [`SALT_MASTER_SIGN_KEY_NAME`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-sign-key-name)               | The customizable name of the signing-key-pair without suffix. Default: `master_sign`.                                                                                                                                                                       |
