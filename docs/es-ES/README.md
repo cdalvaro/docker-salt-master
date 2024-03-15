@@ -25,7 +25,7 @@ Para otros métodos de instalación de `salt-master`, por favor consulta la [gu�
 Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) y es el método recomendado para la instalación.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.0_1
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.0_2
 ```
 
 También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
@@ -346,6 +346,45 @@ Empieza ejecutando estados de Salt con `pepper`:
 
 ```sh
 pepper '*' test.ping
+```
+
+### Salt Minion
+
+Esta imagen contiene soporte para ejecutar un servicio `salt-minion` integrado.
+Puedes habilitarlo estableciendo la variable de entorno `SALT_MINION_ENABLED` a `True`.
+
+El `salt-minion` será aceptado automáticamente por el master.
+Y las claves se configurarán automáticamente, incluso si `SALT_MASTER_SIGN_PUBKEY=True`.
+
+Sin embargo, las claves del minion pueden proporcionarse a través de _secrets_ de Docker.
+Para hacerlo, debes establecer la variable de entorno `SALT_MINION_KEY_FILE`,
+apuntando a la ruta dentro del contenedor de los archivos del par de claves del minion {pem,pub} sin extensiones.
+
+Las claves del minion se almacenarán en el directorio `keys/SALT_MINION_ID/`.
+
+Este minion puede configurarse de la misma manera que el master.
+Puedes añadir tus archivos de configuración personalizados dentro de un directorio `minion_config/`
+y montarlo en `/home/salt/data/minion_config/`.
+
+El id por defecto del minion es `builtin.minion`.
+Pero puedes cambiarlo estableciendo la variable de entorno `SALT_MINION_ID`.
+
+El nivel de los logs del minion es el mismo que el del master,
+y puedes establecerlos usando las variables de entorno `SALT_LOG_LEVEL` y `SALT_LEVEL_LOGFILE`.
+
+Aquí tienes un ejemplo de cómo ejecutar un `salt-master` con un `salt-minion` integrado:
+
+```sh
+docker run --name salt_stack --detach \
+    --publish 4505:4505 --publish 4506:4506 \
+    --env 'SALT_MINION_ENABLED=True' \
+    --env 'SALT_MINION_ID=control-minion' \
+    --env 'SALT_MASTER_SIGN_PUBKEY=True' \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/config/:/home/salt/data/config/ \
+    --volume $(pwd)/minion_config/:/home/salt/data/minion_config/ \
+    ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
 ### Mapeo de Host
@@ -678,6 +717,8 @@ A continuación puedes encontrar una lista con las opciones disponibles que pued
 | `SALT_API_USER_PASS_FILE`                                                                                                             | Archivo con la contraseña para el usuario `SALT_API_USER`. Usa esta variable para establecer la ruta del archivo que contiene la contraseña del usuario `SALT_API_USER`. Es útil para cargar la contraseña usando _secrets_. Esta variable tiene preferencia frente a `SALT_API_USER_PASS`. Por defecto: _No establecida_. |
 | `SALT_API_USER_PASS`                                                                                                                  | Contraseña del usuario `SALT_API_USER`. Requerida si `SALT_API_SERVICE_ENBALED` es `True`, `SALT_API_USER` no está vacía y no se ha definido `SALT_API_USER_PASS_FILE`. Por defecto: _No establecida_.                                                                                                                     |
 | `SALT_API_CERT_CN`                                                                                                                    | _Common name_ en el certificado de `salt-api`. Por defecto: `localhost`.                                                                                                                                                                                                                                                   |
+| `SALT_MINION_ENABLED`                                                                                                                 | Habilita el servicio `salt-minion`. Por defecto: `False`.                                                                                                                                                                                                                                                                  |
+| `SALT_MINION_ID`                                                                                                                      | El id del minion. Por defecto: `builtin.minion`.                                                                                                                                                                                                                                                                           |
 | [`SALT_MASTER_SIGN_PUBKEY`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-sign-pubkey)                   | Firma las respuestas de `salt-master` con una firma criptográfica usando la clave pública del master. Valores permitidos: `True` o `False`. Por defecto: `False`.                                                                                                                                                          |
 | [`SALT_MASTER_USE_PUBKEY_SIGNATURE`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-use-pubkey-signature) | En lugar de calcular la firma para cada respuesta, usa una firma pre-calculada. Esta opción requiere que `SALT_MASTER_SIGN_PUBKEY` sea `True`. Valores posibles: `True` or `False`. Por defecto: `True`.                                                                                                                   |
 | [`SALT_MASTER_SIGN_KEY_NAME`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-sign-key-name)               | El nombre del par de claves de firma sin sufijo. Por defecto: `master_sign`.                                                                                                                                                                                                                                               |
