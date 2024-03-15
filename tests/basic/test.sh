@@ -29,12 +29,12 @@ check_equal "${CURRENT_MASTER_VERSION%%-*}" "${EXPECTED_VERSION%%-*}" "salt-mast
 
 echo "==> Checking salt-minion version ..."
 output=$(docker-exec salt-minion --versions)
-echo "#{output}"
+echo "${output}"
 
 CURRENT_MINION_VERSION="$(echo -n "${output}" | grep -Ei 'salt: ([^\s]+)' | awk '{print $2}')"
 check_equal "${CURRENT_MINION_VERSION%%-*}" "${EXPECTED_VERSION%%-*}" "salt-minion version"
 
-docker-exec bash -c 'test -z "$(ps aux | grep salt-minion | grep -v grep)"' || error "salt-minion is running inside the container"
+docker-exec bash -c 'test -z "$(ps aux | grep salt-minion | grep -v grep)"' || error "salt-minion is running inside the container by default"
 ok "salt-minion is not running inside the container"
 
 # Test minion connection

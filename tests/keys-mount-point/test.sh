@@ -15,12 +15,14 @@ COMMON_FILE="${SCRIPT_PATH}/../lib/common.sh"
 source "${COMMON_FILE}"
 trap cleanup EXIT
 
+KEYS_DIR="${SCRIPT_PATH}/keys"
+
 # Run test instance
 echo "==> Starting docker-salt-master (${PLATFORM}) ..."
-mkdir keys
+mkdir -p "${KEYS_DIR}"
 start_container_and_wait \
   --env SALT_MASTER_SIGN_PUBKEY=True \
-  --volume "$(pwd)/keys":/home/salt/data/keys || error "container started"
+  --volume "${KEYS_DIR}":/home/salt/data/keys || error "container started"
 ok "container started"
 
 # Test salt-master is running
@@ -30,13 +32,13 @@ ok "healthcheck"
 
 # Test keys permissions
 echo "==> Checking keys permissions ..."
-KEYS_PERMISSIONS="$(find keys -type f -exec stat -c "%n %a %u:%g" {} \; | sort)"
+KEYS_PERMISSIONS="$(find "${KEYS_DIR}" -type f -exec stat -c "%n %a %u:%g" {} \; | sort)"
 EXPECTED_PERMISSIONS=$(cat <<EOF
-keys/master.pem 400 ${USER_UID}:${USER_GID}
-keys/master.pub 644 ${USER_UID}:${USER_GID}
-keys/master_pubkey_signature 644 ${USER_UID}:${USER_GID}
-keys/master_sign.pem 400 ${USER_UID}:${USER_GID}
-keys/master_sign.pub 644 ${USER_UID}:${USER_GID}
+${KEYS_DIR}/master.pem 400 ${USER_UID}:${USER_GID}
+${KEYS_DIR}/master.pub 644 ${USER_UID}:${USER_GID}
+${KEYS_DIR}/master_pubkey_signature 644 ${USER_UID}:${USER_GID}
+${KEYS_DIR}/master_sign.pem 400 ${USER_UID}:${USER_GID}
+${KEYS_DIR}/master_sign.pub 644 ${USER_UID}:${USER_GID}
 EOF
 )
 check_equal "${KEYS_PERMISSIONS}" "${EXPECTED_PERMISSIONS}" "keys permissions"
@@ -46,7 +48,7 @@ echo "==> Creating signed keys with app:gen-signed-keys ..."
 GEN_SIGNED_KEYS_OUTPUT=$(docker run --rm \
   --env SALT_MASTER_SIGN_PUBKEY=True \
   --env PUID="${USER_UID}" --env PGID="${USER_GID}" \
-  --volume "$(pwd)/keys":/home/salt/data/keys \
+  --volume "${KEYS_DIR}":/home/salt/data/keys \
   --platform "${PLATFORM}" "${IMAGE_NAME}" app:gen-signed-keys)
 RETURN_CODE=$?
 echo "${GEN_SIGNED_KEYS_OUTPUT}"
@@ -55,8 +57,8 @@ echo "${GEN_SIGNED_KEYS_OUTPUT}"
 ok "app:gen-signed-keys"
 
 # Check generated keys directory
-EXPECTED_DIRECTORY=$(find keys/generated -type d | tail -n1)
-SIGNED_KEYS_DIRECTORY="keys/$(echo "${GEN_SIGNED_KEYS_OUTPUT}" | tail -n1 | sed -E 's/.* //')"
+EXPECTED_DIRECTORY=$(find "${KEYS_DIR}"/generated -type d | tail -n1)
+SIGNED_KEYS_DIRECTORY="${KEYS_DIR}/$(echo "${GEN_SIGNED_KEYS_OUTPUT}" | tail -n1 | sed -E 's/.* //')"
 check_equal "${SIGNED_KEYS_DIRECTORY}" "${EXPECTED_DIRECTORY}" "generated signed keys directory"
 
 # Check signed keys permissions

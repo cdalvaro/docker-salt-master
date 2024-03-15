@@ -50,14 +50,24 @@ function cleanup()
   if [[ -n "${salt_master_container}" ]]; then
     echo "  - Removing ${CONTAINER_NAME} docker container ..."
     docker container rm --force --volumes "${salt_master_container}" > /dev/null
+    sleep 5
   fi
 
-  local SALT_MINION_PIDS=$(pgrep -f salt-minion)
-  if [[ -n "${SALT_MINION_PIDS}" ]]; then
-    echo "  - Stopping salt-minion ..."
-    sudo kill "${SALT_MINION_PIDS}"
-    sudo rm -f /var/log/salt/minion
+  if [[ -f "${SCRIPT_PATH}/salt-minion.pid" ]]; then
+    MINION_PID=$(cat "${SCRIPT_PATH}/salt-minion.pid")
+    echo "  - Stopping salt-minion (${MINION_PID}) ..."
+    sudo kill "${MINION_PID}"
+    sleep 5
   fi
+
+  echo "  - Removing logs ..."
+  LOGS_DIR="${SCRIPT_PATH}/logs"
+  if [[ -d "${LOGS_DIR}" ]]; then
+    for service in master minion api key; do
+      [[ -f "${LOGS_DIR}"/salt/"${service}".log ]] && rm -fv "${LOGS_DIR}"/salt/"${service}".log
+    done
+  fi
+  [[ -f /var/log/salt/minion ]] && sudo rm -fv /var/log/salt/minion
 
   echo "🧹 All cleanup tasks done!"
 }
@@ -135,6 +145,20 @@ function master_log()
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  builtin_minion_log
+#   DESCRIPTION:  Print built-in salt-minion log.
+#----------------------------------------------------------------------------------------------------------------------
+function builtin_minion_log()
+{
+  local LOGS_DIR="${SCRIPT_PATH}/logs"
+  local SALT_MINION_LOG="${LOGS_DIR}/salt/minion.log"
+
+  [[ -f "${SALT_MINION_LOG}" ]] || return 0
+  echo "📝 built-in salt-minion log (${SALT_MINION_LOG})"
+  sudo cat "${SALT_MINION_LOG}"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  minion_log
 #   DESCRIPTION:  Print salt-minion log.
 #----------------------------------------------------------------------------------------------------------------------
@@ -204,7 +228,7 @@ autosign_grains:
 EOF
 
   echo "==> Starting salt-minion ..."
-  sudo salt-minion --log-file-level=info --daemon &
+  sudo salt-minion --log-file-level=info --daemon --pid-file "${SCRIPT_PATH}/salt-minion.pid" &
   sleep 40
 
   test -n "$(pgrep -f salt-minion)"
@@ -228,6 +252,7 @@ function error()
   echo "🔥 $*" >&2
   container_log >&2
   master_log >&2
+  builtin_minion_log >&2
   minion_log >&2
   return 1
 }

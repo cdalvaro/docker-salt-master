@@ -60,7 +60,7 @@ ok "python package ${PYTHON_TEST_PACKAGE2_NAME} is installed"
 
 # Stop and start with salt-api pass via file
 echo "==> Stopping previous container ..."
-cleanup
+cleanup || error "Unable to stop previour container"
 
 echo "==> Starting docker-salt-master (${PLATFORM}) with PYTHON_PACKAGES ..."
 start_container_and_wait \
@@ -75,7 +75,7 @@ check_equal "$(pip_pkg_version "${PYTHON_TEST_PACKAGE1_NAME}")" "${PYTHON_TEST_P
 
 # Stop and start with salt-api pass via file
 echo "==> Stopping previous container ..."
-cleanup
+cleanup || error "Unable to stop previour container"
 
 echo "==> Starting docker-salt-master (${PLATFORM}) with PYTHON_PACKAGES_FILE and PYTHON_PACKAGES ..."
 start_container_and_wait \

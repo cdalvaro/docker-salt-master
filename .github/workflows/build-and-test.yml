@@ -163,6 +163,10 @@ jobs:
         if: always()
         run: tests/salt-api/test.sh
 
+      - name: Execute salt-minion tests
+        if: always()
+        run: tests/salt-minion/test.sh
+
       - name: Execute gitfs tests
         if: always()
         env:
