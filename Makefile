@@ -1,3 +1,26 @@
+# Check if Docker is installed
+DOCKER := $(shell command -v docker 2> /dev/null)
+
+# Check if Podman is installed
+PODMAN := $(shell command -v podman 2> /dev/null)
+
+# If neither Docker nor Podman is installed, exit with an error
+ifeq (,$(or $(DOCKER),$(PODMAN)))
+$(error "Neither Docker nor Podman is installed.")
+endif
+
+# If Podman is installed, use it instead of Docker
+ifdef PODMAN
+CONTAINER_ENGINE := podman
+else
+CONTAINER_ENGINE := docker
+endif
+
+IMAGE_NAME := ghcr.io/cdalvaro/docker-salt-master
+CONTAINER_NAME := docker-salt-master-demo
+
+.PHONY: all help build release quickstart stop purge log
+
 all: build
 
 help:
@@ -12,33 +35,33 @@ help:
 	@echo "   6. make log          - view log"
 
 build:
-	@docker build --tag=cdalvaro/docker-salt-master:latest . \
+	$(CONTAINER_ENGINE) build --tag=$(IMAGE_NAME):latest . \
 		--build-arg=BUILD_DATE="$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")" \
 		--build-arg=VCS_REF="$(shell git rev-parse --short HEAD)"
 
 release: build
-	@docker tag cdalvaro/docker-salt-master:latest \
-		cdalvaro/docker-salt-master:$(shell cat VERSION)
+	$(CONTAINER_ENGINE) tag $(IMAGE_NAME):latest \
+		$(IMAGE_NAME):$(shell cat VERSION)
 
 quickstart:
 	@echo "Starting docker-salt-master container..."
-	@docker run --name='docker-salt-master-demo' --detach \
+	$(CONTAINER_ENGINE) run --name=$(CONTAINER_NAME) --detach \
 		--publish=4505:4505/tcp --publish=4506:4506/tcp \
 		--env "PUID=$(shell id -u)" --env "PGID=$(shell id -g)" \
 		--env SALT_LOG_LEVEL=info \
 		--volume $(shell pwd)/roots/:/home/salt/data/srv/ \
 		--volume $(shell pwd)/keys/:/home/salt/data/keys/ \
 		--volume $(shell pwd)/logs/:/home/salt/data/logs/ \
-		cdalvaro/docker-salt-master:latest
+		$(IMAGE_NAME):latest
 	@echo "Type 'make log' for the log"
 
 stop:
 	@echo "Stopping container..."
-	@docker stop docker-salt-master-demo > /dev/null
+	$(CONTAINER_ENGINE) stop $(CONTAINER_NAME) > /dev/null
 
 purge: stop
 	@echo "Removing stopped container..."
-	@docker rm docker-salt-master-demo > /dev/null
+	$(CONTAINER_ENGINE) rm $(CONTAINER_NAME) > /dev/null
 
 log:
-	@docker logs --follow docker-salt-master-demo
+	$(CONTAINER_ENGINE) logs --follow $(CONTAINER_NAME)
