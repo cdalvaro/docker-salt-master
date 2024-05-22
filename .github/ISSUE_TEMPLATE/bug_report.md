@@ -1,10 +1,9 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: ''
+title: ""
 labels: bug
 assignees: cdalvaro
-
 ---
 
 **Describe the bug**
@@ -28,7 +27,7 @@ The full log with the outputted error.
 
 - Host OS: [e.g. `uname -a`]
 - Docker: [e.g. `docker --version`]
-- Image tag: [e.g. `3007.0_2`]
+- Image tag: [e.g. `3007.1`]
 
 **Additional context**
 Add any other context about the problem here.

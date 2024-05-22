@@ -4,8 +4,8 @@ ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
-ENV SALT_VERSION="3007.0"
-ENV IMAGE_REVISION="_2"
+ENV SALT_VERSION="3007.1"
+ENV IMAGE_REVISION=
 ENV IMAGE_VERSION="${SALT_VERSION}${IMAGE_REVISION}"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
@@ -30,14 +30,14 @@ WORKDIR ${SALT_BUILD_DIR}
 # Install packages
 # hadolint ignore=DL3008
 RUN apt-get update \
- && DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
+    && DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
     sudo ca-certificates apt-transport-https wget locales openssh-client gpg gpg-agent \
     supervisor logrotate git gettext-base tzdata inotify-tools psmisc \
- && DEBIAN_FRONTEND=noninteractive update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \
+    && DEBIAN_FRONTEND=noninteractive update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \
     locale-gen en_US.UTF-8 \
     dpkg-reconfigure locales \
- && DEBIAN_FRONTEND=noninteractive apt-get clean --yes \
- && rm -rf /var/lib/apt/lists/*
+    && DEBIAN_FRONTEND=noninteractive apt-get clean --yes \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install saltstack
 COPY assets/build ${SALT_BUILD_DIR}

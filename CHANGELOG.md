@@ -1,8 +1,12 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3007.0 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.0.html)
+Please refer to the [Salt 3007.1 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.1.html)
 for the list of changes in SaltStack.
+
+**3007.1**
+
+- Upgrade `salt-master` to `3007.1` _Chlorine_.
 
 **3007.0_2**
 
@@ -17,7 +21,7 @@ for the list of changes in SaltStack.
 
 **3007.0**
 
-- Upgrade `salt-master` to `3007.0` *Chlorine*.
+- Upgrade `salt-master` to `3007.0` _Chlorine_.
 - Change Docker base image to `ubuntu:jammy-20240227`.
 
 **3006.7_1**
@@ -26,13 +30,13 @@ for the list of changes in SaltStack.
 
 **3006.7**
 
-- Upgrade `salt-master` to `3006.7` *Sulfur*.
+- Upgrade `salt-master` to `3006.7` _Sulfur_.
 - Change Docker base image to `ubuntu:jammy-20240212`.
 - Update `pygit2` to version `1.14.1`.
 
 **3006.6**
 
-- Upgrade `salt-master` to `3006.6` *Sulfur*.
+- Upgrade `salt-master` to `3006.6` _Sulfur_.
 - Change Docker base image to `ubuntu:jammy-20240111`.
 - Update `pygit2` to version `1.14.0`.
 
@@ -42,13 +46,13 @@ for the list of changes in SaltStack.
 
 **3006.5**
 
-- Upgrade `salt-master` to `3006.5` *Sulfur*.
+- Upgrade `salt-master` to `3006.5` _Sulfur_.
 - Change Docker base image to `ubuntu:jammy-20231211.1`.
 - Update `pygit2` to version `1.13.3`.
 
 **3006.4**
 
-- Upgrade `salt-master` to `3006.4` *Sulfur*.
+- Upgrade `salt-master` to `3006.4` _Sulfur_.
 - Change Docker base image to `ubuntu:jammy-20231004`.
 - Upgrade `pygit2` to version `1.13.1`.
 
@@ -58,13 +62,13 @@ for the list of changes in SaltStack.
 
 **3006.3**
 
-- Upgrade `salt-master` to `3006.3` *Sulfur*.
+- Upgrade `salt-master` to `3006.3` _Sulfur_.
 - Change Docker base image to `ubuntu:jammy-20230816`.
 - Upgrade `pygit2` to version `1.12.2`.
 
 **3006.2**
 
-- Upgrade `salt-master` to `3006.2` *Sulfur*.
+- Upgrade `salt-master` to `3006.2` _Sulfur_.
 - Change Docker base image to `ubuntu:jammy-20230624`.
 
 **3006.1_1**
@@ -76,12 +80,12 @@ for the list of changes in SaltStack.
 
 **3006.1**
 
-- Upgrade `salt-master` to `3006.1` *Sulfur*.
+- Upgrade `salt-master` to `3006.1` _Sulfur_.
 - Change Docker base image to `ubuntu:jammy-20230425`.
 
 **3006.0**
 
-- Upgrade `salt-master` to `3006.0` *Sulfur*.
+- Upgrade `salt-master` to `3006.0` _Sulfur_.
 - Change Docker base image to `ubuntu:jammy-20230308`.
 - Use [_onedir_](https://docs.saltproject.io/en/latest/topics/releases/3006.0.html#onedir-packaging) system for installing salt.
 - Remove support for arm32 architecture.
@@ -92,7 +96,7 @@ for the list of changes in SaltStack.
 
 **3005.1-2**
 
-- Upgrade `salt-master` to `3005.1-2` *Phosphorus*.
+- Upgrade `salt-master` to `3005.1-2` _Phosphorus_.
 
 **3005.1_2**
 
@@ -119,7 +123,7 @@ for the list of changes in SaltStack.
 
 **3005.1**
 
-- Upgrade `salt-master` to `3005.1` *Phosphorus*.
+- Upgrade `salt-master` to `3005.1` _Phosphorus_.
 - Upgrade `salt-bootstrap` to version `2022.10.04`.
 - Change Docker base image to `ubuntu:jammy-20220815`.
 
@@ -136,7 +140,7 @@ for the list of changes in SaltStack.
 
 **3005**
 
-- Upgrade `salt-master` to `3005` *Phosphorus*.
+- Upgrade `salt-master` to `3005` _Phosphorus_.
 - Upgrade `salt-bootstrap` to version `2022.08.13`.
 - Change Docker base image to `ubuntu:jammy-20220801`.
 - Use `python3` default distro version.
@@ -146,12 +150,12 @@ for the list of changes in SaltStack.
 
 **3004.2**
 
-- Upgrade `salt-master` to `3004.2` *Silicon*.
+- Upgrade `salt-master` to `3004.2` _Silicon_.
 - Remove Jinja2 patch to avoid Markup import error.
 
 **3004.1**
 
-- Upgrade `salt-master` to `3004.1` *Silicon*.
+- Upgrade `salt-master` to `3004.1` _Silicon_.
 - Upgrade `salt-bootstrap` to version `2022.03.15`.
 - Upgrade `pygit2` to version `1.9.1`.
 - Upgrade `libgit2` to version `1.4.2`.
@@ -192,61 +196,61 @@ Support for the `USERMAP_UID` and `USERMAP_GID` env variables will be removed wi
 
 **3004**
 
-- Upgrade `salt-master` to `3004` *Silicon*.
+- Upgrade `salt-master` to `3004` _Silicon_.
 - Change Docker base image to `ubuntu:focal-20211006`.
 
 **3003.3**
 
-- Upgrade `salt-master` to `3003.3` *Aluminium*.
+- Upgrade `salt-master` to `3003.3` _Aluminium_.
 - Change Docker base image to `ubuntu:focal-20210827`.
 
 **3003.2**
 
-- Upgrade `salt-master` to `3003.2` *Aluminium*.
+- Upgrade `salt-master` to `3003.2` _Aluminium_.
 - Change Docker base image to `ubuntu:focal-20210723`.
 
 **3003.1**
 
-- Upgrade `salt-master` to `3003.1` *Aluminium*.
+- Upgrade `salt-master` to `3003.1` _Aluminium_.
 - Change Docker base image to `ubuntu:focal-20210609`.
 
 **3003**
 
-- Upgrade `salt-master` to `3003` *Aluminium*.
+- Upgrade `salt-master` to `3003` _Aluminium_.
 - Add python3 `timelib` `0.2.5`.
 - Change Docker base image to `ubuntu:focal-20210325`.
 - Replace `m2crypto` by `pycryptodome` (see [saltstack/salt#56625](https://github.com/saltstack/salt/pull/56625)).
 
 **3002.6**
 
-- Upgrade `salt-master` to `3002.6` *Magnesium*.
+- Upgrade `salt-master` to `3002.6` _Magnesium_.
 
 **3002.5**
 
-- Upgrade `salt-master` to `3002.5` *Magnesium*.
+- Upgrade `salt-master` to `3002.5` _Magnesium_.
 
 **3002.4**
 
-- Upgrade `salt-master` to `3002.4` *Magnesium*.
+- Upgrade `salt-master` to `3002.4` _Magnesium_.
 
 **3002.3**
 
-- Upgrade `salt-master` to `3002.3` *Magnesium*.
+- Upgrade `salt-master` to `3002.3` _Magnesium_.
 
 **3002.2**
 
-- Upgrade `salt-master` to `3002.2` *Magnesium*.
+- Upgrade `salt-master` to `3002.2` _Magnesium_.
 
 **3002.1**
 
-- Upgrade `salt-master` to `3002.1` *Magnesium*.
+- Upgrade `salt-master` to `3002.1` _Magnesium_.
 - Change Docker base image to `ubuntu:focal-20201008`.
 - Fix issue changing _read-only_ directories ownership.
   ([@Kidswiss](https://github.com/Kidswiss) - [#47](https://github.com/cdalvaro/docker-salt-master/pull/47))
 
 **3002**
 
-- Upgrade `salt-master` to `3002` *Magnesium*.
+- Upgrade `salt-master` to `3002` _Magnesium_.
 - Bring back support for Linux ARMv7 platform.
 - Remove patch for muting sudo `RLIMIT_CORE` message.
 - Install `pygit2` and `m2crypto` from ubuntu repositories.
@@ -254,13 +258,13 @@ Support for the `USERMAP_UID` and `USERMAP_GID` env variables will be removed wi
 
 **3001.1**
 
-- Upgrade `salt-master` to `3001.1` *Sodium*.
+- Upgrade `salt-master` to `3001.1` _Sodium_.
 - Upgrade `m2crypto` to version `0.36.0`.
 - Change Docker base image to `ubuntu:focal-20200720`.
 
 **3001**
 
-- Upgrade `salt-master` to `3001` *Sodium*.
+- Upgrade `salt-master` to `3001` _Sodium_.
 - Upgrade Python to version `3.8`.
 - Upgrade `libgit2` to version `1.0.1`.
 - Change Docker base image to `ubuntu:focal-20200606`.
@@ -302,7 +306,7 @@ Support for the `USERMAP_UID` and `USERMAP_GID` env variables will be removed wi
 
 **3000**
 
-- Upgrade `salt-master` to `3000` *Neon*.
+- Upgrade `salt-master` to `3000` _Neon_.
 - Change Docker base image to `ubuntu:bionic-20200112`.
 - Upgrade pygit2 to version `1.0.3`.
 
