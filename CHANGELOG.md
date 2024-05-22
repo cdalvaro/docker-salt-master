@@ -7,6 +7,7 @@ for the list of changes in SaltStack.
 **3007.1**
 
 - Upgrade `salt-master` to `3007.1` _Chlorine_.
+- Change Docker base image to `ubuntu:noble-20240429`.
 
 **3007.0_2**
 
