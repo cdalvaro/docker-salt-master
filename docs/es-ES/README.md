@@ -1,4 +1,4 @@
-# Salt Master v3007.0 _Chlorine_ Contenerizado
+# Salt Master v3007.1 _Chlorine_ Contenerizado
 
 ![Banner](/social/docker-salt-master-social.jpg)
 
@@ -25,7 +25,7 @@ Para otros métodos de instalación de `salt-master`, por favor consulta la [gu�
 Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) y es el método recomendado para la instalación.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.0_2
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.1
 ```
 
 También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
@@ -816,8 +816,8 @@ Muchas gracias:
 - https://docs.saltproject.io/en/getstarted/
 - https://docs.saltproject.io/en/latest/contents.html
 
-[saltproject_badge]: https://img.shields.io/badge/Salt-v3007.0-lightgrey.svg?logo=Saltstack
-[saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3007.0.html "Salt Project Release Notes"
+[saltproject_badge]: https://img.shields.io/badge/Salt-v3007.1-lightgrey.svg?logo=Saltstack
+[saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3007.1.html "Salt Project Release Notes"
 [ubuntu_badge]: https://img.shields.io/badge/ubuntu-jammy--20240227-E95420.svg?logo=Ubuntu
 [ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
 [docker_size_badge]: https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED
