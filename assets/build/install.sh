@@ -30,7 +30,7 @@ useradd --home-dir "${SALT_HOME}" --create-home \
   --groups shadow
 
 # Set PATH
-exec_as_salt cat >> "${SALT_HOME}/.profile" <<EOF
+exec_as_salt cat >>"${SALT_HOME}/.profile" <<EOF
 PATH=/usr/local/sbin:/usr/local/bin:\$PATH
 EOF
 
@@ -49,7 +49,7 @@ sed -i -e "s|^[# ]*StrictHostKeyChecking.*$|    StrictHostKeyChecking no|" /etc/
   echo "    UserKnownHostsFile /dev/null"
   echo "    LogLevel ERROR"
   echo "#   IdentityFile salt_ssh_key"
-} >> /etc/ssh/ssh_config
+} >>/etc/ssh/ssh_config
 
 SUPERVISOR_CONFIG_FILE=/etc/supervisor/supervisord.conf
 
@@ -73,13 +73,13 @@ else
 fi
 
 # configure supervisord to start salt-master
-cat > /etc/supervisor/conf.d/salt-master.conf <<EOF
+cat >/etc/supervisor/conf.d/salt-master.conf <<EOF
 [program:salt-master]
 priority=5
 directory=${SALT_HOME}
 environment=HOME=${SALT_HOME}
 command=/usr/bin/salt-master
-user=${SALT_USER}
+user=root
 autostart=true
 autorestart=true
 stopsignal=TERM
@@ -90,7 +90,7 @@ stderr_logfile_maxbytes=0
 EOF
 
 # configure supervisord to start crond
-cat > /etc/supervisor/conf.d/cron.conf <<EOF
+cat >/etc/supervisor/conf.d/cron.conf <<EOF
 [program:cron]
 priority=20
 directory=/tmp
@@ -103,7 +103,7 @@ stderr_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
 EOF
 
 # Purge build dependencies and cleanup apt
-(( ${#BUILD_DEPENDENCIES[@]} != 0 )) && apt-get purge -y --auto-remove "${BUILD_DEPENDENCIES[@]}"
+((${#BUILD_DEPENDENCIES[@]} != 0)) && apt-get purge -y --auto-remove "${BUILD_DEPENDENCIES[@]}"
 apt-get clean --yes
 rm -rf /var/lib/apt/lists/*
 

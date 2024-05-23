@@ -8,6 +8,7 @@ for the list of changes in SaltStack.
 
 - Upgrade `salt-master` to `3007.1` _Chlorine_.
 - Change Docker base image to `ubuntu:noble-20240429`.
+- Change Supervisor's user to `root` for `salt-master` and `salt-api` services.
 
 **3007.0_2**
 
