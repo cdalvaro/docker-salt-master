@@ -10,20 +10,17 @@ source "${ENV_DEFAULTS_FILE}"
 # cdalvaro managed block string
 SELF_MANAGED_BLOCK_STRING="## cdalvaro managed block"
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  exec_as_salt
 #   DESCRIPTION:  Execute the pass command as the `SALT_USER` user.
 #----------------------------------------------------------------------------------------------------------------------
-function exec_as_salt()
-{
+function exec_as_salt() {
   if [[ $(whoami) == "${SALT_USER}" ]]; then
     $@
   else
     sudo -HEu "${SALT_USER}" "$@"
   fi
 }
-
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  log_debug
@@ -35,7 +32,6 @@ function log_debug() {
   fi
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  log_info
 #   DESCRIPTION:  Echo information to stdout.
@@ -44,32 +40,27 @@ function log_info() {
   echo "[INFO] - $*"
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  log_warn
 #   DESCRIPTION:  Echo warning information to stdout.
 #----------------------------------------------------------------------------------------------------------------------
 function log_warn() {
-  (>&2 echo "[WARN] - $*")
+  (echo >&2 "[WARN] - $*")
 }
-
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  log_error
 #   DESCRIPTION:  Echo errors to stderr.
 #----------------------------------------------------------------------------------------------------------------------
-function log_error()
-{
-  (>&2 echo "[ERROR] - $*")
+function log_error() {
+  (echo >&2 "[ERROR] - $*")
 }
-
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  map_uidgid
 #   DESCRIPTION:  Map salt user with host user.
 #----------------------------------------------------------------------------------------------------------------------
-function map_uidgid()
-{
+function map_uidgid() {
   ORIG_PUID=$(id -u "${SALT_USER}")
   ORIG_PGID=$(id -g "${SALT_USER}")
   PGID=${PGID:-${PUID:-$ORIG_PGID}}
@@ -90,7 +81,6 @@ function map_uidgid()
   fi
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  update_template
 #   DESCRIPTION:  Replace placeholders with values.
@@ -98,14 +88,13 @@ function map_uidgid()
 #           - 1: Template file with placeholders to replace
 #           - @: Placeholder values
 #----------------------------------------------------------------------------------------------------------------------
-function update_template()
-{
+function update_template() {
   local FILE=${1?missing argument}
   shift
 
   [[ ! -f "${FILE}" ]] && return 1
 
-  local VARIABLES=( "$@" )
+  local VARIABLES=("$@")
   local USR=$(stat -c %U "${FILE}")
   local tmp_file=$(mktemp)
   cp -a "${FILE}" "${tmp_file}"
@@ -118,19 +107,18 @@ function update_template()
   # Replace placeholders
   (
     export "${VARIABLES[@]}"
-    local IFS=":"; sudo -HEu "${USR}" envsubst "${VARIABLES[*]/#/$}" < "${tmp_file}" > "${FILE}"
+    local IFS=":"
+    sudo -HEu "${USR}" envsubst "${VARIABLES[*]/#/$}" <"${tmp_file}" >"${FILE}"
   )
 
   rm -f "${tmp_file}"
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  configure_timezone
 #   DESCRIPTION:  Configure containers timezone.
 #----------------------------------------------------------------------------------------------------------------------
-function configure_timezone()
-{
+function configure_timezone() {
   log_info "Configuring container timezone ..."
 
   # Perform sanity check of provided timezone value
@@ -141,20 +129,18 @@ function configure_timezone()
     ln -snf "/usr/share/zoneinfo/${TIMEZONE}" /etc/localtime
 
     # Set timezone
-    echo "${TIMEZONE}" > /etc/timezone
+    echo "${TIMEZONE}" >/etc/timezone
   else
     log_error "Timezone: '${TIMEZONE}' is not valid. Check available timezones at: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones"
     return 1
   fi
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  gen_signed_keys
 #   DESCRIPTION:  Generate a master_sign key pair and its signature.
 #----------------------------------------------------------------------------------------------------------------------
-function gen_signed_keys()
-{
+function gen_signed_keys() {
   local output_dir="$1"
 
   if [[ ! -f "${SALT_KEYS_DIR}/master.pub" ]]; then
@@ -175,9 +161,9 @@ function gen_signed_keys()
 
   # Create keys
   salt-key --gen-signature --auto-create --user "${SALT_USER}" \
-        --config-dir "${generated_keys_dir}" \
-        --pub "${SALT_KEYS_DIR}/master.pub" \
-        --signature-path "${generated_keys_dir}" > /dev/null 2>&1
+    --config-dir "${generated_keys_dir}" \
+    --pub "${SALT_KEYS_DIR}/master.pub" \
+    --signature-path "${generated_keys_dir}" >/dev/null 2>&1
 
   # Move keys
   exec_as_salt mkdir -p "${output_dir}"
@@ -190,7 +176,6 @@ function gen_signed_keys()
   echo -n "${output_dir}"
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  _check_key_pair_exists
 #   DESCRIPTION:  Check whether the given key-pair files exist.
@@ -198,8 +183,7 @@ function gen_signed_keys()
 #           - 1: The path to the key-pair file
 #
 #----------------------------------------------------------------------------------------------------------------------
-function _check_key_pair_exists()
-{
+function _check_key_pair_exists() {
   local key_pair_file="$1"
   if [[ ! -f "${key_pair_file}.pem" || ! -f "${key_pair_file}.pub" ]]; then
     [[ -f "${key_pair_file}.pem" ]] || log_error "'${key_pair_file}.pem' doesn't exist"
@@ -209,7 +193,6 @@ function _check_key_pair_exists()
   return 0
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  _symlink_key_pair_files
 #   DESCRIPTION:  Create symlinks for the given key-pair files.
@@ -218,15 +201,13 @@ function _check_key_pair_exists()
 #           - 2: The target key-pair file
 #
 #----------------------------------------------------------------------------------------------------------------------
-function _symlink_key_pair_files()
-{
+function _symlink_key_pair_files() {
   local source_key_pair="$1"
   local target_key_pair="$2"
 
   ln -sfn "${source_key_pair}.pem" "${target_key_pair}.pem"
   ln -sfn "${source_key_pair}.pub" "${target_key_pair}.pub"
 }
-
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  setup_keys_for_service
@@ -239,8 +220,7 @@ function _symlink_key_pair_files()
 #           - 3: The keys directory: SALT_KEYS_DIR, SALT_MINION_KEYS_DIR
 #
 #----------------------------------------------------------------------------------------------------------------------
-function setup_keys_for_service()
-{
+function setup_keys_for_service() {
   local service="$1"
   local key_file_env_var="$2"
   local keys_dir="$3"
@@ -265,7 +245,7 @@ function setup_keys_for_service()
       log_info "     Creating new keys ..."
       # Fix issue #226
       local tmp_keys_dir="$(exec_as_salt mktemp -d)"
-      salt-key --gen-keys "${service}" --gen-keys-dir "${tmp_keys_dir}" --user "${SALT_USER}" > /dev/null 2>&1
+      salt-key --gen-keys "${service}" --gen-keys-dir "${tmp_keys_dir}" --user "${SALT_USER}" >/dev/null 2>&1
       mv "${tmp_keys_dir}"/"${service}".{pem,pub} "${keys_dir}/"
       rm -rf "${tmp_keys_dir}"
     fi
@@ -274,7 +254,7 @@ function setup_keys_for_service()
     if [[ -n "${key_pair_file}" ]]; then
       # If a key is provided via key_pair_file, check whether it is the same as the one in the keys directory
       if ! cmp -s "${key_pair_file}.pem" "${keys_dir}/${service}.pem" ||
-         ! cmp -s "${key_pair_file}.pub" "${keys_dir}/${service}.pub"; then
+        ! cmp -s "${key_pair_file}.pub" "${keys_dir}/${service}.pub"; then
         log_error "     ${key_file_env_var} is set to '${key_pair_file}' but keys don't match the ${service} keys inside '${keys_dir}'."
         return 1
       fi
@@ -282,13 +262,11 @@ function setup_keys_for_service()
   fi
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  _setup_master_sign_keys
 #   DESCRIPTION:  Setup salt-master sign keys.
 #----------------------------------------------------------------------------------------------------------------------
-function _setup_master_sign_keys()
-{
+function _setup_master_sign_keys() {
   log_info " ==> Setting up master_sign keys ..."
 
   if [[ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]]; then
@@ -304,13 +282,13 @@ function _setup_master_sign_keys()
       _symlink_key_pair_files "${SALT_MASTER_SIGN_KEY_FILE}" "${target_key_pair}"
     else
       log_info "     Generating signed keys ..."
-      gen_signed_keys "${SALT_KEYS_DIR}" > /dev/null
+      gen_signed_keys "${SALT_KEYS_DIR}" >/dev/null
     fi
   else
     if [[ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]]; then
       # If a master_sign key-pair is provided via SALT_MASTER_SIGN_KEY_FILE, check it is the same as the one in the keys directory
       if ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pem" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ||
-         ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pub" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub"; then
+        ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pub" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub"; then
         log_error "     SALT_MASTER_SIGN_KEY_FILE is set to '${SALT_MASTER_SIGN_KEY_FILE}' but keys don't match the master_sign keys inside '${SALT_KEYS_DIR}'."
         return 1
       fi
@@ -335,7 +313,6 @@ function _setup_master_sign_keys()
     fi
   fi
 }
-
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  _check_and_link_gpgkey
@@ -367,13 +344,11 @@ function _check_and_link_gpgkey() {
   ln -sfn "${SOURCE_GPGKEY}" "${TARGET_GPGKEY}"
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  _setup_gpgkeys
 #   DESCRIPTION:  Setup GPG keys.
 #----------------------------------------------------------------------------------------------------------------------
-function _setup_gpgkeys()
-{
+function _setup_gpgkeys() {
   log_info " ==> Setting up GPG keys ..."
 
   local private_key="${SALT_KEYS_GPGKEYS_DIR}/private.key"
@@ -409,24 +384,26 @@ function _setup_gpgkeys()
 
   log_info "     Setting trust level to ultimate ..."
   local key_id="$(exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --list-packets "${private_key}" | awk '/keyid:/{ print $2 }' | head -1)"
-  (echo trust & echo 5 & echo y & echo quit) | exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --command-fd 0 --edit-key "${key_id}"
+  (
+    echo trust &
+    echo 5 &
+    echo y &
+    echo quit
+  ) | exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --command-fd 0 --edit-key "${key_id}"
 }
-
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  setup_salt_keys
 #   DESCRIPTION:  Repair keys permissions and creates keys if needed.
 #----------------------------------------------------------------------------------------------------------------------
-function setup_salt_keys()
-{
+function setup_salt_keys() {
   log_info "Setting up salt keys ..."
   setup_keys_for_service master SALT_MASTER_KEY_FILE "${SALT_KEYS_DIR}"
   [[ "${SALT_MASTER_SIGN_PUBKEY}" == True ]] && _setup_master_sign_keys
   _setup_gpgkeys
 
   log_info "Setting up salt keys permissions ..."
-  while IFS= read -r -d '' pub_key
-  do
+  while IFS= read -r -d '' pub_key; do
     if [[ "${pub_key}" =~ .*\.pem$ ]]; then
       chmod 400 "${pub_key}"
     else
@@ -438,13 +415,11 @@ function setup_salt_keys()
   find "${SALT_HOME}" -path "${SALT_KEYS_DIR}/*" -print0 | xargs -0 chown -h "${SALT_USER}":
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  configure_salt_master
 #   DESCRIPTION:  Configure master service.
 #----------------------------------------------------------------------------------------------------------------------
-function configure_salt_master()
-{
+function configure_salt_master() {
   log_info "Configuring salt-master service ..."
   # https://docs.saltstack.com/en/latest/ref/configuration/master.html
 
@@ -471,13 +446,11 @@ function configure_salt_master()
     SALT_MASTER_USE_PUBKEY_SIGNATURE
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  configure_salt_api
 #   DESCRIPTION:  Configure salt-api if service is set to be enabled.
 #----------------------------------------------------------------------------------------------------------------------
-function configure_salt_api()
-{
+function configure_salt_api() {
   rm -f /etc/supervisor/conf.d/salt-api.conf
 
   if [[ -n "${SALT_API_SERVICE_ENABLED}" ]]; then
@@ -524,7 +497,7 @@ function configure_salt_api()
   salt-call --local tls.create_self_signed_cert cacert_path="${CERTS_PATH}" CN="${SALT_API_CERT_CN}"
   chown "${SALT_USER}": "${CERTS_PATH}/tls/certs/${SALT_API_CERT_CN}".{crt,key}
 
-  cat >> "${SALT_ROOT_DIR}/master" <<EOF
+  cat >>"${SALT_ROOT_DIR}/master" <<EOF
 
 
 #####        salt-api settings       #####
@@ -539,13 +512,13 @@ rest_cherrypy:
 EOF
 
   # configure supervisord to start salt-api
-  cat > /etc/supervisor/conf.d/salt-api.conf <<EOF
+  cat >/etc/supervisor/conf.d/salt-api.conf <<EOF
 [program:salt-api]
 priority=10
 directory=${SALT_HOME}
 environment=HOME=${SALT_HOME}
 command=/usr/bin/salt-api
-user=${SALT_USER}
+user=root
 autostart=true
 autorestart=true
 stopsignal=TERM
@@ -557,13 +530,11 @@ EOF
 
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  configure_salt_minion
 #   DESCRIPTION:  Configure salt-minion if service is set to be enabled.
 #----------------------------------------------------------------------------------------------------------------------
-function configure_salt_minion()
-{
+function configure_salt_minion() {
   rm -f /etc/supervisor/conf.d/salt-minion.conf
   [[ ${SALT_MINION_ENABLED,,} == true ]] || return 0
 
@@ -611,7 +582,7 @@ function configure_salt_minion()
 
   # Configure supervisord to start salt-minion
   log_info " ==> Configuring supervisord to start salt-minion ..."
-  cat > /etc/supervisor/conf.d/salt-minion.conf <<EOF
+  cat >/etc/supervisor/conf.d/salt-minion.conf <<EOF
 [program:salt-minion]
 priority=20
 directory=${SALT_HOME}
@@ -629,13 +600,11 @@ EOF
 
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  configure_salt_formulas
 #   DESCRIPTION:  Configure salt-formulas.
 #----------------------------------------------------------------------------------------------------------------------
-function configure_salt_formulas()
-{
+function configure_salt_formulas() {
   log_info "Configuring 3rd-party salt-formulas ..."
   local master_yml_id="${SELF_MANAGED_BLOCK_STRING} - file_roots-base"
   local begin_delim="${master_yml_id} - begin"
@@ -643,23 +612,20 @@ function configure_salt_formulas()
 
   tmp_file="$(mktemp /tmp/file_roots-base.XXXXXX)"
   {
-    while IFS= read -r -d '' directory
-    do
+    while IFS= read -r -d '' directory; do
       echo "    - ${directory}"
     done < <(find "${SALT_FORMULAS_DIR}/" -mindepth 1 -maxdepth 1 -type d -print0)
-  } > "${tmp_file}"
+  } >"${tmp_file}"
 
   sed -i "/${begin_delim}/,/${end_delim}/!b;//!d;/${begin_delim}/r ${tmp_file}" "${SALT_ROOT_DIR}/master"
   rm "${tmp_file}"
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  initialize_datadir
 #   DESCRIPTION:  Initialize main directories.
 #----------------------------------------------------------------------------------------------------------------------
-function initialize_datadir()
-{
+function initialize_datadir() {
   log_info "Configuring directories ..."
 
   # This symlink simplifies paths for loading sls files
@@ -719,13 +685,11 @@ function initialize_datadir()
   chown -R "${SALT_USER}": "${SALT_LOGS_DIR}/salt"
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  configure_logrotate
 #   DESCRIPTION:  Configure logrotate.
 #----------------------------------------------------------------------------------------------------------------------
-function configure_logrotate()
-{
+function configure_logrotate() {
   log_info "Configuring logrotate ..."
   local LOGROTATE_CONFIG_DIR='/etc/logrotate.d/salt'
   local LOGROTATE_CONFIG_FILE="${LOGROTATE_CONFIG_DIR}/salt-common.logrotate"
@@ -734,7 +698,7 @@ function configure_logrotate()
   mkdir -p "${LOGROTATE_CONFIG_DIR}"
 
   # configure supervisord log rotation
-  cat > /etc/logrotate.d/supervisord <<EOF
+  cat >/etc/logrotate.d/supervisord <<EOF
 ${SALT_LOGS_DIR}/supervisor/*.log {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
@@ -747,7 +711,7 @@ ${SALT_LOGS_DIR}/supervisor/*.log {
 EOF
 
   # configure salt logs rotation
-  cat > "${LOGROTATE_CONFIG_FILE}" <<EOF
+  cat >"${LOGROTATE_CONFIG_FILE}" <<EOF
 ${SALT_LOGS_DIR}/salt/*.log {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
@@ -761,20 +725,18 @@ EOF
 
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  configure_config_reloader
 #   DESCRIPTION:  Configure config reloader.
 #----------------------------------------------------------------------------------------------------------------------
-function configure_config_reloader()
-{
+function configure_config_reloader() {
   rm -f /etc/supervisor/conf.d/config-reloader.conf
   [[ "${SALT_RESTART_MASTER_ON_CONFIG_CHANGE,,}" == true ]] || return 0
 
   log_info "Configuring config reloader ..."
 
   # configure supervisord to start config-reloader
-  cat > /etc/supervisor/conf.d/config-reloader.conf <<EOF
+  cat >/etc/supervisor/conf.d/config-reloader.conf <<EOF
 [program:config-reloader]
 priority=20
 directory=/tmp
@@ -787,13 +749,11 @@ stderr_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
 EOF
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  install_python_additional_packages
 #   DESCRIPTION:  Install additional python packages.
 #----------------------------------------------------------------------------------------------------------------------
-function install_python_additional_packages()
-{
+function install_python_additional_packages() {
   if [[ -n "${PYTHON_PACKAGES_FILE}" ]]; then
     log_info "Installing additional python packages from: ${PYTHON_PACKAGES_FILE} ..."
 
@@ -809,20 +769,18 @@ function install_python_additional_packages()
   fi
 
   if [[ -n "${PYTHON_PACKAGES}" ]]; then
-    IFS=" " read -ra PYTHON_PACKAGES <<< "${PYTHON_PACKAGES}"
+    IFS=" " read -ra PYTHON_PACKAGES <<<"${PYTHON_PACKAGES}"
     log_info "Installing additional python packages: ${PYTHON_PACKAGES[@]} ..."
     salt-pip install --no-cache-dir "${PYTHON_PACKAGES[@]}"
     return $?
   fi
 }
 
-
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  initialize_system
 #   DESCRIPTION:  Initialize the system.
 #----------------------------------------------------------------------------------------------------------------------
-function initialize_system()
-{
+function initialize_system() {
   map_uidgid
   initialize_datadir
   configure_logrotate
