@@ -44,14 +44,17 @@ release: build
 		$(IMAGE_NAME):$(shell cat VERSION)
 
 quickstart:
+	@echo "Creating volumes..."
+	$(CONTAINER_ENGINE) volume create salt-master-keys
+	$(CONTAINER_ENGINE) volume create salt-master-logs
 	@echo "Starting docker-salt-master container..."
 	$(CONTAINER_ENGINE) run --name=$(CONTAINER_NAME) --detach \
 		--publish=4505:4505/tcp --publish=4506:4506/tcp \
 		--env "PUID=$(shell id -u)" --env "PGID=$(shell id -g)" \
 		--env SALT_LOG_LEVEL=info \
 		--volume $(shell pwd)/roots/:/home/salt/data/srv/ \
-		--volume $(shell pwd)/keys/:/home/salt/data/keys/ \
-		--volume $(shell pwd)/logs/:/home/salt/data/logs/ \
+		--volume salt-master-keys:/home/salt/data/keys/ \
+		--volume salt-master-logs:/home/salt/data/logs/ \
 		$(IMAGE_NAME):latest
 	@echo "Type 'make log' for the log"
 
@@ -62,6 +65,9 @@ stop:
 purge: stop
 	@echo "Removing stopped container..."
 	$(CONTAINER_ENGINE) rm $(CONTAINER_NAME) > /dev/null
+	@echo "Removing volumes..."
+	$(CONTAINER_ENGINE) volume rm salt-master-keys
+	$(CONTAINER_ENGINE) volume rm salt-master-logs
 
 log:
 	$(CONTAINER_ENGINE) logs --follow $(CONTAINER_NAME)
