@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   master:
     container_name: salt_master
@@ -18,10 +16,10 @@ services:
       test: ["CMD", "/usr/local/sbin/healthcheck"]
       start_period: 30s
     environment:
-      DEBUG: 'false'
+      DEBUG: false
       TZ: Europe/Madrid
-      PUID: 1000
-      PGID: 1000
+      PUID: 1001
+      PGID: 1001
       SALT_LOG_LEVEL: info
       ### salt-api settings
       # SALT_API_ENABLED: 'True'

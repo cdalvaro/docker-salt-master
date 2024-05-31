@@ -672,6 +672,9 @@ function initialize_datadir() {
   chmod -R 0755 "${SALT_LOGS_DIR}/supervisor"
   chown -R "${SALT_USER}": "${SALT_LOGS_DIR}/supervisor"
 
+  # Keys directory
+  sudo chown -R "${SALT_USER}:" "${SALT_KEYS_DIR}"
+
   # Salt formulas
   if [[ -w "${SALT_FORMULAS_DIR}" ]]; then
     chown -R "${SALT_USER}": "${SALT_FORMULAS_DIR}" || log_error "Unable to change '${SALT_FORMULAS_DIR}' ownership"

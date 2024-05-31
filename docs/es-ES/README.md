@@ -25,7 +25,7 @@ Para otros métodos de instalación de `salt-master`, por favor consulta la [gu�
 Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) y es el método recomendado para la instalación.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.1
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.1_1
 ```
 
 También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
@@ -224,28 +224,28 @@ services:
     secrets:
       - source: salt-master-key
         target: master.pem
-        uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        uid: 1001 # Or $PUID if env variable established
+        gid: 1001 # Or $GUID if env variable established
         mode: 0400
       - source: salt-master-pub
         target: master.pub
-        uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        uid: 1001 # Or $PUID if env variable established
+        gid: 1001 # Or $GUID if env variable established
         mode: 0644
       - source: salt-master-sign-priv-key
         target: master_sign.pem
-        uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        uid: 1001 # Or $PUID if env variable established
+        gid: 1001 # Or $GUID if env variable established
         mode: 0400
       - source: salt-master-sign-pub-key
         target: master_sign.pub
-        uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        uid: 1001 # Or $PUID if env variable established
+        gid: 1001 # Or $GUID if env variable established
         mode: 0644
       - source: salt-master-signature
         target: master_pubkey_signature
-        uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        uid: 1001 # Or $PUID if env variable established
+        gid: 1001 # Or $GUID if env variable established
         mode: 0644
     environment:
       SALT_MASTER_SIGN_PUBKEY: True
@@ -389,9 +389,9 @@ docker run --name salt_stack --detach \
 
 ### Mapeo de Host
 
-Por defecto, el contenedor está configurado para ejecutar `salt-master` como usuario y grupo `salt` con `uid` y `gid` `1000`. Desde el host los volúmenes de datos montados se mostrarán con propiedad del _usuario:grupo_ `1000:1000`. Esto tener efectos desfavorables si los ids no coinciden o si los permisos de los archivos montados son muy restrictivos. Especialmente el directorio de claves y sus contenidos.
+Por defecto, el contenedor está configurado para ejecutar `salt-master` como usuario y grupo `salt` con `uid` y `gid` `1001`. Desde el host los volúmenes de datos montados se mostrarán con propiedad del _usuario:grupo_ `1001:1001`. Esto tener efectos desfavorables si los ids no coinciden o si los permisos de los archivos montados son muy restrictivos. Especialmente el directorio de claves y sus contenidos.
 
-También, los procesos internos del contenedor se mostrarán como propiedad del usuario/grupo `1000`. Para evitar esto, el contenedor puede configurarse para mapear los `uid` y `gid` para que coincidan con los ids del host estableciendo las variables de entorno `PUID` y `PGID`. El siguiente comando asocia los ids para que coincidan con el usuario y grupo actual del host.
+También, los procesos internos del contenedor se mostrarán como propiedad del usuario/grupo `1001`. Para evitar esto, el contenedor puede configurarse para mapear los `uid` y `gid` para que coincidan con los ids del host estableciendo las variables de entorno `PUID` y `PGID`. El siguiente comando asocia los ids para que coincidan con el usuario y grupo actual del host.
 
 ```sh
 docker run --name salt_stack -it --rm \
@@ -702,8 +702,8 @@ A continuación puedes encontrar una lista con las opciones disponibles que pued
 | :------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `DEBUG`                                                                                                                               | Establece esta opción a `True` para que la salida sea más _verbosa_.                                                                                                                                                                                                                                                       |
 | `TIMEZONE` / `TZ`                                                                                                                     | Establece la zona horaria del contenedor. Por defecto: `UTC`. Se espera que el valor proporcionado esté en forma canónica. Por ejemplo: `Europe/Madrid`. Lista completa de [valores válidos](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).                                                                |
-| `PUID`                                                                                                                                | Establece el uid del usuario `salt` al valor indicado. Por defecto: `1000`.                                                                                                                                                                                                                                                |
-| `PGID`                                                                                                                                | Establece el gid del usuario `salt` al valor indicado. Por defecto: `1000`.                                                                                                                                                                                                                                                |
+| `PUID`                                                                                                                                | Establece el uid del usuario `salt` al valor indicado. Por defecto: `1001`.                                                                                                                                                                                                                                                |
+| `PGID`                                                                                                                                | Establece el gid del usuario `salt` al valor indicado. Por defecto: `1001`.                                                                                                                                                                                                                                                |
 | `PYTHON_PACKAGES`                                                                                                                     | Lista de paquetes extra de Python a instalar. Por defecto: _Sin establecer_.                                                                                                                                                                                                                                               |
 | `PYTHON_PACKAGES_FILE`                                                                                                                | Ruta absoluta interna del contenedor apuntando a un fichero requirements.txt con paquetes de Python extra a instalar. Tiene preferencia sobre `PYTHON_PACKAGES`. Por defecto: _Sin establecer_                                                                                                                             |
 | `SALT_RESTART_MASTER_ON_CONFIG_CHANGE`                                                                                                | Establece el valor a `True` para reiniciar el servicio `salt-master` cuando se detecte un cambio en los archivos de configuración. Por defecto: `False`.                                                                                                                                                                   |
