@@ -17,7 +17,7 @@ CONTAINER_ENGINE := podman
 endif
 
 IMAGE_NAME := ghcr.io/cdalvaro/docker-salt-master
-CONTAINER_NAME := docker-salt-master-demo
+CONTAINER_NAME := salt_master
 
 .PHONY: all help build release quickstart stop purge log
 
