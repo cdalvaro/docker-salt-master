@@ -9,11 +9,11 @@ ifeq (,$(or $(DOCKER),$(PODMAN)))
 $(error "Neither Docker nor Podman is installed.")
 endif
 
-# If Podman is installed, use it instead of Docker
-ifdef PODMAN
-CONTAINER_ENGINE := podman
-else
+# If Docker is installed, use it instead of Podman
+ifdef DOCKER
 CONTAINER_ENGINE := docker
+else
+CONTAINER_ENGINE := podman
 endif
 
 IMAGE_NAME := ghcr.io/cdalvaro/docker-salt-master
