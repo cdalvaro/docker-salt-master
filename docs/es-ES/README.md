@@ -172,7 +172,7 @@ Más información en:
 Es posible utilizar claves firmadas con `salt-master` estableciendo la variable de entorno `SALT_MASTER_SIGN_PUBKEY` a `True`.
 
 ```sh
-docker run --name salt_stack --detach \
+docker run --name salt_master --detach \
     --publish 4505:4505 --publish 4506:4506 \
     --env 'SALT_LOG_LEVEL=info' \
     --env 'SALT_MASTER_SIGN_PUBKEY=True' \
@@ -187,7 +187,7 @@ Además, se pueden generar nuevas claves firmadas para la clave master existente
 ejecutando el siguiente comando:
 
 ```sh
-docker run --name salt_stack -it --rm \
+docker run --name salt_master -it --rm \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     ghcr.io/cdalvaro/docker-salt-master:latest \
     app:gen-signed-keys
@@ -282,7 +282,7 @@ rest_cherrypy:
 El contenedor expone el puerto `8000` por defecto, aunque puedes asociar este puerto a cualquier otro puerto que desees en tu comando `docker run`:
 
 ```sh
-docker run --name salt_stack --detach \
+docker run --name salt_master --detach \
     --publish 4505:4505 --publish 4506:4506 --publish 8000:8000 \
     --env 'SALT_API_ENABLED=True' \
     --env 'SALT_API_USER_PASS=4wesome-Pass0rd' \
@@ -375,7 +375,7 @@ y puedes establecerlos usando las variables de entorno `SALT_LOG_LEVEL` y `SALT_
 Aquí tienes un ejemplo de cómo ejecutar un `salt-master` con un `salt-minion` integrado:
 
 ```sh
-docker run --name salt_stack --detach \
+docker run --name salt_master --detach \
     --publish 4505:4505 --publish 4506:4506 \
     --env 'SALT_MINION_ENABLED=True' \
     --env 'SALT_MINION_ID=control-minion' \
@@ -394,7 +394,7 @@ Por defecto, el contenedor está configurado para ejecutar `salt-master` como us
 También, los procesos internos del contenedor se mostrarán como propiedad del usuario/grupo `1001`. Para evitar esto, el contenedor puede configurarse para mapear los `uid` y `gid` para que coincidan con los ids del host estableciendo las variables de entorno `PUID` y `PGID`. El siguiente comando asocia los ids para que coincidan con el usuario y grupo actual del host.
 
 ```sh
-docker run --name salt_stack -it --rm \
+docker run --name salt_master -it --rm \
     --publish 4505:4505 --publish 4506:4506 \
     --env "PUID=$(id -u)" --env "PGID=$(id -g)" \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
@@ -546,7 +546,7 @@ Para este caso, puedes montar un volumen que contenga todas tus fórmulas de ter
 ```
 
 ```sh
-docker run --name salt_stack -it --rm \
+docker run --name salt_master -it --rm \
     --publish 4505:4505 --publish 4506:4506 \
     --env "PUID=$(id -u)" --env "PGID=$(id -g)" \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
@@ -558,7 +558,7 @@ docker run --name salt_stack -it --rm \
 Si necesitas añadir más fórmulas de terceros, puedes añadirlas y reiniciar el contenedor, o introducir el siguiente comando tras añadirlas:
 
 ```sh
-docker exec -it salt_stack /sbin/entrypoint.sh app:reload-3rd-formulas
+docker exec -it salt_master /sbin/entrypoint.sh app:reload-3rd-formulas
 ```
 
 El archivo de configuración `file_roots` se actualizará con las fórmulas existentes y el servicio `salt-master` se reiniciará para recargar la nueva configuración.

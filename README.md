@@ -186,7 +186,7 @@ More info at:
 It is possible to use signed master keys by establishing the environment variable `SALT_MASTER_SIGN_PUBKEY` to `True`.
 
 ```sh
-docker run --name salt_stack --detach \
+docker run --name salt_master --detach \
     --publish 4505:4505 --publish 4506:4506 \
     --env 'SALT_LOG_LEVEL=info' \
     --env 'SALT_MASTER_SIGN_PUBKEY=True' \
@@ -204,7 +204,7 @@ Additionally, you can generate new signed keys for your existing master key
 by executing the following command:
 
 ```sh
-docker run --name salt_stack -it --rm \
+docker run --name salt_master -it --rm \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     ghcr.io/cdalvaro/docker-salt-master:latest \
     app:gen-signed-keys
@@ -300,7 +300,7 @@ The container exposes port `8000` by default, although you can map this port to 
 your `docker run` command:
 
 ```sh
-docker run --name salt_stack --detach \
+docker run --name salt_master --detach \
     --publish 4505:4505 --publish 4506:4506 --publish 8000:8000 \
     --env 'SALT_API_ENABLED=True' \
     --env 'SALT_API_USER_PASS=4wesome-Pass0rd' \
@@ -402,7 +402,7 @@ and you can set them by using the `SALT_LOG_LEVEL` and `SALT_LEVEL_LOGFILE` envi
 Here you have an example of how to run a `salt-master` with a built-in `salt-minion`:
 
 ```sh
-docker run --name salt_stack --detach \
+docker run --name salt_master --detach \
     --publish 4505:4505 --publish 4506:4506 \
     --env 'SALT_MINION_ENABLED=True' \
     --env 'SALT_MINION_ID=control-minion' \
@@ -425,7 +425,7 @@ the `uid` and `gid` to match host ids by passing the environment variables `PUID
 command maps the ids to the current user and group on the host.
 
 ```sh
-docker run --name salt_stack -it --rm \
+docker run --name salt_master -it --rm \
     --publish 4505:4505 --publish 4506:4506 \
     --env "PUID=$(id -u)" --env "PGID=$(id -g)" \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
@@ -594,7 +594,7 @@ starts.
 ```
 
 ```sh
-docker run --name salt_stack -it --rm \
+docker run --name salt_master -it --rm \
     --publish 4505:4505 --publish 4506:4506 \
     --env "PUID=$(id -u)" --env "PGID=$(id -g)" \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
@@ -606,7 +606,7 @@ docker run --name salt_stack -it --rm \
 If you need to add more third party formulas, you can restart the container, or you can type the following command:
 
 ```sh
-docker exec -it salt_stack /sbin/entrypoint.sh app:reload-3rd-formulas
+docker exec -it salt_master /sbin/entrypoint.sh app:reload-3rd-formulas
 ```
 
 `file_roots` base configuration file will be updated with current existing formulas and `salt-master` service will be
