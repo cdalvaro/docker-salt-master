@@ -1,6 +1,10 @@
 # Salt Master v3007.1 _Chlorine_ Contenerizado
 
-![Banner](/social/docker-salt-master-social.jpg)
+<picture align="center">
+  <source media="(prefers-color-scheme: dark)" srcset="/social/docker-salt-master-banner-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="/social/docker-salt-master-banner-light.png">
+  <img alt="cdalvaro's docker-salt-master banner." src="/social/docker-salt-master-banner-light.png">
+</picture>
 
 [![Salt Project][saltproject_badge]][saltproject_release_notes]
 [![Ubuntu Image][ubuntu_badge]][ubuntu_hub_docker]
