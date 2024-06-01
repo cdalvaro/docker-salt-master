@@ -9,7 +9,7 @@ on:
       - "LICENSE"
       - 'social/'
       - '.gitignore'
-      - 'docker-compose.yml'
+      - 'compose.yml'
       - 'Makefile'
       - 'docs/'
   release:

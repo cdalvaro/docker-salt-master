@@ -65,10 +65,10 @@ make release
 The quickest way to get started is using [docker compose](https://docs.docker.com/compose/).
 
 ```sh
-wget https://raw.githubusercontent.com/cdalvaro/docker-salt-master/master/docker-compose.yml
+wget https://raw.githubusercontent.com/cdalvaro/docker-salt-master/master/compose.yml
 ```
 
-Start the `docker-salt-master` container with the `docker-compose.yml` file by executing:
+Start the `docker-salt-master` container with the `compose.yml` file by executing:
 
 ```sh
 docker compose up --detach
@@ -224,7 +224,7 @@ Additionally, you can provide the master-sign key pair as well:
 - `SALT_MASTER_SIGN_KEY_FILE`: The path to the master-sign-key-pair {pem,pub} files without suffixes.
 - `SALT_MASTER_PUBKEY_SIGNATURE_FILE`: The path of the salt-master public key file with the pre-calculated signature.
 
-Here you have a complete `docker-compose.yml` example
+Here you have a complete `compose.yml` example
 
 ```yml
 version: "3.9"
@@ -310,7 +310,7 @@ docker run --name salt_master --detach \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
-If you choose using the [docker-compose.yml](/docker-compose.yml) file to manage your `salt-master` instance, uncomment `salt-api`
+If you choose using the [compose.yml](/compose.yml) file to manage your `salt-master` instance, uncomment `salt-api`
 settings to enable and configure the service.
 
 By default, user `salt_api` is created, and you can set its password by setting the environment
@@ -486,7 +486,7 @@ env variables to specify the path to the files inside the container.
 For example:
 
 ```yml
-# docker-compose.yml
+# compose.yml
 services:
   salt-master:
     ...

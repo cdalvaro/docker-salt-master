@@ -61,10 +61,10 @@ make release
 La manera más rápida de empezar es utilizando [docker compose](https://docs.docker.com/compose/).
 
 ```sh
-wget https://raw.githubusercontent.com/cdalvaro/docker-salt-master/master/docker-compose.yml
+wget https://raw.githubusercontent.com/cdalvaro/docker-salt-master/master/compose.yml
 ```
 
-A continuación, inicia el contenedor `docker-salt-master` con el archivo `docker-compose.yml` ejecutando:
+A continuación, inicia el contenedor `docker-salt-master` con el archivo `compose.yml` ejecutando:
 
 ```sh
 docker compose up --detach
@@ -208,7 +208,7 @@ Adicionalmente, puedes proporcionar el par de claves de firma del master:
 - `SALT_MASTER_SIGN_KEY_FILE`: Ruta al par de claves firmadas {pem,pub} sin sufijos.
 - `SALT_MASTER_PUBKEY_SIGNATURE_FILE`: Ruta al archivo de la clave pública de `salt-master` con la firma pre-calculada.
 
-A continuación un ejemplo completo de `docker-compose.yml` con estas variables y el uso de _secrets_:
+A continuación un ejemplo completo de `compose.yml` con estas variables y el uso de _secrets_:
 
 ```yml
 version: "3.9"
@@ -292,7 +292,7 @@ docker run --name salt_master --detach \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
-Si eliges usar el archivo [docker-compose.yml](/docker-compose.yml) para gestionar tu instancia `salt-master`, descomenta la configuración de `salt-api` para habilitar y configurar el servicio.
+Si eliges usar el archivo [compose.yml](/compose.yml) para gestionar tu instancia `salt-master`, descomenta la configuración de `salt-api` para habilitar y configurar el servicio.
 
 Por defecto, se crea el usuario `salt_api` para este servicio, y puedes establecer su contraseña estableciendo la variable de entorno `SALT_API_USER_PASS`. Pero también puedes cambiar el _username_ de `salt-api` estableciendo `SALT_API_USER`.
 
@@ -448,7 +448,7 @@ Si quieres proporcionar estas claves a través de _secrets_, puedes establecer l
 Por ejemplo:
 
 ```yml
-# docker-compose.yml
+# compose.yml
 services:
   salt-master:
     ...
@@ -624,7 +624,7 @@ Esta imagen incluye un script de [healthcheck](https://docs.docker.com/engine/re
 
 Si ejecutas esta imagen bajo k8s, puedes definir un _comando de liveness_ como se explica [aquí](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command).
 
-Si usas `docker compose` como orquestador de contenedores, puedes añadir las siguientes entradas a tu `docker-compose.yml`:
+Si usas `docker compose` como orquestador de contenedores, puedes añadir las siguientes entradas a tu `compose.yml`:
 
 ```yml
 version: "3.4"
