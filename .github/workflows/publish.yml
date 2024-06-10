@@ -6,12 +6,14 @@ on:
       - main
     paths-ignore:
       - "./**/*.md"
+      - "docs/"
+      - "social/"
+      - ".editorconfig"
+      - ".gitignore"
+      - ".shellcheckrc"
+      - "compose.yml"
       - "LICENSE"
-      - 'social/'
-      - '.gitignore'
-      - 'compose.yml'
-      - 'Makefile'
-      - 'docs/'
+      - "Makefile"
   release:
     types:
       - published

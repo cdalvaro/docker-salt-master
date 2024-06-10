@@ -6,7 +6,7 @@ on:
       - main
   pull_request:
   schedule:
-    - cron: '0 0 * * 1'
+    - cron: "0 0 * * 1"
 
 jobs:
   security-analysis:
@@ -60,12 +60,12 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'ghcr.io/cdalvaro/docker-salt-master:${{ github.sha }}'
-          format: 'template'
-          template: '@/contrib/sarif.tpl'
-          output: 'trivy-results.sarif'
+          image-ref: "ghcr.io/cdalvaro/docker-salt-master:${{ github.sha }}"
+          format: "template"
+          template: "@/contrib/sarif.tpl"
+          output: "trivy-results.sarif"
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: "trivy-results.sarif"

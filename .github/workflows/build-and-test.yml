@@ -6,12 +6,14 @@ on:
       - main
     paths-ignore:
       - "./**/*.md"
+      - "docs/"
+      - "social/"
+      - ".editorconfig"
+      - ".gitignore"
+      - ".shellcheckrc"
+      - "compose.yml"
       - "LICENSE"
-      - 'social/'
-      - '.gitignore'
-      - 'compose.yml'
-      - 'Makefile'
-      - 'docs/'
+      - "Makefile"
 
 env:
   IMAGE_NAME: localhost:5000/cdalvaro/docker-salt-master:${{ github.sha }}
@@ -131,7 +133,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install and configure salt-minion
         run: |
