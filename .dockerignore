@@ -1,6 +1,7 @@
 # Ignoring git folders and files
 .github/
 .git/
+.gitignore
 
 # Ignoring tests files
 tests/
@@ -15,3 +16,6 @@ social/
 # Ignore IDEs
 .idea/
 .vscode/
+.editorconfig
+.shellcheckrc
+Makefile
