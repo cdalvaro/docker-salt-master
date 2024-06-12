@@ -6,11 +6,13 @@
   <img alt="cdalvaro's docker-salt-master banner." src="/social/docker-salt-master-banner-light.png">
 </picture>
 
-[![Salt Project][saltproject_badge]][saltproject_release_notes]
-[![Ubuntu Image][ubuntu_badge]][ubuntu_hub_docker]
-[![Docker Image Size][docker_size_badge]][docker_hub_tags]
-[![Architecture AMD64][arch_amd64_badge]][arch_link]
-[![Architecture ARM64][arch_arm64_badge]][arch_link]
+<p align="center">
+  <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.1.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-v3007.1-57BCAD.svg?logo=SaltProject"/></a>
+  <a href="https://hub.docker.com/_/ubuntu/"><img alt="Ubuntu Image" src="https://img.shields.io/badge/ubuntu-noble--20240429-E95420.svg?logo=Ubuntu"/></a>
+  <a href="https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags"><img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED"/></a>
+  <a href="https://github.com/users/cdalvaro/packages/container/package/docker-salt-master"><img alt="Architecture AMD64" src="https://img.shields.io/badge/arch-amd64-inactive.svg"/></a>
+  <a href="https://github.com/users/cdalvaro/packages/container/package/docker-salt-master"><img alt="Architecture ARM64" src="https://img.shields.io/badge/arch-arm64-inactive.svg"/></a>
+</p>
 
 Otros idiomas: [🇺🇸 English](/docs/en-US/README.md)
 
@@ -817,24 +819,15 @@ Muchas gracias:
 [![Slack Community][slack_badge]][slack_community]
 [![Reddit channel][reddit_badge]][subreddit]
 
-- https://docs.saltproject.io/en/getstarted/
-- https://docs.saltproject.io/en/latest/contents.html
+- [SaltStack Get Started](https://docs.saltproject.io/en/getstarted/)
+- [Salt Table of Contents](https://docs.saltproject.io/en/latest/contents.html)
 
-[saltproject_badge]: https://img.shields.io/badge/Salt-v3007.1-lightgrey.svg?logo=Saltstack
-[saltproject_release_notes]: https://docs.saltproject.io/en/latest/topics/releases/3007.1.html "Salt Project Release Notes"
-[ubuntu_badge]: https://img.shields.io/badge/ubuntu-noble--20240429-E95420.svg?logo=Ubuntu
-[ubuntu_hub_docker]: https://hub.docker.com/_/ubuntu/ "Ubuntu Image"
-[docker_size_badge]: https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED
-[docker_hub_tags]: https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags
 [reddit_badge]: https://img.shields.io/badge/reddit-saltstack-orange?logo=reddit&logoColor=FF4500&color=FF4500
 [subreddit]: https://www.reddit.com/r/saltstack/
 [stackoverflow_badge]: https://img.shields.io/badge/stackoverflow-community-orange?logo=stackoverflow&color=FE7A16
 [stackoverflow_community]: https://stackoverflow.com/tags/salt-stack
 [slack_badge]: https://img.shields.io/badge/slack-@saltstackcommunity-blue.svg?logo=slack&logoColor=4A154B&color=4A154B
 [slack_community]: https://saltstackcommunity.herokuapp.com
-[arch_amd64_badge]: https://img.shields.io/badge/arch-amd64-inactive.svg
-[arch_arm64_badge]: https://img.shields.io/badge/arch-arm64-inactive.svg
-[arch_link]: https://github.com/users/cdalvaro/packages/container/package/docker-salt-master
 
 ## 📃 Licencia
 
