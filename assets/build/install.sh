@@ -22,6 +22,17 @@ add_salt_repository
 apt-get update
 install_pkgs "${REQUIRED_PACKAGES[@]}" "${BUILD_DEPENDENCIES[@]}"
 
+# Remove ubuntu user if exists
+if getent passwd ubuntu >/dev/null 2>&1; then
+  log_info "Removing ubuntu user ..."
+  userdel --remove ubuntu
+fi
+
+if getent group ubuntu >/dev/null 2>&1; then
+  log_info "Removing ubuntu group ..."
+  groupdel ubuntu
+fi
+
 # Create salt user
 # https://manpages.ubuntu.com/manpages/xenial/en/man8/useradd.8.html
 log_info "Creating ${SALT_USER} user ..."
