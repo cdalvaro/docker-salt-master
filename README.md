@@ -34,7 +34,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.1_1
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.1_2
 ```
 
 You can also pull the `latest` tag, which is built from the repository `HEAD`
@@ -246,28 +246,28 @@ services:
     secrets:
       - source: salt-master-key
         target: master.pem
-        uid: 1001 # Or $PUID if env variable established
-        gid: 1001 # Or $GUID if env variable established
+        uid: 1000 # Or $PUID if env variable established
+        gid: 1000 # Or $GUID if env variable established
         mode: 0400
       - source: salt-master-pub
         target: master.pub
-        uid: 1001 # Or $PUID if env variable established
-        gid: 1001 # Or $GUID if env variable established
+        uid: 1000 # Or $PUID if env variable established
+        gid: 1000 # Or $GUID if env variable established
         mode: 0644
       - source: salt-master-sign-priv-key
         target: master_sign.pem
-        uid: 1001 # Or $PUID if env variable established
-        gid: 1001 # Or $GUID if env variable established
+        uid: 1000 # Or $PUID if env variable established
+        gid: 1000 # Or $GUID if env variable established
         mode: 0400
       - source: salt-master-sign-pub-key
         target: master_sign.pub
-        uid: 1001 # Or $PUID if env variable established
-        gid: 1001 # Or $GUID if env variable established
+        uid: 1000 # Or $PUID if env variable established
+        gid: 1000 # Or $GUID if env variable established
         mode: 0644
       - source: salt-master-signature
         target: master_pubkey_signature
-        uid: 1001 # Or $PUID if env variable established
-        gid: 1001 # Or $GUID if env variable established
+        uid: 1000 # Or $PUID if env variable established
+        gid: 1000 # Or $GUID if env variable established
         mode: 0644
     environment:
       SALT_MASTER_SIGN_PUBKEY: True
@@ -422,10 +422,10 @@ docker run --name salt_master --detach \
 
 ### Host Mapping
 
-By default, the container is configured to run `salt-master` as user and group `salt` with `uid` and `gid` `1001`. From
-the host the mounted data volumes will be shown as owned by _user:group_ `1001:1001`. This can be a problem if the host's id is different from `1001` or if files have too restrictive permissions. Specially the keys directory and its contents.
+By default, the container is configured to run `salt-master` as user and group `salt` with `uid` and `gid` `1000`. From
+the host the mounted data volumes will be shown as owned by _user:group_ `1000:1000`. This can be a problem if the host's id is different from `1000` or if files have too restrictive permissions. Specially the keys directory and its contents.
 
-Also, the container processes seem to be executed as the host's user/group `1001`. To avoid this, the container can be configured to
+Also, the container processes seem to be executed as the host's user/group `1000`. To avoid this, the container can be configured to
 map
 the `uid` and `gid` to match host ids by passing the environment variables `PUID` and `PGID`. The following
 command maps the ids to the current user and group on the host.
@@ -768,8 +768,8 @@ installation.
 | :------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `DEBUG`                                                                                                                               | Set this to `True` to enable entrypoint debugging.                                                                                                                                                                                                          |
 | `TIMEZONE` / `TZ`                                                                                                                     | Set the container timezone. Defaults to `UTC`. Values are expected to be in Canonical format. Example: `Europe/Madrid`. See the list of [acceptable values](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).                                  |
-| `PUID`                                                                                                                                | Sets the uid for user `salt` to the specified uid. Default: `1001`.                                                                                                                                                                                         |
-| `PGID`                                                                                                                                | Sets the gid for user `salt` to the specified gid. Default: `1001`.                                                                                                                                                                                         |
+| `PUID`                                                                                                                                | Sets the uid for user `salt` to the specified uid. Default: `1000`.                                                                                                                                                                                         |
+| `PGID`                                                                                                                                | Sets the gid for user `salt` to the specified gid. Default: `1000`.                                                                                                                                                                                         |
 | `PYTHON_PACKAGES`                                                                                                                     | Contains a list of Python packages to be installed. Default: _Unset_.                                                                                                                                                                                       |
 | `PYTHON_PACKAGES_FILE`                                                                                                                | An absolute path inside the container pointing to a requirements.txt file for installing Python extra packages. Takes preference over: `PYTHON_PACKAGES`. Default: _Unset_                                                                                  |
 | `SALT_RESTART_MASTER_ON_CONFIG_CHANGE`                                                                                                | Set this to `True` to restart `salt-master` service when configuration files change. Default: `False`.                                                                                                                                                      |

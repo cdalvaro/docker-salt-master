@@ -18,8 +18,8 @@ services:
     environment:
       DEBUG: false
       TZ: Europe/Madrid
-      PUID: 1001
-      PGID: 1001
+      PUID: 1000
+      PGID: 1000
       SALT_LOG_LEVEL: info
       ### salt-api settings
       # SALT_API_ENABLED: 'True'
