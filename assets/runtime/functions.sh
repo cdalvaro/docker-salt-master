@@ -411,7 +411,7 @@ function setup_salt_keys() {
     log_info "Updating '${key_file}' key permissions ..."
 
     local mode=
-    [[ "${key_file}" =~ .*\.pem$ ]] && mode=644 || mode=400
+    [[ "${key_file}" =~ .*\.pem$ ]] && mode=400 || mode=644
 
     chmod "${mode}" "${key_file}" >/dev/null 2>&1 ||
       log_warn "  There was an issue updating permissions. However, services may work as expected."
