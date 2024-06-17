@@ -5,8 +5,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./roots:/home/salt/data/srv
-      - keys:/home/salt/data/keys
-      - logs:/home/salt/data/logs
+      - ./keys:/home/salt/data/keys
+      - ./logs:/home/salt/data/logs
     ports:
       - "4505:4505"
       - "4506:4506"
@@ -28,9 +28,3 @@ services:
       ### salt-minion settings
       # SALT_MINION_ENABLED: 'True'
       # SALT_MINION_ID: builtin.minion
-
-volumes:
-  keys:
-    name: salt-master-keys
-  logs:
-    name: salt-master-logs
