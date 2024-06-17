@@ -7,6 +7,7 @@ for the list of changes in SaltStack.
 **3007.1_2**
 
 - Revert default `salt`'s user PUID and PGID values to `1000`. Now the `ubuntu` user is deleted before `salt` user creation.
+- Fixes an issue setting permissions for master keys under some platforms ([#245](https://github.com/cdalvaro/docker-salt-master/issues/245)).
 
 **3007.1_1**
 

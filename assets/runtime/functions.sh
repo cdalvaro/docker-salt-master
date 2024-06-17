@@ -398,21 +398,30 @@ function _setup_gpgkeys() {
 #----------------------------------------------------------------------------------------------------------------------
 function setup_salt_keys() {
   log_info "Setting up salt keys ..."
+
+  mkdir -p "${SALT_KEYS_DIR}/minions"
+  find "${SALT_KEYS_DIR}" -type d -exec chown "${SALT_USER}": {} \;
+
   setup_keys_for_service master SALT_MASTER_KEY_FILE "${SALT_KEYS_DIR}"
   [[ "${SALT_MASTER_SIGN_PUBKEY}" == True ]] && _setup_master_sign_keys
   _setup_gpgkeys
 
-  log_info "Setting up salt keys permissions ..."
-  while IFS= read -r -d '' pub_key; do
-    if [[ "${pub_key}" =~ .*\.pem$ ]]; then
-      chmod 400 "${pub_key}"
-    else
-      chmod 644 "${pub_key}"
-    fi
-  done < <(find "${SALT_KEYS_DIR}" -maxdepth 1 -type f -print0)
+  log_info "Setting up salt-master's keys permissions ..."
+  find "${SALT_KEYS_DIR}" -maxdepth 1 -type f -print0 | while IFS= read -r -d '' key_file; do
+    log_info "Updating '${key_file}' key permissions ..."
 
+    local mode=
+    [[ "${key_file}" =~ .*\.pem$ ]] && mode=644 || mode=400
+
+    chmod "${mode}" "${key_file}" >/dev/null 2>&1 ||
+      log_warn "  There was an issue updating permissions. However, services may work as expected."
+
+    chown -h "${SALT_USER}": "${key_file}" >/dev/null 2>&1 ||
+      log_warn "  There was an issue updating ownership. However, services may work as expected."
+  done
+
+  log_info "Setting up minions's keys permissions ..."
   find "${SALT_KEYS_DIR}/minions"* -maxdepth 1 -type f -exec chmod 644 {} \;
-  find "${SALT_HOME}" -path "${SALT_KEYS_DIR}/*" -print0 | xargs -0 chown -h "${SALT_USER}":
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -660,8 +669,6 @@ function initialize_datadir() {
     log_error "Keys directory: '${SALT_KEYS_DIR}' must be mounted as a read-write volume"
     exit 1
   fi
-  mkdir -p "${SALT_KEYS_DIR}/minions"
-  chown -R "${SALT_USER}": "${SALT_KEYS_DIR}"
 
   # Logs directory
   if [[ ! -w "${SALT_LOGS_DIR}" ]]; then
@@ -671,9 +678,6 @@ function initialize_datadir() {
   mkdir -p "${SALT_LOGS_DIR}/salt" "${SALT_LOGS_DIR}/supervisor"
   chmod -R 0755 "${SALT_LOGS_DIR}/supervisor"
   chown -R "${SALT_USER}": "${SALT_LOGS_DIR}/supervisor"
-
-  # Keys directory
-  sudo chown -R "${SALT_USER}:" "${SALT_KEYS_DIR}"
 
   # Salt formulas
   if [[ -w "${SALT_FORMULAS_DIR}" ]]; then
