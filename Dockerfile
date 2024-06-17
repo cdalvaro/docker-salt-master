@@ -1,4 +1,4 @@
-FROM ubuntu:noble-20240429
+FROM ubuntu:noble-20240530
 
 ARG BUILD_DATE
 ARG VCS_REF
@@ -70,7 +70,7 @@ LABEL org.opencontainers.image.vendor="cdalvaro"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 LABEL org.opencontainers.image.version="${IMAGE_VERSION}"
 LABEL org.opencontainers.image.revision="${VCS_REF}"
-LABEL org.opencontainers.image.base.name="ubuntu:noble-20240429"
+LABEL org.opencontainers.image.base.name="ubuntu:noble-20240530"
 LABEL org.opencontainers.image.licenses="MIT"
 
 WORKDIR ${SALT_HOME}
