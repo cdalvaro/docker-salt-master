@@ -5,7 +5,7 @@ ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
 ENV SALT_VERSION="3007.1"
-ENV IMAGE_REVISION="_2"
+ENV IMAGE_REVISION="_3"
 ENV IMAGE_VERSION="${SALT_VERSION}${IMAGE_REVISION}"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
@@ -58,7 +58,6 @@ RUN chmod +x /sbin/entrypoint.sh
 # Shared resources
 EXPOSE 4505 4506 8000
 RUN mkdir -p "${SALT_BASE_DIR}" "${SALT_FORMULAS_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" "${SALT_LOGS_DIR}"
-VOLUME [ "${SALT_KEYS_DIR}", "${SALT_LOGS_DIR}" ]
 
 LABEL org.opencontainers.image.title="Dockerized Salt Master"
 LABEL org.opencontainers.image.description="salt-master ${SALT_VERSION} containerized"

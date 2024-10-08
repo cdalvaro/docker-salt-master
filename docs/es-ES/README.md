@@ -31,7 +31,7 @@ Para otros métodos de instalación de `salt-master`, por favor consulta la [gu�
 Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) y es el método recomendado para la instalación.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.1_2
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.1_3
 ```
 
 También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
@@ -84,6 +84,7 @@ docker run --name salt_master --detach \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
@@ -118,6 +119,7 @@ docker run --name salt_master -d \
     --publish 4505:4505 --publish 4506:4506 \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
@@ -132,7 +134,7 @@ Para configurar `salt-master` con tus propios estados personalizados, debes mont
 
 Las claves de los minions pueden añadirse automáticamente al inicio de `docker-salt-master` montando el volumen `/home/salt/data/keys` y copiando las claves de los minions dentro del directorio `keys/minions/`.
 
-**Nota**: El directorio `/home/salt/data/keys` está definido como un volumen en la imagen `docker-salt-master`, por lo que su contenido puede persistir después de que el contenedor sea eliminado. Sin embargo, es _recomendable montar este directorio en un volumen con nombre o en un directorio del host_. De esta manera, puedes gestionar tus claves fuera del contenedor y evitar perderlas cuando el contenedor sea eliminado.
+**Nota**: Es _recomendable montar este directorio en un volumen con nombre o en un directorio del host_. De esta manera, puedes gestionar tus claves fuera del contenedor y evitar perderlas cuando el contenedor sea eliminado.
 
 ```sh
 mkdir -p keys/minions
@@ -143,6 +145,7 @@ docker run --name salt_master -d \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
@@ -184,6 +187,7 @@ docker run --name salt_master --detach \
     --env 'SALT_MASTER_SIGN_PUBKEY=True' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
@@ -195,6 +199,7 @@ ejecutando el siguiente comando:
 ```sh
 docker run --name salt_master -it --rm \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     ghcr.io/cdalvaro/docker-salt-master:latest \
     app:gen-signed-keys
 ```
@@ -294,6 +299,7 @@ docker run --name salt_master --detach \
     --env 'SALT_API_USER_PASS=4wesome-Pass0rd' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
@@ -388,6 +394,7 @@ docker run --name salt_master --detach \
     --env 'SALT_MASTER_SIGN_PUBKEY=True' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
     --volume $(pwd)/minion_config/:/home/salt/data/minion_config/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
@@ -405,6 +412,7 @@ docker run --name salt_master -it --rm \
     --env "PUID=$(id -u)" --env "PGID=$(id -g)" \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
@@ -558,6 +566,7 @@ docker run --name salt_master -it --rm \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/3pfs/:/home/salt/data/3pfs/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
@@ -605,8 +614,6 @@ Aunque ambos métodos están soportados, son mutuamente excluyentes. Si las dos 
 ### Logs
 
 La salida de `salt-master` se redirige directamente al `stdout` y `stderr` del contenedor. Sin embargo, también se escriben dentro de `/home/salt/data/logs/`.
-
-Este directorio se define como un volumen para que los logs puedan persistir después de que el contenedor sea eliminado.
 
 Dentro del directorio puedes encontrar los logs de `supervisor/` y `salt/`.
 
@@ -755,6 +762,7 @@ docker run --name salt_master -d \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
