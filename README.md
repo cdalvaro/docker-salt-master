@@ -34,7 +34,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.1_2
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.1_3
 ```
 
 You can also pull the `latest` tag, which is built from the repository `HEAD`
@@ -88,6 +88,7 @@ docker run --name salt_master --detach \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
@@ -125,6 +126,7 @@ docker run --name salt_master -d \
     --publish 4505:4505 --publish 4506:4506 \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
@@ -142,7 +144,7 @@ In order to provide salt with your custom states, you must bind the volume `/hom
 Minion keys can be added automatically on startup to `docker-salt-master` by mounting the volume `/home/salt/data/keys`
 and copying the minion keys inside `keys/minions/` directory.
 
-**Note:** The directory `/home/salt/data/keys` is defined as a volume in the `docker-salt-master` image, so its contents can persist after the container is removed. However, it is _recommended to mount this directory to a named volume or a host directory_. That way, you can manage your keys outside the container and avoid losing them when the container is removed.
+**Note:** It is _recommended to mount this directory to a named volume or a host directory_. That way, you can manage your keys outside the container and avoid losing them when the container is removed.
 
 ```sh
 mkdir -p keys/minions
@@ -153,6 +155,7 @@ docker run --name salt_master -d \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
@@ -198,6 +201,7 @@ docker run --name salt_master --detach \
     --env 'SALT_MASTER_SIGN_PUBKEY=True' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
@@ -212,6 +216,7 @@ by executing the following command:
 ```sh
 docker run --name salt_master -it --rm \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     ghcr.io/cdalvaro/docker-salt-master:latest \
     app:gen-signed-keys
 ```
@@ -312,6 +317,7 @@ docker run --name salt_master --detach \
     --env 'SALT_API_USER_PASS=4wesome-Pass0rd' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
@@ -415,6 +421,7 @@ docker run --name salt_master --detach \
     --env 'SALT_MASTER_SIGN_PUBKEY=True' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
     --volume $(pwd)/minion_config/:/home/salt/data/minion_config/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
@@ -436,6 +443,7 @@ docker run --name salt_master -it --rm \
     --env "PUID=$(id -u)" --env "PGID=$(id -g)" \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
@@ -606,6 +614,7 @@ docker run --name salt_master -it --rm \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/3pfs/:/home/salt/data/3pfs/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
@@ -656,9 +665,7 @@ Although both methods are supported, they are mutually exclusive. If both are se
 
 `salt-master` output is streamed directly to the container's `stdout` and `stderr`. However, they are also written inside `/home/salt/data/logs/`.
 
-This directory is defined as a volume so logs can persist after the container is removed.
-
-Inside the directory you could find `supervisor/` logs and `salt/` logs.
+Inside the directory you can find `supervisor/` logs and `salt/` logs.
 
 You can access all logs by mounting the volume: `/home/salt/data/logs/`.
 
@@ -817,6 +824,7 @@ docker run --name salt_master -d \
     --env 'SALT_LOG_LEVEL=info' \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
     --volume $(pwd)/config/:/home/salt/data/config/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
