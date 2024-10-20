@@ -8,7 +8,9 @@ TIMEZONE=${TIMEZONE:-${TZ:-UTC}}
 
 #####            Salt API            #####
 SALT_API_ENABLED=${SALT_API_ENABLED:False}
-SALT_API_USER=${SALT_API_USER:-salt_api}
+if [[ -z ${SALT_API_USER+x} ]]; then
+  SALT_API_USER=salt_api
+fi
 SALT_API_CERT_CN=${SALT_API_CERT_CN:-localhost}
 
 #####           Salt Minion          #####
