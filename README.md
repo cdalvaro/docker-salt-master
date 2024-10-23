@@ -339,7 +339,11 @@ secretes. More info about how to configure secrets can be found in the subsectio
 [_Working with secrets_](#working-with-secrets).
 
 With all that set, you'll be able to provide your _salt-api_ custom configuration by creating the `salt-api.conf` file
-inside your `conf` directory:
+inside your `conf` directory.
+
+#### External Authentication
+
+Here is an example of giving permission to the `salt_api` user via pam:
 
 ```yml
 external_auth:
@@ -350,6 +354,42 @@ external_auth:
       - "@wheel"
       - "@jobs"
 ```
+
+You can specify different authentication methods, as well as specifying groups (by adding a `%` to the name). For example to authenticate the `admins` group via LDAP:
+
+```yml
+external_auth:
+  ldap:
+    admins%:
+      - .*
+      - "@runner"
+      - "@wheel"
+      - "@jobs"
+```
+
+#### LDAP Configuration
+
+To authenticate via LDAP you will need to configure salt to access your LDAP server. The following example authenticates API logins against the LDAP server. It then defines group configuration for `external_auth` searches (looking up the user's group membership via `memberOf` attributes in their person object):
+
+```yml
+auth.ldap.uri: ldaps://server.example.com # Your LDAP server
+auth.ldap.basedn: 'dc=server,dc=example,dc=com' # Search base DN (subtree scope).
+auth.ldap.binddn: 'uid={{ username }},dc=server,dc=exam,ple,dc=com' # The DN to authenticate as (username is substituted from the API authentication information).
+auth.ldap.accountattributename: 'uid' # The user account attribute type
+auth.ldap.groupou: '' # Must be set to an empty string if not in use
+auth.ldap.groupclass: 'person' # The object class to look at when checking group membership
+auth.ldap.groupattribute: 'memberOf' # The attribute in that object to look at when checking group membership
+```
+
+Finally (since `v3006`) you will need to enable one or more client interfaces:
+
+```yml
+netapi_enable_clients:
+  - local
+```
+
+Details of all client interfaces is available at the following
+link: [Netapi Client Interfaces](https://docs.saltproject.io/en/latest/topics/netapi/netapi-enable-clients.html)
 
 More information is available in the following
 link: [External Authentication System (eAuth)](https://docs.saltproject.io/en/latest/topics/eauth/index.html#acl-eauth).
