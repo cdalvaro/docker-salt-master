@@ -46,7 +46,7 @@ function cleanup()
 {
   echo "🧹 Running cleanup tasks ..."
 
-  local salt_master_container="$(docker container ls --filter NAME="${CONTAINER_NAME}" --quiet)"
+  local salt_master_container="$(docker container ls -a --filter NAME="${CONTAINER_NAME}" --quiet)"
   if [[ -n "${salt_master_container}" ]]; then
     echo "  - Removing ${CONTAINER_NAME} docker container ..."
     docker container rm --force --volumes "${salt_master_container}" > /dev/null
@@ -202,6 +202,9 @@ EOF
 
   echo "==> Waiting ${BOOTUP_WAIT_SECONDS} seconds for the container to be ready ..."
   sleep "${BOOTUP_WAIT_SECONDS}"
+  # Returns 0 for containers still running or successfully exited
+  return "$(docker inspect ${CONTAINER_NAME} --format="{{.State.ExitCode}}")"
+
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
