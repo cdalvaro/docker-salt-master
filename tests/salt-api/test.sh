@@ -41,6 +41,20 @@ EOF
 ok "salt-api config created"
 
 # Run test instance
+echo "==> Starting docker-salt-master (${PLATFORM}) with salt-api config and no api user ..."
+start_container_and_wait \
+  --publish 8000:8000 \
+  --env SALT_API_ENABLED=True \
+  --env SALT_API_USER="" \
+|| error "container started"
+ok "container started"
+
+check_equal "$(docker-exec bash -c 'env | grep SALT_API_USER= | cut -d= -f2')" "" "SALT_API_USER remains empty when explicitly defined that way"
+
+# Stop and start with salt-api config
+echo "==> Stopping previous container ..."
+cleanup || error "Unable to stop previour container"
+
 echo "==> Starting docker-salt-master (${PLATFORM}) with salt-api config ..."
 start_container_and_wait \
   --publish 8000:8000 \
