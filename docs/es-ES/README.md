@@ -31,7 +31,7 @@ Para otros métodos de instalación de `salt-master`, por favor consulta la [gu�
 Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) y es el método recomendado para la instalación.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.1_3
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.1_4
 ```
 
 También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
