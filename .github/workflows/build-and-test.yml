@@ -143,7 +143,9 @@ jobs:
 
       - name: Execute salt-api tests
         if: always()
-        run: tests/salt-api/test.sh
+        run: |
+          tests/salt-api/test.sh
+          tests/salt-api/salt-api-ldap.sh
 
       - name: Execute salt-minion tests
         if: always()
