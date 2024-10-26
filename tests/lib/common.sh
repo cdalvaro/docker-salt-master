@@ -40,6 +40,12 @@ export PLATFORM=${PLATFORM:-$(docker version --format='{{.Server.Os}}/{{.Server.
 #----------------------------------------------------------------------------------------------------------------------
 export BOOTUP_WAIT_SECONDS=${BOOTUP_WAIT_SECONDS:-60}
 
+#---  ENV VARIABLE  ---------------------------------------------------------------------------------------------------
+#          NAME:  LOGS_DIR
+#   DESCRIPTION:  The directory to store the logs. Default: 'logs'.
+#----------------------------------------------------------------------------------------------------------------------
+export LOGS_DIR="${SCRIPT_PATH:-$(mktemp salt_master_test.XXXXX)}/logs"
+
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  cleanup
 #   DESCRIPTION:  Clean up tasks.
@@ -63,7 +69,6 @@ function cleanup() {
   fi
 
   echo "  - Removing logs ..."
-  LOGS_DIR="${SCRIPT_PATH}/logs"
   if [[ -d "${LOGS_DIR}" ]]; then
     for service in master minion api key; do
       [[ -f "${LOGS_DIR}"/salt/"${service}".log ]] && rm -fv "${LOGS_DIR}"/salt/"${service}".log
@@ -136,7 +141,6 @@ function container_log() {
 #   DESCRIPTION:  Print salt-master log.
 #----------------------------------------------------------------------------------------------------------------------
 function master_log() {
-  local LOGS_DIR="${SCRIPT_PATH}/logs"
   local SALT_MASTER_LOG="${LOGS_DIR}/salt/master.log"
 
   [[ -f "${SALT_MASTER_LOG}" ]] || return 0
@@ -149,7 +153,6 @@ function master_log() {
 #   DESCRIPTION:  Print built-in salt-minion log.
 #----------------------------------------------------------------------------------------------------------------------
 function builtin_minion_log() {
-  local LOGS_DIR="${SCRIPT_PATH}/logs"
   local SALT_MINION_LOG="${LOGS_DIR}/salt/minion.log"
 
   [[ -f "${SALT_MINION_LOG}" ]] || return 0
@@ -177,7 +180,7 @@ function minion_log() {
 function start_container_and_wait() {
   # shellcheck disable=SC2206
   local DOCKER_ARGS=($@)
-  local LOGS_DIR="${SCRIPT_PATH}/logs"
+
   mkdir -p "${LOGS_DIR}"
 
   # Common config
