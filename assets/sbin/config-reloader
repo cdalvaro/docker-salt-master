@@ -4,8 +4,7 @@
 FUNCTIONS_FILE="${SALT_RUNTIME_DIR}/functions.sh"
 source "${FUNCTIONS_FILE}"
 
-function check_for_config_changes()
-{
+function check_for_config_changes() {
   inotifywait -qq --recursive \
     --event modify,move,create,delete \
     "${SALT_CONFS_DIR}"
@@ -13,9 +12,25 @@ function check_for_config_changes()
 
 while check_for_config_changes; do
   log_info "Configuration changes detected. Reloading salt-master ..."
-  supervisorctl stop salt-api
+
+  if [[ ${SALT_API_ENABLED,,} == true ]]; then
+    log_info "Asking supervisor to stop salt-api..."
+    supervisorctl stop salt-api
+  fi
+  log_info "Asking supervisor to stop salt-master..."
   supervisorctl stop salt-master
-  killall salt-master; killall -9 salt-master
+
+  log_info "Ensure salt services are killed..."
+  pkill -f "salt-(master|api)" || true
+  pkill -f -9 "salt-(master|api)" || true
+
+  log_info "Asking supervisor to start salt-master..."
   supervisorctl start salt-master
-  supervisorctl start salt-api
+
+  if [[ ${SALT_API_ENABLED,,} == true ]]; then
+    log_info "Asking supervisor to start salt-api..."
+    supervisorctl start salt-api
+  fi
+
+  log_info "Configuration reloaded."
 done
