@@ -16,7 +16,7 @@ on:
       - "Makefile"
 
 env:
-  IMAGE_NAME: localhost:5000/cdalvaro/docker-salt-master:${{ github.sha }}
+  IMAGE_NAME: localhost:5000/${{ github.repository }}:${{ github.sha }}
   REGISTRY_PATH: ${{ github.workspace }}/registry
 
 jobs:
