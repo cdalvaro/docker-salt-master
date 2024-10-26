@@ -30,12 +30,12 @@ jobs:
           cache-to: type=gha,mode=max
           pull: true
           load: true
-          tags: ghcr.io/cdalvaro/docker-salt-master:${{ github.sha }}
+          tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: "ghcr.io/cdalvaro/docker-salt-master:${{ github.sha }}"
+          image-ref: "ghcr.io/${{ github.repository }}:${{ github.sha }}"
           format: "sarif"
           output: "trivy-results.sarif"
 
