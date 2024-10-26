@@ -5,10 +5,13 @@ echo "🧪 Running salt-minion tests ..."
 
 # https://stackoverflow.com/a/4774063/3398062
 # shellcheck disable=SC2164
-SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+SCRIPT_PATH="$(
+  cd -- "$(dirname "$0")" >/dev/null 2>&1
+  pwd -P
+)"
 
-# shellcheck source=assets/build/functions.sh
 COMMON_FILE="${SCRIPT_PATH}/../lib/common.sh"
+# shellcheck source=tests/lib/common.sh
 source "${COMMON_FILE}"
 trap cleanup EXIT
 
@@ -66,7 +69,7 @@ echo "==> Creating salt-minion configuration file ..."
 EXPECTED_PYENV_ROOT_PATH=/usr/local/pyenv-cdalvaro
 MINION_CONFIG_DIR="${SCRIPT_PATH}/minion_config"
 mkdir -p "${MINION_CONFIG_DIR}"
-cat > "${MINION_CONFIG_DIR}/pyenv.conf" <<EOF
+cat >"${MINION_CONFIG_DIR}/pyenv.conf" <<EOF
 pyenv.root: ${EXPECTED_PYENV_ROOT_PATH}
 EOF
 ok "salt-minion pyenv config file created"

@@ -4,10 +4,13 @@ echo "🧪 Running salt-api tests ..."
 
 # https://stackoverflow.com/a/4774063/3398062
 # shellcheck disable=SC2164
-SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+SCRIPT_PATH="$(
+  cd -- "$(dirname "$0")" >/dev/null 2>&1
+  pwd -P
+)"
 
-# shellcheck source=assets/build/functions.sh
 COMMON_FILE="${SCRIPT_PATH}/../lib/common.sh"
+# shellcheck source=tests/lib/common.sh
 source "${COMMON_FILE}"
 trap cleanup EXIT
 
@@ -19,7 +22,7 @@ export SALTAPI_EAUTH=pam
 # Create configuration files
 echo "==> Creating salt-api configuration file ..."
 mkdir -p "${SCRIPT_PATH}/config"
-cat > "${SCRIPT_PATH}/config/salt-api.conf" <<EOF
+cat >"${SCRIPT_PATH}/config/salt-api.conf" <<EOF
 # Breaking change from 3006
 # https://docs.saltproject.io/en/latest/topics/netapi/netapi-enable-clients.html
 netapi_enable_clients:
@@ -45,11 +48,12 @@ echo "==> Starting docker-salt-master (${PLATFORM}) with salt-api config and no 
 start_container_and_wait \
   --publish 8000:8000 \
   --env SALT_API_ENABLED=True \
-  --env SALT_API_USER="" \
-|| error "container started"
+  --env SALT_API_USER="" ||
+  error "container started"
 ok "container started"
 
-check_equal "$(docker-exec bash -c 'env | grep SALT_API_USER= | cut -d= -f2')" "" "SALT_API_USER remains empty when explicitly defined that way"
+INTERNAL_SALT_API_USER="$(docker-exec bash -c 'env | grep SALT_API_USER= | cut -d= -f2')"
+is_empty "${INTERNAL_SALT_API_USER}" "SALT_API_USER remains empty when explicitly defined that way"
 
 # Stop and start with salt-api config
 echo "==> Stopping previous container ..."
@@ -59,8 +63,8 @@ echo "==> Starting docker-salt-master (${PLATFORM}) with salt-api config ..."
 start_container_and_wait \
   --publish 8000:8000 \
   --env SALT_API_ENABLED=True \
-  --env SALT_API_USER_PASS="${SALTAPI_PASS}" \
-|| error "container started"
+  --env SALT_API_USER_PASS="${SALTAPI_PASS}" ||
+  error "container started"
 ok "container started"
 
 # Test salt-api authentication
@@ -74,7 +78,7 @@ echo "${CURL_OUTPUT}"
 
 SALTAPI_TOKEN=
 SALTAPI_TOKEN="$(echo -n "${CURL_OUTPUT}" | grep -Ei 'token: ([^\s]+)' | awk '{print $2}')"
-[ -n "${SALTAPI_TOKEN}" ] || error "salt-api token"
+[[ -n "${SALTAPI_TOKEN}" ]] || error "salt-api token"
 ok "salt-api token"
 
 # Test salt-api command
@@ -96,13 +100,13 @@ cleanup || error "Unable to stop previour container"
 
 echo "==> Starting docker-salt-master (${PLATFORM}) with salt-api config and password via file ..."
 export SALT_API_USER_PASS_FILE=salt_api_user_pass
-echo -n "${SALTAPI_PASS}" > "./${SALT_API_USER_PASS_FILE}"
+echo -n "${SALTAPI_PASS}" >"./${SALT_API_USER_PASS_FILE}"
 start_container_and_wait \
   --publish 8000:8000 \
   --env SALT_API_ENABLED=True \
   --env SALT_API_USER_PASS_FILE="/run/secrets/${SALT_API_USER_PASS_FILE}" \
-  --volume "$(pwd)/${SALT_API_USER_PASS_FILE}":/run/secrets/${SALT_API_USER_PASS_FILE}:ro \
-|| error "container started"
+  --volume "$(pwd)/${SALT_API_USER_PASS_FILE}":/run/secrets/${SALT_API_USER_PASS_FILE}:ro ||
+  error "container started"
 ok "container started"
 
 # Test salt-api authentication
@@ -116,7 +120,7 @@ echo "${CURL_OUTPUT}"
 
 SALTAPI_TOKEN=
 SALTAPI_TOKEN="$(echo -n "${CURL_OUTPUT}" | grep -Ei 'token: ([^\s]+)' | awk '{print $2}')"
-[ -n "${SALTAPI_TOKEN}" ] || error "salt-api token"
+[[ -n "${SALTAPI_TOKEN}" ]] || error "salt-api token"
 ok "salt-api token"
 
 # Test salt-api command via curl
