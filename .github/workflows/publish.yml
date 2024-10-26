@@ -19,7 +19,7 @@ on:
       - published
 
 env:
-  IMAGE_NAME: cdalvaro/docker-salt-master
+  IMAGE_NAME: ${{ github.repository }}
   PLATFORMS: linux/amd64,linux/arm64
   EXTRA_REGISTRIES: ghcr.io quay.io
 
@@ -121,7 +121,7 @@ jobs:
             VCS_REF=${{ needs.metadata.outputs.vcs_ref }}
             BUILD_DATE=${{ needs.metadata.outputs.created_on }}
           outputs: |
-            type=image,annotation-index.org.opencontainers.image.description=https://github.com/cdalvaro/docker-salt-master
+            type=image,annotation-index.org.opencontainers.image.description=https://github.com/${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           pull: true
