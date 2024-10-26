@@ -1,6 +1,8 @@
 # Check shellcheck wiki at:
 # https://github.com/koalaman/shellcheck/wiki/SCXXXX
 
+external-sources=true
+
 # Allow following non-constant source
 disable=SC1090
 
@@ -13,6 +15,9 @@ disable=SC2034
 # Double quote array expansions to avoid re-splitting elements.
 disable=SC2068
 
+# Use start_container_and_wait "$@" if function's $1 should mean script's $1
+disable=SC2119
+
 # Argument mixes string and array.
 disable=SC2145
 
@@ -24,3 +29,6 @@ disable=SC2188
 
 # This is a file redirection.
 disable=SC2210
+
+# This function is invoked in an 'if' condition so set -e will be disabled.
+disable=SC2310
