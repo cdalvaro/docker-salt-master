@@ -5,13 +5,16 @@ echo "🧪 Running keys mount point tests ..."
 
 # https://stackoverflow.com/a/4774063/3398062
 # shellcheck disable=SC2164
-SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+SCRIPT_PATH="$(
+  cd -- "$(dirname "$0")" >/dev/null 2>&1
+  pwd -P
+)"
 
 USER_UID=$(id -u)
 USER_GID=$(id -g)
 
-# shellcheck source=assets/build/functions.sh
 COMMON_FILE="${SCRIPT_PATH}/../lib/common.sh"
+# shellcheck source=tests/lib/common.sh
 source "${COMMON_FILE}"
 trap cleanup EXIT
 
@@ -33,7 +36,8 @@ ok "healthcheck"
 # Test keys permissions
 echo "==> Checking keys permissions ..."
 KEYS_PERMISSIONS="$(find "${KEYS_DIR}" -type f -exec stat -c "%n %a %u:%g" {} \; | sort)"
-EXPECTED_PERMISSIONS=$(cat <<EOF
+EXPECTED_PERMISSIONS=$(
+  cat <<EOF
 ${KEYS_DIR}/master.pem 400 ${USER_UID}:${USER_GID}
 ${KEYS_DIR}/master.pub 644 ${USER_UID}:${USER_GID}
 ${KEYS_DIR}/master_pubkey_signature 644 ${USER_UID}:${USER_GID}
@@ -64,7 +68,8 @@ check_equal "${SIGNED_KEYS_DIRECTORY}" "${EXPECTED_DIRECTORY}" "generated signed
 # Check signed keys permissions
 echo "==> Checking signed keys permissions ..."
 KEYS_PERMISSIONS="$(find "${SIGNED_KEYS_DIRECTORY}" -type f -exec stat -c "%n %a %u:%g" {} \; | sort)"
-EXPECTED_PERMISSIONS=$(cat <<EOF
+EXPECTED_PERMISSIONS=$(
+  cat <<EOF
 ${SIGNED_KEYS_DIRECTORY}/master_pubkey_signature 644 ${USER_UID}:${USER_GID}
 ${SIGNED_KEYS_DIRECTORY}/master_sign.pem 400 ${USER_UID}:${USER_GID}
 ${SIGNED_KEYS_DIRECTORY}/master_sign.pub 644 ${USER_UID}:${USER_GID}

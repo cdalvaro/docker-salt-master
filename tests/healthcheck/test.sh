@@ -4,10 +4,13 @@ echo "🧪 Running healthcheck tests ..."
 
 # https://stackoverflow.com/a/4774063/3398062
 # shellcheck disable=SC2164
-SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+SCRIPT_PATH="$(
+  cd -- "$(dirname "$0")" >/dev/null 2>&1
+  pwd -P
+)"
 
-# shellcheck source=assets/build/functions.sh
 COMMON_FILE="${SCRIPT_PATH}/../lib/common.sh"
+# shellcheck source=tests/lib/common.sh
 source "${COMMON_FILE}"
 trap cleanup EXIT
 
@@ -18,8 +21,8 @@ start_container_and_wait \
   --health-start-period=30s \
   --health-interval=10s \
   --health-timeout=10s \
-  --health-retries=3 \
-|| error "container started"
+  --health-retries=3 ||
+  error "container started"
 ok "container started"
 
 # Test image calling healthcheck

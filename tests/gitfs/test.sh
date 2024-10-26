@@ -4,10 +4,13 @@ echo "🧪 Running gitfs tests ..."
 
 # https://stackoverflow.com/a/4774063/3398062
 # shellcheck disable=SC2164
-SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+SCRIPT_PATH="$(
+  cd -- "$(dirname "$0")" >/dev/null 2>&1
+  pwd -P
+)"
 
-# shellcheck source=assets/build/functions.sh
 COMMON_FILE="${SCRIPT_PATH}/../lib/common.sh"
+# shellcheck source=tests/lib/common.sh
 source "${COMMON_FILE}"
 trap cleanup EXIT
 
@@ -23,8 +26,8 @@ ok "gitfs keys"
 # Run test instance
 echo "==> Starting docker-salt-master (${PLATFORM}) with ed25519 ssh key ..."
 start_container_and_wait \
-  --volume "$(pwd)/${GITFS_KEYS_DIR%%/gitfs}":/home/salt/data/keys \
-|| error "container started"
+  --volume "$(pwd)/${GITFS_KEYS_DIR%%/gitfs}":/home/salt/data/keys ||
+  error "container started"
 ok "container started"
 
 # Check pygit2 is installed
@@ -38,13 +41,13 @@ check_equal "${CURRENT_VERSION%%-*}" "${EXPECTED_VERSION%%-*}" "pygit2 version"
 # Update repositories
 echo "==> Updating gitfs repositories ..."
 salt-run cache.clear_git_lock gitfs type=update
-UPDATE_REPOS="$( salt-run fileserver.update )"
+UPDATE_REPOS="$(salt-run fileserver.update)"
 echo "${UPDATE_REPOS}" | grep -qi true || error "update gitfs"
 ok "update gitfs"
 
 # Check gitfs files
 echo "==> Checking gitfs files ..."
-FILE_LIST=$( salt-run fileserver.file_list )
+FILE_LIST=$(salt-run fileserver.file_list)
 echo "${FILE_LIST}"
 [[ "${FILE_LIST}" == *test.txt* ]] || error "gitfs files"
 ok "gitfs files"
@@ -55,7 +58,7 @@ ok "salt-minion started"
 
 # Test pillar
 echo "==> Checking gitfs pillar docker-salt-master-test:email content from minion ..."
-PILLAR_CONTENT="$( salt "${TEST_MINION_ID}" pillar.get 'docker-salt-master-test:email' || error "Unable to get pillar 'docker-salt-master-test:email'" )"
+PILLAR_CONTENT="$(salt "${TEST_MINION_ID}" pillar.get 'docker-salt-master-test:email' || error "Unable to get pillar 'docker-salt-master-test:email'")"
 echo "${PILLAR_CONTENT}"
 echo -n "${PILLAR_CONTENT}" | grep -q 'github@cdalvaro.io' || error "Check gitfs pillar 'docker-salt-master-test:email'"
 ok "Check gitfs pillar 'docker-salt-master-test:email'"
