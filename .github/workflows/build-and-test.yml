@@ -70,11 +70,13 @@ jobs:
     needs: build
     strategy:
       matrix:
-        platform: [linux/amd64, linux/arm64]
+        platform:
+          - linux/amd64
+          - linux/arm64
     env:
       DOCKER_CLI_EXPERIMENTAL: enabled
       PLATFORM: ${{ matrix.platform }}
-      BOOTUP_WAIT_SECONDS: 90
+      BOOTUP_WAIT_SECONDS: ${{ matrix.platform == 'linux/amd64' && 30 || 90 }}
 
     steps:
       - name: Checkout repository
@@ -102,10 +104,10 @@ jobs:
           sleep 10
 
       - name: Import Docker images
-        run: docker pull --platform ${{ matrix.platform }} ${IMAGE_NAME}
+        run: docker pull --platform ${{ env.PLATFORM }} ${IMAGE_NAME}
 
       - name: Docker inspect
-        run: docker buildx imagetools inspect ${IMAGE_NAME} | grep '${{ matrix.platform }}'
+        run: docker buildx imagetools inspect ${IMAGE_NAME} | grep '${{ env.PLATFORM }}'
 
       - name: Setup Python
         uses: actions/setup-python@v5
