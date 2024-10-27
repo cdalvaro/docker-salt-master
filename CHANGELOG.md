@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3007.1 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.1.html)
 for the list of changes in SaltStack.
 
+**3007.1_5**
+
+- Fixes an issue that prevents config-reload from working properly ([#270](https://github.com/cdalvaro/docker-salt-master/pull/270)).
+
 **3007.1_4**
 
 - Add support for LDAP ([#267](https://github.com/cdalvaro/docker-salt-master/pull/267)).

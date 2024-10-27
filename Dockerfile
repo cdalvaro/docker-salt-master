@@ -5,7 +5,7 @@ ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
 ENV SALT_VERSION="3007.1"
-ENV IMAGE_REVISION="_4"
+ENV IMAGE_REVISION="_5"
 ENV IMAGE_VERSION="${SALT_VERSION}${IMAGE_REVISION}"
 
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \

@@ -34,7 +34,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.1_4
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.1_5
 ```
 
 You can also pull the `latest` tag, which is built from the repository `HEAD`
@@ -373,12 +373,12 @@ To authenticate via LDAP you will need to configure salt to access your LDAP ser
 
 ```yml
 auth.ldap.uri: ldaps://server.example.com # Your LDAP server
-auth.ldap.basedn: 'dc=server,dc=example,dc=com' # Search base DN (subtree scope).
-auth.ldap.binddn: 'uid={{ username }},dc=server,dc=exam,ple,dc=com' # The DN to authenticate as (username is substituted from the API authentication information).
-auth.ldap.accountattributename: 'uid' # The user account attribute type
-auth.ldap.groupou: '' # Must be set to an empty string if not in use
-auth.ldap.groupclass: 'person' # The object class to look at when checking group membership
-auth.ldap.groupattribute: 'memberOf' # The attribute in that object to look at when checking group membership
+auth.ldap.basedn: "dc=server,dc=example,dc=com" # Search base DN (subtree scope).
+auth.ldap.binddn: "uid={{ username }},dc=server,dc=exam,ple,dc=com" # The DN to authenticate as (username is substituted from the API authentication information).
+auth.ldap.accountattributename: "uid" # The user account attribute type
+auth.ldap.groupou: "" # Must be set to an empty string if not in use
+auth.ldap.groupclass: "person" # The object class to look at when checking group membership
+auth.ldap.groupattribute: "memberOf" # The attribute in that object to look at when checking group membership
 ```
 
 Finally (since `v3006`) you will need to enable one or more client interfaces:
