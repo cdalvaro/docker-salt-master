@@ -115,11 +115,17 @@ jobs:
       - name: Install and configure salt-minion
         run: |
           # Install salt-minion from salt repos
-          curl -o bootstrap-salt.sh -L https://bootstrap.saltproject.io
-          sudo sh bootstrap-salt.sh -dXP stable
-          sudo systemctl stop salt-minion
-          sudo systemctl disable salt-minion
-          sudo rm -f /var/log/salt/minion
+          source /etc/os-release
+          arch=amd64
+          keyring_path="/etc/apt/keyrings/salt-archive-keyring-2023.gpg"
+          salt_repo="https://repo.saltproject.io/salt/py3/ubuntu/${VERSION_ID}/${arch}"
+          sources_list="/etc/apt/sources.list.d/salt.list"
+
+          sudo curl -fsSL -o "${keyring_path}" ${salt_repo}/SALT-PROJECT-GPG-PUBKEY-2023.gpg
+          echo "deb [signed-by=${keyring_path} arch=${arch}] ${salt_repo}/latest ${VERSION_CODENAME:?} main" | sudo tee "${sources_list}"
+
+          sudo apt-get update
+          sudo apt-get install -y salt-minion
 
       - name: Install tests utils
         run: |
