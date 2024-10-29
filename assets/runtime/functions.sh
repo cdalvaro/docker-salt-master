@@ -3,8 +3,8 @@
 set -o errexit
 set -o pipefail
 
-# shellcheck source=assets/runtime/env-defaults.sh
 ENV_DEFAULTS_FILE="${SALT_RUNTIME_DIR}/env-defaults.sh"
+# shellcheck source=assets/runtime/env-defaults.sh
 source "${ENV_DEFAULTS_FILE}"
 
 # cdalvaro managed block string
@@ -95,11 +95,13 @@ function update_template() {
   [[ ! -f "${FILE}" ]] && return 1
 
   local VARIABLES=("$@")
-  local USR=$(stat -c %U "${FILE}")
-  local tmp_file=$(mktemp)
+  local USR=
+  local tmp_file=
+
+  USR=$(stat -c %U "${FILE}")
+  tmp_file=$(mktemp)
   cp -a "${FILE}" "${tmp_file}"
 
-  local variables
   for variable in "${VARIABLES[@]}"; do
     sed -ri "s|[{]{2}${variable}[}]{2}|\${${variable}}|g" "${tmp_file}"
   done
@@ -108,7 +110,7 @@ function update_template() {
   (
     export "${VARIABLES[@]}"
     local IFS=":"
-    sudo -HEu "${USR}" envsubst "${VARIABLES[*]/#/$}" <"${tmp_file}" >"${FILE}"
+    sudo -HEu "${USR}" envsubst "${VARIABLES[*]/#/$}" <"${tmp_file}" | sudo tee "${FILE}"
   )
 
   rm -f "${tmp_file}"
@@ -148,7 +150,8 @@ function gen_signed_keys() {
     return 1
   fi
 
-  local generated_keys_dir=$(exec_as_salt mktemp -d -t "master_sign.XXXXX")
+  local generated_keys_dir=
+  generated_keys_dir=$(exec_as_salt mktemp -d -t "master_sign.XXXXX")
   [[ -n "${output_dir}" ]] || output_dir="${SALT_KEYS_DIR}/generated/$(basename "${generated_keys_dir}")"
 
   # This is a really ugly fix realted with issue #226
@@ -244,7 +247,8 @@ function setup_keys_for_service() {
     else
       log_info "     Creating new keys ..."
       # Fix issue #226
-      local tmp_keys_dir="$(exec_as_salt mktemp -d)"
+      local tmp_keys_dir=
+      tmp_keys_dir="$(exec_as_salt mktemp -d)"
       salt-key --gen-keys "${service}" --gen-keys-dir "${tmp_keys_dir}" --user "${SALT_USER}" >/dev/null 2>&1
       mv "${tmp_keys_dir}"/"${service}".{pem,pub} "${keys_dir}/"
       rm -rf "${tmp_keys_dir}"
@@ -383,7 +387,8 @@ function _setup_gpgkeys() {
   exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --import "${public_key}"
 
   log_info "     Setting trust level to ultimate ..."
-  local key_id="$(exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --list-packets "${private_key}" | awk '/keyid:/{ print $2 }' | head -1)"
+  local key_id=
+  key_id="$(exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --list-packets "${private_key}" | awk '/keyid:/{ print $2 }' | head -1)"
   (
     echo trust &
     echo 5 &
