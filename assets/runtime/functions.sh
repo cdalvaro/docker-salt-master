@@ -16,7 +16,7 @@ SELF_MANAGED_BLOCK_STRING="## cdalvaro managed block"
 #----------------------------------------------------------------------------------------------------------------------
 function exec_as_salt() {
   if [[ $(whoami) == "${SALT_USER}" ]]; then
-    $@
+    "$@"
   else
     sudo -HEu "${SALT_USER}" "$@"
   fi
@@ -110,7 +110,8 @@ function update_template() {
   (
     export "${VARIABLES[@]}"
     local IFS=":"
-    sudo -HEu "${USR}" envsubst "${VARIABLES[*]/#/$}" <"${tmp_file}" | sudo tee "${FILE}"
+    # shellcheck disable=SC2024
+    sudo -HEu "${USR}" envsubst "${VARIABLES[*]/#/$}" <"${tmp_file}" >"${FILE}"
   )
 
   rm -f "${tmp_file}"
@@ -556,6 +557,7 @@ function configure_salt_minion() {
 
   # Get master's fingerprint
   log_info " ==> Getting master's fingerprint ..."
+  # shellcheck disable=SC2034
   SALT_MASTER_FINGERPRINT="$(salt-key -f master.pub | grep -Ei 'master.pub: ([^\s]+)' | awk '{print $2}')"
 
   # Update main configuration
@@ -786,7 +788,7 @@ function install_python_additional_packages() {
 
   if [[ -n "${PYTHON_PACKAGES}" ]]; then
     IFS=" " read -ra PYTHON_PACKAGES <<<"${PYTHON_PACKAGES}"
-    log_info "Installing additional python packages: ${PYTHON_PACKAGES[@]} ..."
+    log_info "Installing additional python packages: ${PYTHON_PACKAGES[*]} ..."
     salt-pip install --no-cache-dir "${PYTHON_PACKAGES[@]}"
     return $?
   fi
