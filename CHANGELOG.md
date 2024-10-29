@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3007.1 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.1.html)
 for the list of changes in SaltStack.
 
+**3007.1_6**
+
+- When `SALT_CONFS_DIR` is set to something different than the default value, `/home/salt/data/config`. A symlink is created pointing from `SALT_CONFS_DIR` to `/home/salt/data/config`. This is done to simplify the configuration files allowing to use the same configuration files in different containers.
+
 **3007.1_5**
 
 - Fixes an issue that prevents config-reload from working properly ([#270](https://github.com/cdalvaro/docker-salt-master/pull/270)).

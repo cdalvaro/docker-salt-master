@@ -647,6 +647,10 @@ function initialize_datadir() {
   fi
 
   # Salt configuration directory
+  if [[ "${SALT_CONFS_DIR}" != "${SALT_DATA_DIR}/config" ]]; then
+    rmdir "${SALT_DATA_DIR}/config" && ln -sfnv "${SALT_CONFS_DIR}" "${SALT_DATA_DIR}/config"
+  fi
+
   if [[ -w "${SALT_CONFS_DIR}" ]]; then
     chown -R "${SALT_USER}": "${SALT_CONFS_DIR}" || log_error "Unable to change '${SALT_CONFS_DIR}' ownership"
   else
