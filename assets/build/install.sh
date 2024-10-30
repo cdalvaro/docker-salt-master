@@ -2,11 +2,12 @@
 
 set -o errexit
 set -o pipefail
+set -o nounset
 
 export DEBIAN_FRONTEND=noninteractive
 
-# shellcheck source=assets/build/functions.sh
 FUNCTIONS_FILE="${SALT_BUILD_DIR}/functions.sh"
+# shellcheck source=assets/build/functions.sh
 source "${FUNCTIONS_FILE}"
 
 log_info "Installing required packages and build dependencies ..."
@@ -49,7 +50,11 @@ EOF
 
 # Install salt packages
 log_info "Installing salt packages ..."
-install_pkgs salt-master="${SALT_VERSION}" salt-minion="${SALT_VERSION}" salt-api="${SALT_VERSION}"
+install_pkgs \
+  salt-common="${SALT_VERSION}" \
+  salt-master="${SALT_VERSION}" \
+  salt-minion="${SALT_VERSION}" \
+  salt-api="${SALT_VERSION}"
 
 # Install python packages
 log_info "Installing python packages ..."

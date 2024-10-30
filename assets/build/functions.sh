@@ -2,6 +2,10 @@
 
 set -o errexit
 set -o pipefail
+set -o nounset
+
+DEBUG="${DEBUG:-false}"
+ECHO_DEBUG="${ECHO_DEBUG:-false}"
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  log_debug
@@ -26,26 +30,24 @@ function log_info() {
 #   DESCRIPTION:  Echo warning information to stdout.
 #----------------------------------------------------------------------------------------------------------------------
 function log_warn() {
-  (>&2 echo "[WARN] - $*")
+  (echo >&2 "[WARN] - $*")
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  log_error
 #   DESCRIPTION:  Echo errors to stderr.
 #----------------------------------------------------------------------------------------------------------------------
-function log_error()
-{
-  (>&2 echo "[ERROR] - $*")
+function log_error() {
+  (echo >&2 "[ERROR] - $*")
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  exec_as_salt
 #   DESCRIPTION:  Execute the pass command as the `SALT_USER` user.
 #----------------------------------------------------------------------------------------------------------------------
-function exec_as_salt()
-{
+function exec_as_salt() {
   if [[ $(whoami) == "${SALT_USER}" ]]; then
-    $@
+    "$@"
   else
     sudo -HEu "${SALT_USER}" "$@"
   fi
@@ -55,8 +57,7 @@ function exec_as_salt()
 #          NAME:  is_arm64
 #   DESCRIPTION:  Check whether the platform is ARM 64-bits or not.
 #----------------------------------------------------------------------------------------------------------------------
-function is_arm64()
-{
+function is_arm64() {
   uname -m | grep -qE 'arm64|aarch64'
 }
 
@@ -64,9 +65,8 @@ function is_arm64()
 #          NAME:  install_pkgs
 #   DESCRIPTION:  Install packages using apt-get install.
 #----------------------------------------------------------------------------------------------------------------------
-function install_pkgs()
-{
-  apt-get install --no-install-recommends --yes $@
+function install_pkgs() {
+  apt-get install --no-install-recommends --yes "$@"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -76,15 +76,14 @@ function install_pkgs()
 #             1:  URL where the file is hosted.
 #             2:  Filename (with path) for the downloaded file.
 #----------------------------------------------------------------------------------------------------------------------
-function download()
-{
+function download() {
   local URL="$1"
   local FILE_NAME="$2"
 
   local WGET_ARGS=(--quiet)
 
   log_info "Downloading ${FILE_NAME} from ${URL} ..."
-  wget ${WGET_ARGS[@]} -O "${FILE_NAME}" "${URL}"
+  wget "${WGET_ARGS[@]}" -O "${FILE_NAME}" "${URL}"
   if [[ -f "${FILE_NAME}" ]]; then
     log_debug "Success!"
   else
@@ -100,8 +99,7 @@ function download()
 #             1:  The file to check.
 #             2:  The expected SHA256 checksum.
 #----------------------------------------------------------------------------------------------------------------------
-function check_sha256()
-{
+function check_sha256() {
   local FILE="${1}"
   local SHA256="${2}"
 
@@ -109,7 +107,8 @@ function check_sha256()
   if echo "${SHA256}  ${FILE}" | shasum -a 256 -c --status -; then
     log_debug "SHA256 hash for ${FILE} matches! (${SHA256})"
   else
-    local HASH=$(shasum -a 256 "${FILE}" | awk '{print $1}')
+    local HASH=
+    HASH=$(shasum -a 256 "${FILE}" | awk '{print $1}')
     log_error "SHA256 checksum mismatch for ${FILE}"
     log_error "Expected: ${SHA256}"
     log_error "     Got: ${HASH}"
@@ -123,8 +122,7 @@ function check_sha256()
 #     ARGUMENTS:
 #             1:  The file to extract.
 #----------------------------------------------------------------------------------------------------------------------
-function extract()
-{
+function extract() {
   local FILE="${1}"
   log_info "Unpacking file: ${FILE}"
   tar xzf "${FILE}" --strip-components 1
@@ -134,15 +132,16 @@ function extract()
 #          NAME:  add_salt_repository
 #   DESCRIPTION:  Add salt repository to packages sources.
 #----------------------------------------------------------------------------------------------------------------------
-function add_salt_repository()
-{
+function add_salt_repository() {
   local arch=amd64
   is_arm64 && arch=arm64
-  source /etc/os-release
 
-  local keyring_file="/etc/apt/keyrings/salt-archive-keyring.gpg"
-  local root_url="https://repo.saltproject.io/salt/py3/ubuntu/${VERSION_ID:?}/${arch}"
+  # Download public key
+  local keyring_file="/etc/apt/keyrings/salt-archive-keyring-2023.pgp"
+  local key_url="https://packages.broadcom.com/artifactory/api/security/keypair/SaltProjectKey/public"
+  download "${key_url}" "${keyring_file}"
 
-  download "${root_url}/SALT-PROJECT-GPG-PUBKEY-2023.gpg" "${keyring_file}"
-  echo "deb [signed-by=${keyring_file} arch=${arch}] ${root_url}/minor/${SALT_VERSION} ${VERSION_CODENAME:?} main" > /etc/apt/sources.list.d/salt.list
+  # Create apt repo target configuration
+  local target_url="https://packages.broadcom.com/artifactory/saltproject-deb/"
+  echo "deb [signed-by=${keyring_file} arch=${arch}] ${target_url} stable main" >/etc/apt/sources.list.d/salt.list
 }
