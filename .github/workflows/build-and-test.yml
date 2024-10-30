@@ -117,7 +117,8 @@ jobs:
       - name: Install and configure salt-minion
         run: |
           # Install salt-minion from salt repos
-          curl -o bootstrap-salt.sh -L https://bootstrap.saltproject.io/bootstrap-salt.sh
+          salt_bootstrap_url="https://github.com/saltstack/salt-bootstrap/releases/latest/download/bootstrap-salt.sh"
+          curl -o bootstrap-salt.sh -L "${salt_bootstrap_url}"
           sudo sh bootstrap-salt.sh -dXP stable
           sudo systemctl stop salt-minion
           sudo systemctl disable salt-minion
