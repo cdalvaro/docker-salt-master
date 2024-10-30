@@ -381,7 +381,7 @@ auth.ldap.groupclass: "person" # The object class to look at when checking group
 auth.ldap.groupattribute: "memberOf" # The attribute in that object to look at when checking group membership
 ```
 
-Finally (since `v3006`) you will need to enable one or more client interfaces:
+Finally (since `v3006`) [you will need to enable](https://docs.saltproject.io/en/latest/topics/netapi/netapi-enable-clients.html) one or more client interfaces:
 
 ```yml
 netapi_enable_clients:

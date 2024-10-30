@@ -306,7 +306,7 @@ docker run --name salt_master --detach \
 
 Si eliges usar el archivo [compose.yml](/compose.yml) para gestionar tu instancia `salt-master`, descomenta la configuración de `salt-api` para habilitar y configurar el servicio.
 
-Por defecto, se crea el usuario `salt_api` para este servicio, y puedes establecer su contraseña estableciendo la variable de entorno `SALT_API_USER_PASS`. Pero también puedes cambiar el _username_ de `salt-api` estableciendo `SALT_API_USER`.
+Por defecto, se crea el usuario `salt_api` para este servicio, y puedes establecer su contraseña estableciendo la variable de entorno `SALT_API_USER_PASS`. También puedes cambiar el _username_ de `salt-api` estableciendo `SALT_API_USER`.
 
 Sin embargo, es posible deshabilitar este usuario estableciendo explícitamente esta variable a una cadena vacía: `SALT_API_USER=''` si vas a usar un servidor `LDAP`, por ejemplo.
 
@@ -314,7 +314,11 @@ Como medida de seguridad, si `SALT_API_ENABLED` se establece a `True` y no desha
 
 También se da la opción de establecer la variable de entorno `SALT_API_USER_PASS_FILE` para proporcionar la contraseña a través de un archivo. Esto es útil cuando se usan _secrets_ de Docker. Más información sobre cómo configurar secretos está disponible en la sección [_Trabajando con secrets_](#trabajando-con-secrets).
 
-Con todo esto configurado, podrás proporcionar tu propia configuración personalizada para `salt-api` creando el archivo `salt-api.conf` dentro de tu directorio `config`:
+Con todo esto configurado, podrás proporcionar tu propia configuración personalizada para `salt-api` creando el archivo `salt-api.conf` dentro de tu directorio `config`.
+
+#### Autencicación Externa
+
+Este es un ejemplo de configuración de `salt-api` para autenticar usuarios externos via `pam`:
 
 ```yml
 external_auth:
@@ -324,6 +328,39 @@ external_auth:
       - "@runner"
       - "@wheel"
       - "@jobs"
+```
+
+También puedes añadir diferentes tipos de atutenticación, como `ldap` o `mysql`. O añadir grupos específicos de usuarios a diferentes roles, indicando el nombre del grupo seguido de `%`. Por ejemplo, para autenticar a los usuarios `admins`:
+
+```yml
+external_auth:
+  ldap:
+    admins%:
+      - .*
+      - "@runner"
+      - "@wheel"
+      - "@jobs"
+```
+
+#### Configuración LDAP
+
+Para autenticar usuarios via LDAP hay que configurar el acceso al servidor LDAP. El siguiente ejemplo muestra cómo autenticar inicios de sesión a la API de Salt con un servidor LDAP. Luego, define la configuración de grupos para búsquedas de `external_auth` (buscando los usuarios que pertenecen al grupo habilitado vía `memberOf`):
+
+```yml
+auth.ldap.uri: ldaps://server.example.com # URI del servidor LDAP
+auth.ldap.basedn: "dc=server,dc=example,dc=com" # Búsqueda base DN
+auth.ldap.binddn: "uid={{ username }},dc=server,dc=exam,ple,dc=com" # El DN para autenticarse (el nombre de usuario se sustitye con la información de autenticación de la API)
+auth.ldap.accountattributename: "uid" # El tipo de atributo de la cuenta de usuario
+auth.ldap.groupou: "" # Si no hay grupo, debe establecerse a vacío
+auth.ldap.groupclass: "person" # La clase objeto a buscar cuando se comprueba la pertenencia al grupo
+auth.ldap.groupattribute: "memberOf" # El atributo del objeto a buscar cuando se comprueba la membresía al grupo
+```
+
+Además (desde `v3006`) [es necesario habilitar](https://docs.saltproject.io/en/latest/topics/netapi/netapi-enable-clients.html) una o más interfaces de clientes para permitir la conexión:
+
+```yml
+netapi_enable_clients:
+  - local
 ```
 
 En el enlace: [External Authentication System (eAuth)](https://docs.saltproject.io/en/latest/topics/eauth/index.html#acl-eauth) hay más información disponible sobre cómo configurar `salt-api` para autenticar usuarios externos.
