@@ -58,6 +58,16 @@ and from [Quay.io](https://quay.io/repository/cdalvaro/docker-salt-master):
 docker pull quay.io/cdalvaro/docker-salt-master:latest
 ```
 
+#### Long Term Support
+
+In addition to the latest Salt version, when new LTS (Long Term Support) versions are released, they will be packed into new images which will be available in the container registries as well.
+
+```sh
+docker pull ghcr.io/cdalvaro/docker-salt-master:3006.9
+```
+
+**Note:** The LTS images will contain the same features as the `latest` image at the time of the LTS release.
+
 ### Build from source
 
 Alternatively, you can build the image locally using `make` command:
