@@ -116,13 +116,17 @@ jobs:
 
       - name: Install and configure salt-minion
         run: |
+          # Download public key
+          keyring_file="/etc/apt/keyrings/salt-archive-keyring-2023.pgp"
+          sudo curl -o "${keyring_file}" -fsSL "https://packages.broadcom.com/artifactory/api/security/keypair/SaltProjectKey/public"
+
+          # Create apt repo target configuration
+          target_url="https://packages.broadcom.com/artifactory/saltproject-deb/"
+          echo "deb [signed-by=${keyring_file} arch=amd64] ${target_url} stable main" | sudo tee /etc/apt/sources.list.d/salt.list
+
           # Install salt-minion from salt repos
-          salt_bootstrap_url="https://github.com/saltstack/salt-bootstrap/releases/latest/download/bootstrap-salt.sh"
-          curl -o bootstrap-salt.sh -L "${salt_bootstrap_url}"
-          sudo sh bootstrap-salt.sh -dXP stable
-          sudo systemctl stop salt-minion
-          sudo systemctl disable salt-minion
-          sudo rm -f /var/log/salt/minion
+          sudo apt-get update
+          sudo apt-get install -y salt-minion
 
       - name: Install tests utils
         run: |
