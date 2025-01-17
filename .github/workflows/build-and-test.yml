@@ -84,14 +84,6 @@ jobs:
           name: docker-registry-data
           path: ${{ env.REGISTRY_PATH }}
 
-      - name: Enable Docker experimental
-        run: |
-          # Enable docker daemon experimental support.
-          echo '{"experimental": true}' | sudo tee /etc/docker/daemon.json
-          sudo systemctl restart docker
-          # Install QEMU multi-architecture support for docker buildx.
-          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-
       - name: Start Docker registry
         run: |
           docker run --rm --detach --publish 5000:5000 \
