@@ -66,18 +66,14 @@ jobs:
 
   test:
     name: Test
-    runs-on: ubuntu-latest
     needs: build
     strategy:
       matrix:
-        platform:
-          - linux/amd64
-          - linux/arm64
+        os: [ubuntu-22.04, ubuntu-22.04-arm]
     env:
       DOCKER_CLI_EXPERIMENTAL: enabled
-      PLATFORM: ${{ matrix.platform }}
-      BOOTUP_WAIT_SECONDS: ${{ matrix.platform == 'linux/amd64' && 30 || 90 }}
-
+      BOOTUP_WAIT_SECONDS: 30
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -104,10 +100,7 @@ jobs:
           sleep 10
 
       - name: Import Docker images
-        run: docker pull --platform ${{ env.PLATFORM }} ${IMAGE_NAME}
-
-      - name: Docker inspect
-        run: docker buildx imagetools inspect ${IMAGE_NAME} | grep '${{ env.PLATFORM }}'
+        run: docker pull ${IMAGE_NAME}
 
       - name: Setup Python
         uses: actions/setup-python@v5
