@@ -864,7 +864,9 @@ Quien quiera contribuir a este proyecto, es bienvenido. Y yo realmente aprecio c
 
 Antes de empezar a hacer cambios, lee atentamente las siguientes notas para evitar problemas.
 
-- ⚠️ Algunos tests requieren que se ejecute un `salt-minion` no aislado. Así que no ejecutes los tests localmente. Los tests se ejecutan automáticamente en GitHub cuando haces _push_ a tus PR.
+> [!WARNING]
+> Algunos tests requieren que se ejecute un `salt-minion` no aislado. Así que no ejecutes los tests localmente.
+> Los tests se ejecutan automáticamente en GitHub cuando haces _push_ a tus PR.
 
 ## 👏 Agradecimientos
 

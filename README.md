@@ -930,8 +930,9 @@ Everyone is wellcome to contribute to this project, and I really appreciate your
 
 Before you start making changes, read carefully the following notes in order to avoid issues.
 
-- ⚠️ Some tests start and stop a _**non-isolated**_ `salt-minion` instance. So don't run tests locally.
-  Tests are automatically executed on GitHub when you push commits to your PR.
+> [!WARNING]
+> Some tests start and stop a _**non-isolated**_ `salt-minion` instance. So don't run tests locally.
+> Tests are automatically executed on GitHub when you push commits to your PR.
 
 ## 👏 Credits
 
