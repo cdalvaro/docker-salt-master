@@ -469,6 +469,19 @@ Esta imagen integra [PyGit2](https://www.pygit2.org) como _backend_ de `gitfs` p
 
 Puede habilitarse añadiendo `gitfs` a la lista de [`fileserver_backend`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std:conf_master-fileserver_backend) (ver [Parámetros de Configuración Disponibles](#parámetros-de-configuración-disponibles)), y configurando uno o más repositorios en [`gitfs_remotes`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std:conf_master-gitfs_remotes).
 
+> [!NOTE]
+> Algunas veces, el proceso `salt-mater` puede reiniciarse automáticamente. Si esto ocurre mientras gitfs está actualizando
+> repositorios, puede que archivos de bloqueo queden sin eliminar, lo que impide que gitfs pueda actualizar los repositorios.
+>
+> La solución más sencilla para resolver esta situación, es limpiar la caché del contenedor reiniciándolo. Pero, si esto ocurre
+> con frecuencia, y `salt-master` no está configurado para trabajar en modo _multimaster_ compartiendo cachés (por ejemplo,
+> usando CephFS o NFS), entonces puede ser útil configurar estos dos parámetros a `False`:
+>
+> ```yaml
+> gitfs_global_lock: False
+> git_pillar_global_lock: False
+> ```
+
 #### PyGit2
 
 Puedes crear una clave ssh para `pygit2` con el siguiente comando:
@@ -488,15 +501,14 @@ gitfs_privkey: /home/salt/data/keys/gitfs/gitfs_ssh
 gitfs_pubkey: /home/salt/data/keys/gitfs/gitfs_ssh.pub
 ```
 
-##### Nota Importante
-
-La imagen se ha probado con una clave ssh de tipo _ed25519_.
-
-Alternativamente, puedes crear una nueva clave RSA con _hashing_ SHA2 de la siguiente manera:
-
-```sh
-ssh-keygen -t rsa-sha2-512 -b 4096 -f gitfs_ssh -C 'gitfs_rsa4096@example.com'
-```
+> [!WARNING]
+> La imagen se ha probado con una clave ssh de tipo _ed25519_.
+>
+> Alternativamente, puedes crear una nueva clave RSA con _hashing_ SHA2 de la siguiente manera:
+>
+> ```sh
+> ssh-keygen -t rsa-sha2-512 -b 4096 -f gitfs_ssh -C 'gitfs_rsa4096@example.com'
+> ```
 
 ### Claves GPG para Desencriptar Pillar
 

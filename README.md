@@ -507,6 +507,19 @@ list (see [Available Configuration Parameters](#available-configuration-paramete
 repositories
 in [`gitfs_remotes`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std:conf_master-gitfs_remotes).
 
+> [!NOTE]
+> Sometimes, the `salt-master` process may restart automatically. If this happens while gitfs is updating repositories,
+> lock files may remain undeleted, preventing gitfs from properly updating the repositories.
+>
+> The simple solution is to restart the container to clear the cache. However, if this happens frequently,
+> and `salt-master` is not operating in _multimaster_ mode with shared cache (for example using Ceph, or nfs),
+> then it may be useful to set these two configuration parameters to `False`:
+>
+> ```yaml
+> gitfs_global_lock: False
+> git_pillar_global_lock: False
+> ```
+
 #### PyGit2
 
 You can create an ssh key for pygit2 with the following command:
@@ -527,15 +540,14 @@ gitfs_privkey: /home/salt/data/keys/gitfs/gitfs_ssh
 gitfs_pubkey: /home/salt/data/keys/gitfs/gitfs_ssh.pub
 ```
 
-##### Important Note
-
-This image has been tested with an _ed25519_ ssh key.
-
-Alternately, you may create a new RSA key with SHA2 hashing like so:
-
-```sh
-ssh-keygen -t rsa-sha2-512 -b 4096 -f gitfs_ssh -C 'gitfs_rsa4096@example.com'
-```
+> [!WARNING]
+> This image has been tested with an _ed25519_ ssh key.
+>
+> Alternately, you may create a new RSA key with SHA2 hashing like so:
+>
+> ```sh
+> ssh-keygen -t rsa-sha2-512 -b 4096 -f gitfs_ssh -C 'gitfs_rsa4096@example.com'
+> ```
 
 ### GPG keys for renderers
 
