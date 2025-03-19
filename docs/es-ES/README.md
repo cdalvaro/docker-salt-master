@@ -59,7 +59,7 @@ docker pull quay.io/cdalvaro/docker-salt-master:latest
 Además de la última versión de Salt, cuando se publiquen nuevas versiones LTS (Long Term Support), éstas se empaquetarán en nuevas imágenes y estarán disponibles en los registros de contenedores también.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3006.9
+docker pull ghcr.io/cdalvaro/docker-salt-master:3006.10
 ```
 
 **Nota:** Las imágenes LTS dispondrán de las funcionalidades que tenga la imagen `latest` en el momento de su publicación.
