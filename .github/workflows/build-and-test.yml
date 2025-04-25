@@ -42,7 +42,7 @@ jobs:
             --name registry registry:2
 
       - name: Build docker-salt-master image
-        uses: docker/build-push-action@v6.15.0
+        uses: docker/build-push-action@v6.16.0
         with:
           context: .
           file: ./Dockerfile
