@@ -1,8 +1,13 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3007.1 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.1.html)
+Please refer to the [Salt 3007.2 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.2.html)
 for the list of changes in SaltStack.
+
+**3007.2**
+
+- Upgrade `salt-master` to `3007.2` _Chlorine_.
+- Change Docker base image to `ubuntu:noble-20250415.1`.
 
 **3007.1_6**
 

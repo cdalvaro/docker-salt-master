@@ -1,4 +1,4 @@
-# Dockerized Salt Master v3007.1 _Chlorine_
+# Dockerized Salt Master v3007.2 _Chlorine_
 
 <picture align="center">
   <source media="(prefers-color-scheme: dark)" srcset="/social/docker-salt-master-banner-dark.png">
@@ -7,7 +7,7 @@
 </picture>
 
 <p align="center">
-  <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.1.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-v3007.1-57BCAD.svg?logo=SaltProject"/></a>
+  <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.2.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-v3007.2-57BCAD.svg?logo=SaltProject"/></a>
   <a href="https://hub.docker.com/_/ubuntu/"><img alt="Ubuntu Image" src="https://img.shields.io/badge/ubuntu-noble--20240530-E95420.svg?logo=Ubuntu"/></a>
   <a href="https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags"><img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED"/></a>
   <a href="https://github.com/users/cdalvaro/packages/container/package/docker-salt-master"><img alt="Architecture AMD64" src="https://img.shields.io/badge/arch-amd64-inactive.svg"/></a>
@@ -34,7 +34,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.1_6
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.2
 ```
 
 You can also pull the `latest` tag, which is built from the repository `HEAD`
