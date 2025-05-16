@@ -18,6 +18,7 @@ on:
 env:
   IMAGE_NAME: localhost:5000/${{ github.repository }}:${{ github.sha }}
   REGISTRY_PATH: ${{ github.workspace }}/registry
+  IS_DEPENDABOT: ${{ github.actor == 'dependabot[bot]' }}
 
 jobs:
   build:
@@ -49,8 +50,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           outputs: |
             type=image,annotation-index.org.opencontainers.image.description=salt-master latest containerized
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha' || '' }}
+          cache-to: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha,mode=max' || '' }}
           pull: true
           push: true
           tags: ${{ env.IMAGE_NAME }}
