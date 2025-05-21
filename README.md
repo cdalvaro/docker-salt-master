@@ -938,11 +938,13 @@ Before you start making changes, read carefully the following notes in order to 
 
 Many thanks to:
 
-- [The SaltProject](https://saltproject.io) team for the excellent [salt](https://github.com/saltstack/salt) project
-- [JetBrains](https://www.jetbrains.com) for their free [OpenSource](https://jb.gg/OpenSourceSupport) license
+- [The SaltProject](https://saltproject.io) team for the excellent [salt](https://github.com/saltstack/salt) project.
+- [JetBrains](https://www.jetbrains.com) for their free [OpenSource](https://jb.gg/OpenSourceSupport) license.
 - [The Contributors](https://github.com/cdalvaro/docker-salt-master/graphs/contributors) for all the smart code and
-  suggestions merged in the project
-- [The Stargazers](https://github.com/cdalvaro/docker-salt-master/stargazers) for showing their support
+  suggestions merged in the project.
+- [The Stargazers](https://github.com/cdalvaro/docker-salt-master/stargazers) for showing their support.
+
+[![Star History Chart](https://api.star-history.com/svg?repos=cdalvaro/docker-salt-master&type=Date)](https://www.star-history.com/#cdalvaro/docker-salt-master&Date)
 
 <div style="display: flex; align-items: center; justify-content: space-around;">
   <img src="/social/SaltProject_verticallogo_teal.png" alt="SaltProject" height="128px">
