@@ -473,7 +473,7 @@ function configure_salt_api() {
     export SALT_API_ENABLED="${SALT_API_SERVICE_ENABLED}"
   fi
 
-  [[ ${SALT_API_ENABLED,,} == true ]] || return 0
+  [[ ${SALT_API_ENABLED,,} == true || -n "${SALTGUI_VERSION}" ]] || return 0
 
   if [[ -n "${SALT_API_USER}" ]]; then
 
@@ -522,9 +522,18 @@ api_logfile: ${SALT_LOGS_DIR}/salt/api.log
 
 rest_cherrypy:
   port: 8000
+  host: 0.0.0.0
   ssl_crt: ${CERTS_PATH}/tls/certs/${SALT_API_CERT_CN}.crt
   ssl_key: ${CERTS_PATH}/tls/certs/${SALT_API_CERT_CN}.key
 EOF
+
+  if [[ -n "${SALTGUI_VERSION}" ]]; then
+    cat >>"${SALT_ROOT_DIR}/master" <<EOF
+  app: /opt/saltgui/index.html
+  static: /opt/saltgui/static
+  static_path: /static
+EOF
+  fi
 
   # configure supervisord to start salt-api
   cat >/etc/supervisor/conf.d/salt-api.conf <<EOF

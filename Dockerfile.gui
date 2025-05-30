@@ -1,0 +1,29 @@
+ARG BASE_TAG=latest
+ARG BUILD_DATE
+ARG VCS_REF
+
+FROM ghcr.io/cdalvaro/docker-salt-master:${BASE_TAG}
+
+ENV SALTGUI_VERSION=1.31.0
+
+RUN mkdir -p ${SALT_BUILD_DIR}
+WORKDIR ${SALT_BUILD_DIR}
+
+COPY assets/build ${SALT_BUILD_DIR}
+RUN bash ${SALT_BUILD_DIR}/install-gui.sh
+
+WORKDIR ${SALT_HOME}
+RUN rm -rf "${SALT_BUILD_DIR:?}"
+
+LABEL org.opencontainers.image.title="Dockerized Salt Master with SaltGUI"
+LABEL org.opencontainers.image.description="salt-master ${SALT_VERSION} containerized with SaltGUI"
+LABEL org.opencontainers.image.documentation="https://github.com/cdalvaro/docker-salt-master/blob/${IMAGE_VERSION}/README.md"
+LABEL org.opencontainers.image.url="https://github.com/cdalvaro/docker-salt-master"
+LABEL org.opencontainers.image.source="https://github.com/cdalvaro/docker-salt-master.git"
+LABEL org.opencontainers.image.authors="Carlos Álvaro <github@cdalvaro.io>"
+LABEL org.opencontainers.image.vendor="cdalvaro"
+LABEL org.opencontainers.image.created="${BUILD_DATE}"
+LABEL org.opencontainers.image.version="${IMAGE_VERSION}"
+LABEL org.opencontainers.image.revision="${VCS_REF}"
+LABEL org.opencontainers.image.base.name="ghcr.io/cdalvaro/docker-salt-master:${BASE_TAG}"
+LABEL org.opencontainers.image.licenses="MIT"
