@@ -49,7 +49,8 @@ RUN chmod -R +x ${SALT_RUNTIME_DIR}
 COPY assets/sbin/* /usr/local/sbin/
 
 # Cleaning tasks
-RUN rm -rf "${SALT_BUILD_DIR:?}"/*
+WORKDIR ${SALT_HOME}
+RUN rm -rf "${SALT_BUILD_DIR:?}"
 
 # Entrypoint
 COPY entrypoint.sh /sbin/entrypoint.sh
@@ -72,6 +73,5 @@ LABEL org.opencontainers.image.revision="${VCS_REF}"
 LABEL org.opencontainers.image.base.name="ubuntu:noble-20250415.1"
 LABEL org.opencontainers.image.licenses="MIT"
 
-WORKDIR ${SALT_HOME}
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]
 CMD [ "app:start" ]

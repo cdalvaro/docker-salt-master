@@ -27,21 +27,32 @@ help:
 	@echo ""
 	@echo "-- Help Menu"
 	@echo ""
-	@echo "   1. make build        - build the docker-salt-master image"
-	@echo "   2. make release      - build the docker-salt-master image and tag it"
-	@echo "   3. make quickstart   - start docker-salt-master"
-	@echo "   4. make stop         - stop docker-salt-master"
-	@echo "   5. make purge        - stop and remove the container"
-	@echo "   6. make log          - view log"
+	@echo "   1. make build[-gui]      - build the docker-salt-master image"
+	@echo "   2. make release[-gui]    - build the docker-salt-master image and tag it"
+	@echo "   3. make quickstart       - start docker-salt-master"
+	@echo "   4. make stop             - stop docker-salt-master"
+	@echo "   5. make purge            - stop and remove the container"
+	@echo "   6. make log              - view log"
 
 build:
 	$(CONTAINER_ENGINE) build --tag=$(IMAGE_NAME):latest . \
 		--build-arg=BUILD_DATE="$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")" \
 		--build-arg=VCS_REF="$(shell git rev-parse --short HEAD)"
 
+build-gui: build
+	$(CONTAINER_ENGINE) build --tag=$(IMAGE_NAME):latest-gui . \
+		--build-arg=BUILD_DATE="$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+		--build-arg=VCS_REF="$(shell git rev-parse --short HEAD)" \
+		--build-arg=BASE_TAG=latest \
+	  --file Dockerfile.gui
+
 release: build
 	$(CONTAINER_ENGINE) tag $(IMAGE_NAME):latest \
 		$(IMAGE_NAME):$(shell cat VERSION)
+
+release-gui: build-gui
+	$(CONTAINER_ENGINE) tag $(IMAGE_NAME):latest-gui \
+		$(IMAGE_NAME):$(shell cat VERSION)-gui
 
 quickstart:
 	@echo "Creating volumes..."
@@ -62,9 +73,9 @@ stop:
 	@echo "Stopping container..."
 	$(CONTAINER_ENGINE) stop $(CONTAINER_NAME) > /dev/null
 
-purge: stop
+purge:
 	@echo "Removing stopped container..."
-	$(CONTAINER_ENGINE) rm $(CONTAINER_NAME) > /dev/null
+	$(CONTAINER_ENGINE) rm -f $(CONTAINER_NAME) > /dev/null
 	@echo "Removing volumes..."
 	$(CONTAINER_ENGINE) volume rm salt-master-keys
 	$(CONTAINER_ENGINE) volume rm salt-master-logs
