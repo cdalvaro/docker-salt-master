@@ -31,7 +31,7 @@ Para otros métodos de instalación de `salt-master`, por favor consulta la [gu�
 Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) y es el método recomendado para la instalación.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.2
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.2_1
 ```
 
 También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
@@ -232,8 +232,6 @@ Adicionalmente, puedes proporcionar el par de claves de firma del master:
 A continuación un ejemplo completo de `compose.yml` con estas variables y el uso de _secrets_:
 
 ```yml
-version: "3.9"
-
 services:
   salt-master:
     image: ghcr.io/cdalvaro/docker-salt-master:latest
@@ -326,7 +324,7 @@ También se da la opción de establecer la variable de entorno `SALT_API_USER_PA
 
 Con todo esto configurado, podrás proporcionar tu propia configuración personalizada para `salt-api` creando el archivo `salt-api.conf` dentro de tu directorio `config`.
 
-#### Autencicación Externa
+#### Autenticación Externa
 
 Este es un ejemplo de configuración de `salt-api` para autenticar usuarios externos via `pam`:
 
@@ -699,8 +697,6 @@ Si ejecutas esta imagen bajo k8s, puedes definir un _comando de liveness_ como s
 Si usas `docker compose` como orquestador de contenedores, puedes añadir las siguientes entradas a tu `compose.yml`:
 
 ```yml
-version: "3.4"
-
 services:
   master:
     container_name: salt_master
@@ -763,6 +759,62 @@ docker run -d \
 ```
 
 Este contenedor vigilará tus contenedores y reiniciará las instancias que fallen.
+
+### SaltGUI
+
+Hay un conjunto de imáges dedicadas con tags `-gui` que incluyen soporte integrado para [SaltGUI](https://github.com/erwindon/SaltGUI).
+
+Estas imágenes tienen habilitado por defecto `salt-api`. Sin embargo, qué [permisos](https://docs.saltproject.io/en/latest/topics/eauth/access_control.html) asignes al usuario `salt-api` depende de tus necesidades específicas. Hay información más detallada sobre los permisos en la [documentación de SaltGUI](https://github.com/erwindon/SaltGUI/blob/master/docs/PERMISSIONS.md).
+
+A continuación tienes un ejemplo de como correr el contenedor con SaltGUI habilitado.
+
+#### Crea un Fichero de Configuración de Salt API
+
+Primero, crea un archivo de configuración para `salt-api` con los permisos que quieras asignar al usuario. Puedes usar esta configuración como punto de partida:
+
+```yml
+# config/salt_api.conf
+netapi_enable_clients:
+  - local
+  - local_async
+  - local_batch
+  - local_subset
+  - runner
+  - runner_async
+
+external_auth:
+  pam:
+    saltgui:
+      - .*
+      - "@runner"
+      - "@wheel"
+      - "@jobs"
+```
+
+#### Inicia el Contenedor
+
+Cuando tengas listo el fichero de configuración, inicia el contenedor con el siguiente comando:
+
+```bash
+docker run --name salt_master_gui --detach \
+    --publish 4505:4505 --publish 4506:4506 --publish 8000:8000 \
+    --env 'SALT_API_USER=saltgui' \
+    --env 'SALT_API_USER_PASS=4wesome-Pass0rd' \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/config/:/home/salt/data/config/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
+    ghcr.io/cdalvaro/docker-salt-master:latest-gui
+```
+
+> [!NOTE]
+> El usuario usado en la sección `external_auth.pam` (`saltgui`) debe conincidir con el valor asignado a la variable de entorno `SALT_API_USER`.
+
+Si planeas usar un servicio de autenticación externa, como LDAP, consulta la sección [Autenticación Externa](#autenticación-externa).
+
+#### Access SaltGUI
+
+Una vez el contenedor esté levantado, puedes acceder a la interfaz de SaltGUI desde: https://localhost:8000
 
 ### Parámetros de Configuración Disponibles
 
