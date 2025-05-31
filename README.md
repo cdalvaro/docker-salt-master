@@ -34,7 +34,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.2
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.2_1
 ```
 
 You can also pull the `latest` tag, which is built from the repository `HEAD`
@@ -248,8 +248,6 @@ Additionally, you can provide the master-sign key pair as well:
 Here you have a complete `compose.yml` example
 
 ```yml
-version: "3.9"
-
 services:
   salt-master:
     image: ghcr.io/cdalvaro/docker-salt-master:latest
@@ -756,8 +754,6 @@ explained [here](https://kubernetes.io/docs/tasks/configure-pod-container/config
 If you use `docker-compose` as your container orchestrator, you can add the following entries to your compose file:
 
 ```yml
-version: "3.4"
-
 services:
   master:
     container_name: salt_master
@@ -823,6 +819,62 @@ docker run -d \
 ```
 
 This container will watch your containers and restart your failing instances.
+
+### SaltGUI
+
+There is a set of dedicated images tagged with `-gui` that include built-in support for [SaltGUI](https://github.com/erwindon/SaltGUI).
+
+These images have `salt-api` enabled by default. However, it's up to you to define the [permissions](https://docs.saltproject.io/en/latest/topics/eauth/access_control.html) granted to the `salt-api` user. There is more information about permissions in the [SaltGUI documentation](https://github.com/erwindon/SaltGUI/blob/master/docs/PERMISSIONS.md).
+
+Below is an example of how to run a container with SaltGUI enabled.
+
+#### Create a Salt API Configuration File
+
+First, create a configuration file for `salt-api`. You can use the following example as a starting point:
+
+```yml
+# config/salt_api.conf
+netapi_enable_clients:
+  - local
+  - local_async
+  - local_batch
+  - local_subset
+  - runner
+  - runner_async
+
+external_auth:
+  pam:
+    saltgui:
+      - .*
+      - "@runner"
+      - "@wheel"
+      - "@jobs"
+```
+
+#### Run the Container
+
+Once your configuration is ready, start the container with the following command:
+
+```bash
+docker run --name salt_master_gui --detach \
+    --publish 4505:4505 --publish 4506:4506 --publish 8000:8000 \
+    --env 'SALT_API_USER=saltgui' \
+    --env 'SALT_API_USER_PASS=4wesome-Pass0rd' \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/config/:/home/salt/data/config/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
+    ghcr.io/cdalvaro/docker-salt-master:latest-gui
+```
+
+> [!NOTE]
+> The username used in the `external_auth.pam` section (`saltgui`) must match the value of the `SALT_API_USER` environment variable.
+
+If you plan to use an LDAP authentication backend, refer to the [External Authentication](#external-authentication) section.
+
+#### Access SaltGUI
+
+Once the container is running, you can access the SaltGUI interface at: https://localhost:8000
 
 ### Available Configuration Parameters
 

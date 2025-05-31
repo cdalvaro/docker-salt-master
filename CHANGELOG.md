@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3007.2 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.2.html)
 for the list of changes in SaltStack.
 
+**3007.2_1**
+
+- Added support for [SaltGUI](https://github.com/erwindon/SaltGUI) `1.31.0` as a separate image tagged with `-gui`. This image extends the main image with everything needed to support SaltGUI. See [README.md - SaltGUI](README.md#saltgui) for usage details.
+
 **3007.2**
 
 - Upgrade `salt-master` to `3007.2` _Chlorine_.
