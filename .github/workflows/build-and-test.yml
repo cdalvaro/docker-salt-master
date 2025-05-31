@@ -1,4 +1,4 @@
-name: Build and test Docker image
+name: Build and Test Docker Image
 
 on:
   pull_request:
@@ -25,13 +25,13 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up QEMU
+      - name: Set Up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Set up Docker Buildx
+      - name: Set Up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
           driver-opts: network=host
@@ -42,7 +42,7 @@ jobs:
             --volume ${REGISTRY_PATH}:/var/lib/registry \
             --name registry registry:2
 
-      - name: Build docker-salt-master base image
+      - name: Build docker-salt-master Base Image
         uses: docker/build-push-action@v6.18.0
         with:
           context: .
@@ -56,11 +56,11 @@ jobs:
           push: true
           tags: ${{ env.IMAGE_NAME }}
 
-      - name: Hack base image for testing
+      - name: Hack Base Image for Testing
         run: |
           sed -i "s|^FROM ghcr.io/cdalvaro/docker-salt-master:|FROM ${IMAGE_NAME%:*}:|" ./Dockerfile.gui
 
-      - name: Build docker-salt-master SaltGUI image
+      - name: Build docker-salt-master SaltGUI Image
         uses: docker/build-push-action@v6.18.0
         with:
           context: .
@@ -76,10 +76,10 @@ jobs:
           push: true
           tags: ${{ env.IMAGE_NAME }}-gui
 
-      - name: Stop Docker registry
+      - name: Stop Docker Registry
         run: docker stop registry
 
-      - name: Upload Docker registry data for testing
+      - name: Upload Docker Registry Data for Testing
         uses: actions/upload-artifact@v4
         with:
           name: docker-registry-data
@@ -96,23 +96,23 @@ jobs:
       BOOTUP_WAIT_SECONDS: 30
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Download Docker registry data from build job
+      - name: Download Docker Registry Data from Build Job
         uses: actions/download-artifact@v4
         with:
           name: docker-registry-data
           path: ${{ env.REGISTRY_PATH }}
 
-      - name: Start Docker registry
+      - name: Start Docker Registry
         run: |
           docker run --rm --detach --publish 5000:5000 \
             --volume ${REGISTRY_PATH}:/var/lib/registry \
             --name registry registry:2
           sleep 10
 
-      - name: Import Docker images
+      - name: Import Docker Images
         run: docker pull ${IMAGE_NAME}
 
       - name: Setup Python
@@ -120,7 +120,7 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install and configure salt-minion
+      - name: Install and Configure salt-minion
         run: |
           # Install salt-minion from salt repos
           salt_bootstrap_url="https://github.com/saltstack/salt-bootstrap/releases/latest/download/bootstrap-salt.sh"
@@ -130,34 +130,34 @@ jobs:
           sudo systemctl disable salt-minion
           sudo rm -f /var/log/salt/minion
 
-      - name: Install tests utils
+      - name: Install Tests Utils
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
 
-      - name: Execute basic tests
+      - name: Execute Basic Tests
         if: always()
         run: tests/basic/test.sh
 
-      - name: Execute keys mount point tests
+      - name: Execute Keys Mount Point Tests
         if: always()
         run: tests/keys-mount-point/test.sh
 
-      - name: Execute healthcheck tests
+      - name: Execute Healthcheck Tests
         if: always()
         run: tests/healthcheck/test.sh
 
-      - name: Execute salt-api tests
+      - name: Execute salt-api Tests
         if: always()
         run: |
           tests/salt-api/test.sh
           tests/salt-api/salt-api-ldap.sh
 
-      - name: Execute salt-minion tests
+      - name: Execute salt-minion Tests
         if: always()
         run: tests/salt-minion/test.sh
 
-      - name: Execute gitfs tests
+      - name: Execute GitFS Tests
         if: always()
         env:
           GITFS_KEYS_DIR: tests/gitfs/data/keys/gitfs
@@ -171,19 +171,19 @@ jobs:
           chmod 644 "${GITFS_KEYS_DIR}"/gitfs_ssh.pub
           tests/gitfs/test.sh
 
-      - name: Execute config-reloader tests
+      - name: Execute config-reloader Tests
         if: always()
         run: tests/config-reloader/test.sh
 
-      - name: Execute GPG tests
+      - name: Execute GPG Tests
         if: always()
         run: tests/gpg/test.sh
 
-      - name: Python Extra Packages tests
+      - name: Python Extra Packages Tests
         if: always()
         run: tests/python-extra-packages/test.sh
 
-      - name: SaltGUI tests
+      - name: SaltGUI Tests
         if: always()
         env:
           IMAGE_NAME: ${{ env.IMAGE_NAME }}-gui

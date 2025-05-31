@@ -1,4 +1,4 @@
-name: Publish Docker image
+name: Publish Docker Image
 
 on:
   push:
@@ -33,7 +33,7 @@ jobs:
       vcs_ref: ${{ steps.vcs_ref.outputs.vcs_ref }}
       created_on: ${{ steps.created_on.outputs.created_on }}
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Image Tags
@@ -72,7 +72,7 @@ jobs:
 
           echo "tags_gui=${TAGS}" >> $GITHUB_OUTPUT
 
-      - name: VCS ref
+      - name: VCS Ref
         id: vcs_ref
         run: |
           VCS_REF="${GITHUB_SHA::8}"
@@ -86,10 +86,10 @@ jobs:
           echo "Created on: ${CREATED_ON}"
           echo "created_on=${CREATED_ON}" >> $GITHUB_OUTPUT
 
-      - name: Dump environment
+      - name: Dump Environment
         if: contains(toJSON(github.event.commits.*.message), 'ci(debug)') == true
         run: env | sort
-      - name: Dump GitHub context
+      - name: Dump GitHub Context
         if: contains(toJSON(github.event.commits.*.message), 'ci(debug)') == true
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
@@ -101,13 +101,13 @@ jobs:
     needs: metadata
     if: contains(toJSON(github.event.commits.*.message), 'ci(debug)') == false
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up QEMU
+      - name: Set Up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Set up Docker Buildx
+      - name: Set Up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Container Registry
