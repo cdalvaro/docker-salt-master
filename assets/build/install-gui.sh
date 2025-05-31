@@ -11,11 +11,7 @@ FUNCTIONS_FILE="${SALT_BUILD_DIR}/functions.sh"
 source "${FUNCTIONS_FILE}"
 
 download "https://github.com/erwindon/SaltGUI/archive/refs/tags/${SALTGUI_VERSION}.tar.gz" "saltgui.tar.gz"
-if [[ ! -f "saltgui.tar.gz" ]]; then
-  log_error "SaltGUI archive not found"
-  exit 1
-fi
-
+check_sha256 "saltgui.tar.gz" "${SALTGUI_SHA256}"
 extract "saltgui.tar.gz" "saltgui"
 
 log_info "Moving SaltGUI files to /opt/saltgui..."
