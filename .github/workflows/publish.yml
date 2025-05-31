@@ -29,6 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tags: ${{ steps.tags.outputs.tags }}
+      tags_gui: ${{ steps.tags_gui.outputs.tags_gui }}
       vcs_ref: ${{ steps.vcs_ref.outputs.vcs_ref }}
       created_on: ${{ steps.created_on.outputs.created_on }}
     steps:
@@ -52,6 +53,24 @@ jobs:
           echo "Tags: ${TAGS}"
 
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+
+      - name: Image Tags GUI
+        id: tags_gui
+        run: |
+          IMAGE_TAG="${{ github.event.release.tag_name }}"
+          [[ -z "${IMAGE_TAG}" ]] && IMAGE_TAG='latest-gui'
+
+          DOCKER_IMAGE="${IMAGE_NAME}:${IMAGE_TAG}-gui"
+          TAGS="${DOCKER_IMAGE}"
+          for registry in ${EXTRA_REGISTRIES}; do
+            TAGS="${TAGS},${registry}/${DOCKER_IMAGE}"
+          done
+
+          echo "Image Tag GUI: '${IMAGE_TAG}'"
+          echo "Docker image GUI: '${DOCKER_IMAGE}'"
+          echo "Tags GUI: ${TAGS}"
+
+          echo "tags_gui=${TAGS}" >> $GITHUB_OUTPUT
 
       - name: VCS ref
         id: vcs_ref
@@ -111,7 +130,7 @@ jobs:
           username: ${{ secrets.QUAYIO_USERNAME }}
           password: ${{ secrets.QUAYIO_PASSWORD }}
 
-      - name: Build
+      - name: Build and Publish Base Image
         uses: docker/build-push-action@v6.18.0
         with:
           context: .
@@ -127,3 +146,21 @@ jobs:
           pull: true
           push: true
           tags: ${{ needs.metadata.outputs.tags }}
+
+      - name: Build and Publish SaltGUI Image
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          file: ./Dockerfile.gui
+          platforms: ${{ env.PLATFORMS }}
+          build-args: |
+            VCS_REF=${{ needs.metadata.outputs.vcs_ref }}
+            BUILD_DATE=${{ needs.metadata.outputs.created_on }}
+            BASE_TAG=${{ github.event.release.tag_name || 'latest' }}
+          outputs: |
+            type=image,annotation-index.org.opencontainers.image.description=https://github.com/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          pull: true
+          push: true
+          tags: ${{ needs.metadata.outputs.tags_gui }}

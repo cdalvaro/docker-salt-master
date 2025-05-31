@@ -42,7 +42,7 @@ jobs:
             --volume ${REGISTRY_PATH}:/var/lib/registry \
             --name registry registry:2
 
-      - name: Build docker-salt-master image
+      - name: Build docker-salt-master base image
         uses: docker/build-push-action@v6.18.0
         with:
           context: .
@@ -55,6 +55,26 @@ jobs:
           pull: true
           push: true
           tags: ${{ env.IMAGE_NAME }}
+
+      - name: Hack base image for testing
+        run: |
+          sed -i "s|^FROM ghcr.io/cdalvaro/docker-salt-master:|FROM ${IMAGE_NAME%:*}:|" ./Dockerfile.gui
+
+      - name: Build docker-salt-master SaltGUI image
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          file: ./Dockerfile.gui
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            BASE_TAG=${{ github.sha }}
+          outputs: |
+            type=image,annotation-index.org.opencontainers.image.description=salt-master latest containerized
+          cache-from: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha' || '' }}
+          cache-to: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha,mode=max' || '' }}
+          pull: true
+          push: true
+          tags: ${{ env.IMAGE_NAME }}-gui
 
       - name: Stop Docker registry
         run: docker stop registry
@@ -162,6 +182,12 @@ jobs:
       - name: Python Extra Packages tests
         if: always()
         run: tests/python-extra-packages/test.sh
+
+      - name: SaltGUI tests
+        if: always()
+        env:
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}-gui
+        run: tests/salt-api/test.sh
 
       - name: Cleanup
         if: always()
