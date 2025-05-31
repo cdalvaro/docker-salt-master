@@ -1,5 +1,5 @@
 ---
-name: Bug report
+name: Bug Report
 about: Create a report to help us improve
 title: ""
 labels: bug
@@ -7,9 +7,11 @@ assignees: cdalvaro
 ---
 
 **Describe the bug**
+
 A clear and concise description of what the bug is.
 
-**To Reproduce**
+**Steps to reproduce the issue**
+
 Steps to reproduce the behavior:
 
 1. Minimum salt configuration file
@@ -18,9 +20,11 @@ Steps to reproduce the behavior:
 4. Execution command
 
 **Expected behavior**
+
 A clear and concise description of what you expected to happen.
 
 **Additional info**
+
 The full log with the outputted error.
 
 **Version report (please complete the following information):**
@@ -30,4 +34,5 @@ The full log with the outputted error.
 - Image tag: [e.g. `3007.2_1`]
 
 **Additional context**
+
 Add any other context about the problem here.

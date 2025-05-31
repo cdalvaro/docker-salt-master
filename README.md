@@ -68,7 +68,7 @@ docker pull ghcr.io/cdalvaro/docker-salt-master:3006.10
 
 **Note:** The LTS images will contain the same features as the `latest` image at the time of the LTS release.
 
-### Build from source
+### Build From Source
 
 Alternatively, you can build the image locally using `make` command:
 
@@ -234,7 +234,7 @@ docker run --name salt_master -it --rm \
 The newly created keys will appear inside `keys/generated/master_sign.XXXXX` directory.
 Where `XXXXX` is a random code to avoid possible collisions with previous generated keys.
 
-#### Working with secrets
+#### Working with Secrets
 
 Master keys can be provided via Docker secrets. To do that, you have to set the following environment variable:
 
@@ -547,7 +547,7 @@ gitfs_pubkey: /home/salt/data/keys/gitfs/gitfs_ssh.pub
 > ssh-keygen -t rsa-sha2-512 -b 4096 -f gitfs_ssh -C 'gitfs_rsa4096@example.com'
 > ```
 
-### GPG keys for renderers
+### GPG Keys for Renderers
 
 Salt can use GPG keys to decrypt pillar data. This image is ready to import your GPG keys from the `gpgkeys` directory
 inside the `keys` directory.
@@ -602,7 +602,7 @@ gpg --export-secret-keys --export-options export-backup -o keys/gpgkeys/private.
 More information about this feature is available at the
 [official documentation](https://docs.saltproject.io/en/latest/ref/renderers/all/salt.renderers.gpg.html).
 
-#### How to encrypt data
+#### How to Encrypt Data
 
 You can encrypt strings using the following example:
 

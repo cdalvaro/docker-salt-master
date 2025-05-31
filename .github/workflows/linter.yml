@@ -10,12 +10,12 @@ jobs:
     name: Super Linter
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Lint code base
+      - name: Lint Code Base
         uses: github/super-linter@v7
         env:
           VALIDATE_ALL_CODEBASE: false

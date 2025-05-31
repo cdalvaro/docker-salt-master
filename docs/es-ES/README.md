@@ -64,7 +64,7 @@ docker pull ghcr.io/cdalvaro/docker-salt-master:3006.10
 
 **Nota:** Las imágenes LTS dispondrán de las funcionalidades que tenga la imagen `latest` en el momento de su publicación.
 
-### Construir desde la fuente
+### Construir Desde la Fuente
 
 Alternativamente, puedes construir la imagen localmente utilizando el comando `make`:
 
@@ -218,7 +218,7 @@ Las nuevas claves estarán disponibles dentro del directorio: `keys/generated/ma
 Donde `XXXXX` es un código generado aleatoriamente para evitar colisiones con
 claves que se hubiesen creado previamente.
 
-#### Trabajando con _secrets_
+#### Trabajando con _Secrets_
 
 Las claves del master pueden ser proporcionadas a través de _secrets_ de Docker. Para hacerlo, debes establecer la siguiente variable de entorno:
 
@@ -560,7 +560,7 @@ gpg --export-secret-keys --export-options export-backup -o keys/gpgkeys/private.
 
 Más información acerca de esta funcionalidad disponible en la [documentación oficial](https://docs.saltproject.io/en/latest/ref/renderers/all/salt.renderers.gpg.html).
 
-#### Cómo encriptar datos
+#### Cómo Encriptar Datos
 
 Puedes encriptar cadenas utilizando el siguiente ejemplo:
 
@@ -578,7 +578,7 @@ cat /tmp/gpg_id_ed25519
 
 En macOS, puedes enviar la salida a `pbcopy` para copiar los datos encriptados al portapapeles. Si estás usando Linux, puedes usar `xclip` o `xsel`.
 
-### Fórmulas de terceros
+### Fórmulas de Terceros
 
 Puedes añadir fórmulas de terceros a tu configuración simplemente añadiéndolas a tus `gitfs_remotes`:
 
