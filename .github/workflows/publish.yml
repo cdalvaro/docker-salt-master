@@ -36,7 +36,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Image Tags
+      - name: Base Image Tags
         id: tags
         run: |
           IMAGE_TAG="${{ github.event.release.tag_name }}"
@@ -54,11 +54,11 @@ jobs:
 
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
 
-      - name: Image Tags GUI
+      - name: GUI Image Tags
         id: tags_gui
         run: |
           IMAGE_TAG="${{ github.event.release.tag_name }}"
-          [[ -z "${IMAGE_TAG}" ]] && IMAGE_TAG='latest-gui'
+          [[ -z "${IMAGE_TAG}" ]] && IMAGE_TAG='latest'
 
           DOCKER_IMAGE="${IMAGE_NAME}:${IMAGE_TAG}-gui"
           TAGS="${DOCKER_IMAGE}"
