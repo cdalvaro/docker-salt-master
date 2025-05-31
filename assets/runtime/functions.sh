@@ -28,7 +28,7 @@ function exec_as_salt() {
 #----------------------------------------------------------------------------------------------------------------------
 function log_debug() {
   if [[ "${DEBUG,,}" == true || "${ECHO_DEBUG,,}" == true ]]; then
-    echo "[DEBUG] - $*"
+    echo "[DEBUG] $*"
   fi
 }
 
@@ -37,7 +37,7 @@ function log_debug() {
 #   DESCRIPTION:  Echo information to stdout.
 #----------------------------------------------------------------------------------------------------------------------
 function log_info() {
-  echo "[INFO] - $*"
+  echo "[INFO] $*"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -45,7 +45,7 @@ function log_info() {
 #   DESCRIPTION:  Echo warning information to stdout.
 #----------------------------------------------------------------------------------------------------------------------
 function log_warn() {
-  (echo >&2 "[WARN] - $*")
+  (echo >&2 "[WARN] $*")
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -53,7 +53,21 @@ function log_warn() {
 #   DESCRIPTION:  Echo errors to stderr.
 #----------------------------------------------------------------------------------------------------------------------
 function log_error() {
-  (echo >&2 "[ERROR] - $*")
+  (echo >&2 "[ERROR] $*")
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  log_deprecated
+#   DESCRIPTION:  Given a version number, logs a deprecation warning or fails with an error.
+#----------------------------------------------------------------------------------------------------------------------
+function log_deprecated() {
+  local TARGET_VERSION=$1
+  shift
+  local MESSAGE="$*"
+
+  (echo >&2 "[DEPRECATED] ${MESSAGE%.}. This will be an error starting with version ${TARGET_VERSION}.")
+
+  [[ "${SALT_VERSION}" -lt "${TARGET_VERSION}" ]] || exit 1
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -469,7 +483,7 @@ function configure_salt_api() {
   rm -f /etc/supervisor/conf.d/salt-api.conf
 
   if [[ -n "${SALT_API_SERVICE_ENABLED}" ]]; then
-    log_warn "SALT_API_SERVICE_ENABLED is deprecated and it will be removed starting from version 3007.2. Use SALT_API_ENABLED instead."
+    log_deprecated 3008 "SALT_API_SERVICE_ENABLED is deprecated. Use SALT_API_ENABLED instead."
     export SALT_API_ENABLED="${SALT_API_SERVICE_ENABLED}"
   fi
 
