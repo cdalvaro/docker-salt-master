@@ -39,38 +39,14 @@ jobs:
       - name: Base Image Tags
         id: tags
         run: |
-          IMAGE_TAG="${{ github.event.release.tag_name }}"
-          [[ -z "${IMAGE_TAG}" ]] && IMAGE_TAG='latest'
-
-          DOCKER_IMAGE="${IMAGE_NAME}:${IMAGE_TAG}"
-          TAGS="${DOCKER_IMAGE}"
-          for registry in ${EXTRA_REGISTRIES}; do
-            TAGS="${TAGS},${registry}/${DOCKER_IMAGE}"
-          done
-
-          echo "Image Tag: '${IMAGE_TAG}'"
-          echo "Docker image: '${DOCKER_IMAGE}'"
-          echo "Tags: ${TAGS}"
-
-          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          source .github/workflows/ci_tools.sh
+          export_image_tags tags "${{ github.event.release.name }}" "${{ github.event.release.tag_name }}" ""
 
       - name: GUI Image Tags
         id: tags_gui
         run: |
-          IMAGE_TAG="${{ github.event.release.tag_name }}"
-          [[ -z "${IMAGE_TAG}" ]] && IMAGE_TAG='latest'
-
-          DOCKER_IMAGE="${IMAGE_NAME}:${IMAGE_TAG}-gui"
-          TAGS="${DOCKER_IMAGE}"
-          for registry in ${EXTRA_REGISTRIES}; do
-            TAGS="${TAGS},${registry}/${DOCKER_IMAGE}"
-          done
-
-          echo "Image Tag GUI: '${IMAGE_TAG}'"
-          echo "Docker image GUI: '${DOCKER_IMAGE}'"
-          echo "Tags GUI: ${TAGS}"
-
-          echo "tags_gui=${TAGS}" >> $GITHUB_OUTPUT
+          source .github/workflows/ci_tools.sh
+          export_image_tags tags_gui "${{ github.event.release.name }}" "${{ github.event.release.tag_name }}" "gui"
 
       - name: VCS Ref
         id: vcs_ref

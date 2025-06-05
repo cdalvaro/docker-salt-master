@@ -67,7 +67,14 @@ In addition to the latest Salt version, when new LTS (Long Term Support) version
 docker pull ghcr.io/cdalvaro/docker-salt-master:3006.11
 ```
 
-**Note:** The LTS images will contain the same features as the `latest` image at the time of the LTS release.
+There are also specific tags for LTS and STS versions:
+
+- `ghcr.io/cdalvaro/docker-salt-master:lts`
+- `ghcr.io/cdalvaro/docker-salt-master:sts`
+
+> [!NOTE]
+> The `lts` image contains the same features as the `latest` image at the time the LTS version was released, but it will not be updated with new features added to `latest`.
+> The `sts` image tracks the latest Short Term Support release of Salt and may not match `latest` if additional changes have been made after the STS release.
 
 ### Build From Source
 

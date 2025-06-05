@@ -57,13 +57,20 @@ docker pull quay.io/cdalvaro/docker-salt-master:latest
 
 #### Soporte de Largo Plazo
 
-Además de la última versión de Salt, cuando se publiquen nuevas versiones LTS (Long Term Support), éstas se empaquetarán en nuevas imágenes y estarán disponibles en los registros de contenedores también.
+Además de la última versión de Salt, cuando se publica una nueva versión LTS (Long Term Support), se genera una imagen específica que también está disponible en los registros de contenedores.
 
 ```sh
 docker pull ghcr.io/cdalvaro/docker-salt-master:3006.11
 ```
 
-**Nota:** Las imágenes LTS dispondrán de las funcionalidades que tenga la imagen `latest` en el momento de su publicación.
+También existen etiquetas específicas para las versiones LTS y STS:
+
+- `ghcr.io/cdalvaro/docker-salt-master:lts`
+- `ghcr.io/cdalvaro/docker-salt-master:sts`
+
+> [!NOTE]
+> La imagen `lts` contiene las mismas características que la imagen `latest` en el momento en que se publicó la versión LTS, pero no se actualiza con nuevas funcionalidades añadidas posteriormente a `latest`.
+> La imagen `sts` sigue la última versión STS (Short Term Support) de Salt, y puede no coincidir con `latest` si se han introducido cambios adicionales tras la publicación de la versión STS.
 
 ### Construir Desde la Fuente
 
