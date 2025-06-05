@@ -28,12 +28,13 @@ function export_image_tags() {
   fi
   echo "Tags: ${IMAGE_TAGS[@]}"
 
+  TAGS=""
   for _IMAGE_TAG in "${IMAGE_TAGS[@]}"; do
     DOCKER_IMAGE="${IMAGE_NAME}:${_IMAGE_TAG}"
     [[ -n "${TAG_SUFFIX}" ]] && DOCKER_IMAGE="${DOCKER_IMAGE}-${TAG_SUFFIX}"
     echo "Docker Image: ${DOCKER_IMAGE}"
 
-    TAGS="${DOCKER_IMAGE}"
+    [[ -z "${TAGS}" ]] && TAGS="${DOCKER_IMAGE}" || TAGS="${TAGS},${DOCKER_IMAGE}"
     for registry in ${EXTRA_REGISTRIES}; do
       TAGS="${TAGS},${registry}/${DOCKER_IMAGE}"
     done
