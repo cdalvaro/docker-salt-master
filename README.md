@@ -830,7 +830,7 @@ This container will watch your containers and restart your failing instances.
 
 ### SaltGUI
 
-There is a set of dedicated images tagged with `-gui` that include built-in support for [SaltGUI](https://github.com/erwindon/SaltGUI).
+There is a set of dedicated images tagged with `-gui` that include built-in support for [SaltGUI](https://github.com/erwindon/SaltGUI) `1.32.0`.
 
 These images have `salt-api` enabled by default. However, it's up to you to define the [permissions](https://docs.saltproject.io/en/latest/topics/eauth/access_control.html) granted to the `salt-api` user. There is more information about permissions in the [SaltGUI documentation](https://github.com/erwindon/SaltGUI/blob/master/docs/PERMISSIONS.md).
 
