@@ -770,7 +770,7 @@ Este contenedor vigilará tus contenedores y reiniciará las instancias que fall
 
 ### SaltGUI
 
-Hay un conjunto de imáges dedicadas con tags `-gui` que incluyen soporte integrado para [SaltGUI](https://github.com/erwindon/SaltGUI).
+Hay un conjunto de imáges dedicadas con tags `-gui` que incluyen soporte integrado para [SaltGUI](https://github.com/erwindon/SaltGUI) `1.32.0`.
 
 Estas imágenes tienen habilitado por defecto `salt-api`. Sin embargo, qué [permisos](https://docs.saltproject.io/en/latest/topics/eauth/access_control.html) asignes al usuario `salt-api` depende de tus necesidades específicas. Hay información más detallada sobre los permisos en la [documentación de SaltGUI](https://github.com/erwindon/SaltGUI/blob/master/docs/PERMISSIONS.md).
 
