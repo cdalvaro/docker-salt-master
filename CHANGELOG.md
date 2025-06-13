@@ -1,11 +1,12 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3007.3 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.3.html)
+Please refer to the [Salt 3007.4 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.4.html)
 for the list of changes in SaltStack.
 
 **3007.4**
 
+- Update `salt-master` to `3007.4` _Chlorine_.
 - Update SaltGUI to version `1.32.0`.
 
 **3007.3**
