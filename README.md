@@ -79,14 +79,12 @@ There are also specific tags for LTS and STS versions:
 
 #### Available Tags
 
-- `cdalvaro/docker-salt-master:latest`
-- `cdalvaro/docker-salt-master:3007.4`, `cdalvaro/docker-salt-master:sts`
+- `cdalvaro/docker-salt-master:3007.4`, `cdalvaro/docker-salt-master:sts`, `cdalvaro/docker-salt-master:latest`
 - `cdalvaro/docker-salt-master:3006.12`, `cdalvaro/docker-salt-master:lts`
 
 All versions have their SaltGUI counterparts:
 
-- `cdalvaro/docker-salt-master:latest-gui`
-- `cdalvaro/docker-salt-master:3007.4-gui`, `cdalvaro/docker-salt-master:sts-gui`
+- `cdalvaro/docker-salt-master:3007.4-gui`, `cdalvaro/docker-salt-master:sts-gui`, `cdalvaro/docker-salt-master:latest-gui`
 - `cdalvaro/docker-salt-master:3006.12-gui`, `cdalvaro/docker-salt-master:lts-gui`
 
 ### Build From Source
