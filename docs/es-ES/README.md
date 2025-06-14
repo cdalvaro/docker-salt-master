@@ -475,6 +475,13 @@ Esta imagen integra [PyGit2](https://www.pygit2.org) como _backend_ de `gitfs` p
 
 Puede habilitarse añadiendo `gitfs` a la lista de [`fileserver_backend`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std:conf_master-fileserver_backend) (ver [Parámetros de Configuración Disponibles](#parámetros-de-configuración-disponibles)), y configurando uno o más repositorios en [`gitfs_remotes`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std:conf_master-gitfs_remotes).
 
+> [!WARNING]
+> Salt 3007.4 y 3006.12 tienen un error con los repositorios git formateados de una manera particular.
+>
+> Como solución alternativa, los repositorios con formato `git@github.com:user/project.git` tienen que ser escritos de la siguiente manera `ssh://git@github.com/user/project.git`.
+>
+> Consulte [saltstack/salt#68069](https://github.com/saltstack/salt/issues/68069) y [saltstack/salt#68072](https://github.com/saltstack/salt/issues/68072) para más información.
+
 > [!NOTE]
 > Algunas veces, el proceso `salt-mater` puede reiniciarse automáticamente. Si esto ocurre mientras gitfs está actualizando
 > repositorios, puede que archivos de bloqueo queden sin eliminar, lo que impide que gitfs pueda actualizar los repositorios.
