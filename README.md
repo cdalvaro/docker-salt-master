@@ -513,6 +513,13 @@ list (see [Available Configuration Parameters](#available-configuration-paramete
 repositories
 in [`gitfs_remotes`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std:conf_master-gitfs_remotes).
 
+> [!WARNING]
+> Salt 3007.4 and 3006.12 have a bug with git repositories formatted in a particular way.
+>
+> As a workaround, repositories with format `git@github.com:user/project.git` have to be written in the following way `ssh://git@github.com/user/project.git`.
+>
+> See [saltstack/salt#68069](https://github.com/saltstack/salt/issues/68069) and [saltstack/salt#68072](https://github.com/saltstack/salt/issues/68072) for more information.
+
 > [!NOTE]
 > Sometimes, the `salt-master` process may restart automatically. If this happens while gitfs is updating repositories,
 > lock files may remain undeleted, preventing gitfs from properly updating the repositories.
