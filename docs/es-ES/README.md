@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.4.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-STS%203007.4-57BCAD.svg?logo=SaltProject"/></a>
-  <a href="https://docs.saltproject.io/en/3006/topics/releases/3006.11.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-LTS%203006.11-57BCAD.svg?logo=SaltProject"/></a>
+  <a href="https://docs.saltproject.io/en/3006/topics/releases/3006.12.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-LTS%203006.12-57BCAD.svg?logo=SaltProject"/></a>
   <a href="https://hub.docker.com/_/ubuntu/"><img alt="Ubuntu Image" src="https://img.shields.io/badge/ubuntu-noble--20250529-E95420.svg?logo=Ubuntu"/></a>
   <a href="https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags"><img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED"/></a>
   <a href="https://github.com/users/cdalvaro/packages/container/package/docker-salt-master"><img alt="Architecture AMD64" src="https://img.shields.io/badge/arch-amd64-inactive.svg"/></a>
@@ -60,7 +60,7 @@ docker pull quay.io/cdalvaro/docker-salt-master:latest
 Además de la última versión de Salt, cuando se publica una nueva versión LTS (Long Term Support), se genera una imagen específica que también está disponible en los registros de contenedores.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3006.11
+docker pull ghcr.io/cdalvaro/docker-salt-master:3006.12
 ```
 
 También existen etiquetas específicas para las versiones LTS y STS:
@@ -70,7 +70,20 @@ También existen etiquetas específicas para las versiones LTS y STS:
 
 > [!NOTE]
 > La imagen `lts` contiene las mismas características que la imagen `latest` en el momento en que se publicó la versión LTS, pero no se actualiza con nuevas funcionalidades añadidas posteriormente a `latest`.
+>
 > La imagen `sts` sigue la última versión STS (Short Term Support) de Salt, y puede no coincidir con `latest` si se han introducido cambios adicionales tras la publicación de la versión STS.
+
+#### Tags Disponibles
+
+- `ghcr.io/cdalvaro/docker-salt-master:latest`
+- `ghcr.io/cdalvaro/docker-salt-master:3007.4`, `ghcr.io/cdalvaro/docker-salt-master:sts`
+- `ghcr.io/cdalvaro/docker-salt-master:3006.12`, `ghcr.io/cdalvaro/docker-salt-master:lts`
+
+Todas las versiones tienen su compañera con SaltGUI:
+
+- `ghcr.io/cdalvaro/docker-salt-master:latest-gui`
+- `ghcr.io/cdalvaro/docker-salt-master:3007.4-gui`, `ghcr.io/cdalvaro/docker-salt-master:sts-gui`
+- `ghcr.io/cdalvaro/docker-salt-master:3006.12-gui`, `ghcr.io/cdalvaro/docker-salt-master:lts-gui`
 
 ### Construir Desde la Fuente
 
