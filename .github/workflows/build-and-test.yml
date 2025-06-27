@@ -44,16 +44,15 @@ jobs:
             --name registry registry:${REGISTRY_TAG}
 
       - name: Build docker-salt-master Base Image
-        uses: docker/build-push-action@v6.18.0
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           outputs: |
             type=image,annotation-index.org.opencontainers.image.description=salt-master latest containerized
-          cache-from: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha' || '' }}
-          cache-to: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha,mode=max' || '' }}
-          pull: true
+          # cache-from: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha' || '' }}
+          # cache-to: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha,mode=max' || '' }}
           push: true
           tags: ${{ env.IMAGE_NAME }}
 
@@ -62,7 +61,7 @@ jobs:
           sed -i "s|^FROM ghcr.io/cdalvaro/docker-salt-master:|FROM ${IMAGE_NAME%:*}:|" ./Dockerfile.gui
 
       - name: Build docker-salt-master SaltGUI Image
-        uses: docker/build-push-action@v6.18.0
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile.gui
@@ -71,9 +70,8 @@ jobs:
             BASE_TAG=${{ github.sha }}
           outputs: |
             type=image,annotation-index.org.opencontainers.image.description=salt-master latest containerized
-          cache-from: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha' || '' }}
-          cache-to: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha,mode=max' || '' }}
-          pull: true
+          # cache-from: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha' || '' }}
+          # cache-to: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha,mode=max' || '' }}
           push: true
           tags: ${{ env.IMAGE_NAME }}-gui
 
