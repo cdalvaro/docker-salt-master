@@ -7,8 +7,8 @@
 </picture>
 
 <p align="center">
-  <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.5.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-STS%203007.5-57BCAD.svg?logo=SaltProject"/></a>
-  <a href="https://docs.saltproject.io/en/3006/topics/releases/3006.12.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-LTS%203006.12-57BCAD.svg?logo=SaltProject"/></a>
+  <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.5.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-3007.5%20STS-57BCAD.svg?logo=SaltProject"/></a>
+  <a href="https://docs.saltproject.io/en/3006/topics/releases/3006.13.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-3006.13%20LTS-57BCAD.svg?logo=SaltProject"/></a>
   <a href="https://hub.docker.com/_/ubuntu/"><img alt="Ubuntu Image" src="https://img.shields.io/badge/ubuntu-noble--20250529-E95420.svg?logo=Ubuntu"/></a>
   <a href="https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags"><img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED"/></a>
   <a href="https://github.com/users/cdalvaro/packages/container/package/docker-salt-master"><img alt="Architecture AMD64" src="https://img.shields.io/badge/arch-amd64-inactive.svg"/></a>
@@ -60,7 +60,7 @@ docker pull quay.io/cdalvaro/docker-salt-master:latest
 Además de la última versión de Salt, cuando se publica una nueva versión LTS (Long Term Support), se genera una imagen específica que también está disponible en los registros de contenedores.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3006.12
+docker pull ghcr.io/cdalvaro/docker-salt-master:3006.13
 ```
 
 También existen etiquetas específicas para las versiones LTS y STS:
@@ -77,13 +77,13 @@ También existen etiquetas específicas para las versiones LTS y STS:
 
 - `cdalvaro/docker-salt-master:latest`
 - `cdalvaro/docker-salt-master:3007.5`, `cdalvaro/docker-salt-master:sts`
-- `cdalvaro/docker-salt-master:3006.12`, `cdalvaro/docker-salt-master:lts`
+- `cdalvaro/docker-salt-master:3006.13`, `cdalvaro/docker-salt-master:lts`
 
 Todas las versiones tienen su compañera con SaltGUI:
 
 - `cdalvaro/docker-salt-master:latest-gui`
 - `cdalvaro/docker-salt-master:3007.5-gui`, `cdalvaro/docker-salt-master:sts-gui`
-- `cdalvaro/docker-salt-master:3006.12-gui`, `cdalvaro/docker-salt-master:lts-gui`
+- `cdalvaro/docker-salt-master:3006.13-gui`, `cdalvaro/docker-salt-master:lts-gui`
 
 ### Construir Desde la Fuente
 
@@ -487,13 +487,6 @@ docker run --name salt_master -it --rm \
 Esta imagen integra [PyGit2](https://www.pygit2.org) como _backend_ de `gitfs` para permitir a Salt servir archivos desde repositorios git.
 
 Puede habilitarse añadiendo `gitfs` a la lista de [`fileserver_backend`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std:conf_master-fileserver_backend) (ver [Parámetros de Configuración Disponibles](#parámetros-de-configuración-disponibles)), y configurando uno o más repositorios en [`gitfs_remotes`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std:conf_master-gitfs_remotes).
-
-> [!WARNING]
-> Salt 3007.4 y 3006.12 tienen un error con los repositorios git formateados de una manera particular.
->
-> Como solución alternativa, los repositorios con formato `git@github.com:user/project.git` tienen que ser escritos de la siguiente manera `ssh://git@github.com/user/project.git`.
->
-> Consulte [saltstack/salt#68069](https://github.com/saltstack/salt/issues/68069) y [saltstack/salt#68072](https://github.com/saltstack/salt/issues/68072) para más información.
 
 > [!NOTE]
 > Algunas veces, el proceso `salt-mater` puede reiniciarse automáticamente. Si esto ocurre mientras gitfs está actualizando
