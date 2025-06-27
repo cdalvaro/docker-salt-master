@@ -7,6 +7,7 @@ for the list of changes in SaltStack.
 **3007.5**
 
 - Update `salt-master` to `3007.5` _Chlorine_.
+- Update SaltGUI to version `1.32.1`.
 
 **3007.4**
 
