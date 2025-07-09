@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3007.5 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.5.html)
 for the list of changes in SaltStack.
 
+**3007.5_1**
+
+- Fix a bug checking deprecated versions ([#304](https://github.com/cdalvaro/docker-salt-master/issues/304)).
+
 **3007.5**
 
 - Update `salt-master` to `3007.5` _Chlorine_.

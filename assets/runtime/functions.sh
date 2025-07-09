@@ -58,7 +58,11 @@ function log_error() {
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  log_deprecated
-#   DESCRIPTION:  Given a version number, logs a deprecation warning or fails with an error.
+#   DESCRIPTION:  Logs a deprecation warning.
+#     ARGUMENTS:
+#           - 1:  The target version to compare against.
+#           - @:  The log message to display.
+#       RETURNS:  1 if the current Salt version is deprecated, 0 otherwise.
 #----------------------------------------------------------------------------------------------------------------------
 function log_deprecated() {
   local TARGET_VERSION=$1
@@ -67,7 +71,7 @@ function log_deprecated() {
 
   (echo >&2 "[DEPRECATED] ${MESSAGE%.}. This will be an error starting with version ${TARGET_VERSION}.")
 
-  [[ "${SALT_VERSION}" -lt "${TARGET_VERSION}" ]] || exit 1
+  dpkg --compare-versions "${SALT_VERSION}" lt "${TARGET_VERSION}"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -483,7 +487,7 @@ function configure_salt_api() {
   rm -f /etc/supervisor/conf.d/salt-api.conf
 
   if [[ -n "${SALT_API_SERVICE_ENABLED}" ]]; then
-    log_deprecated 3008 "SALT_API_SERVICE_ENABLED is deprecated. Use SALT_API_ENABLED instead."
+    log_deprecated 3008 "SALT_API_SERVICE_ENABLED is deprecated. Use SALT_API_ENABLED instead." || return 1
     export SALT_API_ENABLED="${SALT_API_SERVICE_ENABLED}"
   fi
 

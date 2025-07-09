@@ -32,7 +32,7 @@ Para otros métodos de instalación de `salt-master`, por favor consulta la [gu�
 Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) y es el método recomendado para la instalación.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.5
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.5_1
 ```
 
 También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
@@ -76,14 +76,14 @@ También existen etiquetas específicas para las versiones LTS y STS:
 #### Tags Disponibles
 
 - `cdalvaro/docker-salt-master:latest`
-- `cdalvaro/docker-salt-master:3007.5`, `cdalvaro/docker-salt-master:sts`
-- `cdalvaro/docker-salt-master:3006.13`, `cdalvaro/docker-salt-master:lts`
+- `cdalvaro/docker-salt-master:3007.5_1`, `cdalvaro/docker-salt-master:sts`
+- `cdalvaro/docker-salt-master:3006.13_1`, `cdalvaro/docker-salt-master:lts`
 
 Todas las versiones tienen su compañera con SaltGUI:
 
 - `cdalvaro/docker-salt-master:latest-gui`
-- `cdalvaro/docker-salt-master:3007.5-gui`, `cdalvaro/docker-salt-master:sts-gui`
-- `cdalvaro/docker-salt-master:3006.13-gui`, `cdalvaro/docker-salt-master:lts-gui`
+- `cdalvaro/docker-salt-master:3007.5_1-gui`, `cdalvaro/docker-salt-master:sts-gui`
+- `cdalvaro/docker-salt-master:3006.13_1-gui`, `cdalvaro/docker-salt-master:lts-gui`
 
 ### Construir Desde la Fuente
 
