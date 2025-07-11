@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.6.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-3007.6%20sts-57BCAD.svg?logo=SaltProject"/></a>
   <a href="https://docs.saltproject.io/en/3006/topics/releases/3006.13.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-3006.13%20lts-57BCAD.svg?logo=SaltProject"/></a>
-  <a href="https://hub.docker.com/_/ubuntu/"><img alt="Ubuntu Image" src="https://img.shields.io/badge/ubuntu-noble--20250529-E95420.svg?logo=Ubuntu"/></a>
+  <a href="https://hub.docker.com/_/ubuntu/"><img alt="Ubuntu Image" src="https://img.shields.io/badge/ubuntu-noble--20250619-E95420.svg?logo=Ubuntu"/></a>
   <a href="https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags"><img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED"/></a>
   <a href="https://github.com/users/cdalvaro/packages/container/package/docker-salt-master"><img alt="Architecture AMD64" src="https://img.shields.io/badge/arch-amd64-inactive.svg"/></a>
   <a href="https://github.com/users/cdalvaro/packages/container/package/docker-salt-master"><img alt="Architecture ARM64" src="https://img.shields.io/badge/arch-arm64-inactive.svg"/></a>
