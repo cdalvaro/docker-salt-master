@@ -23,8 +23,6 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    env:
-      ARTIFACTS_DIR: ${{ runner.temp }}/images
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -44,6 +42,9 @@ jobs:
               }
             }
 
+      - name: Create Docker Images Directory
+        run: mkdir -p ${{ runner.temp }}/images
+
       - name: Build docker-salt-master Base Image
         uses: docker/build-push-action@v6
         with:
@@ -52,7 +53,7 @@ jobs:
           # cache-from: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha' || '' }}
           # cache-to: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha,mode=max' || '' }}
           load: true
-          outputs: type=tar,dest=${{ env.ARTIFACTS_DIR }}/base-image.tar
+          outputs: type=tar,dest=${{ runner.temp }}/images/base-image.tar
           tags: ${{ env.IMAGE_NAME }}
 
       - name: Hack Base Image for Testing
@@ -68,14 +69,14 @@ jobs:
             BASE_TAG=${{ github.sha }}
           # cache-from: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha' || '' }}
           # cache-to: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha,mode=max' || '' }}
-          outputs: type=tar,dest=${{ env.ARTIFACTS_DIR }}/gui-image.tar
+          outputs: type=tar,dest=${{ runner.temp }}/images/gui-image.tar
           tags: ${{ env.IMAGE_NAME }}-gui
 
       - name: Upload Images for Testing
         uses: actions/upload-artifact@v4
         with:
           name: docker-images
-          path: ${{ env.ARTIFACTS_DIR }}
+          path: ${{ runner.temp }}/images
 
   test:
     name: Test
