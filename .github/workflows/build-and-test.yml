@@ -16,9 +16,7 @@ on:
       - "Makefile"
 
 env:
-  IMAGE_NAME: localhost:5000/${{ github.repository }}:${{ github.sha }}
-  REGISTRY_PATH: ${{ github.workspace }}/registry
-  REGISTRY_TAG: 3
+  IMAGE_NAME: ${{ github.repository }}:${{ github.sha }}
   IS_DEPENDABOT: ${{ github.actor == 'dependabot[bot]' }}
 
 jobs:
@@ -32,29 +30,43 @@ jobs:
       - name: Set Up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Set Up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      # https://docs.docker.com/build/ci/github-actions/multi-platform/#build-and-load-multi-platform-images
+      - name: Set Up Docker
+        uses: docker/setup-docker-action@v4
         with:
-          driver-opts: network=host
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
 
-      - name: Start Docker registry
-        run: |
-          docker run --rm --detach --publish 5000:5000 \
-            --volume ${REGISTRY_PATH}:/var/lib/registry \
-            --name registry registry:${REGISTRY_TAG}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/.buildx-cache
+          key: docker-cache-${{ github.event.pull_request.head.sha }}
+          restore-keys: |
+            docker-cache-${{ github.event.pull_request.head.ref }}
+            docker-cache-
 
       - name: Build docker-salt-master Base Image
         uses: docker/build-push-action@v6
         with:
-          context: .
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
-          outputs: |
-            type=image,annotation-index.org.opencontainers.image.description=salt-master latest containerized
-          # cache-from: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha' || '' }}
-          # cache-to: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha,mode=max' || '' }}
-          push: true
+          load: true
           tags: ${{ env.IMAGE_NAME }}
+          cache-from: type=local,src= ${{ runner.temp }}/.buildx-cache
+          cache-to: type=local,dest= ${{ runner.temp }}/.buildx-cache-new
+
+      - name: Move new cache
+        run: |
+          rm -rf ${{ runner.temp }}/.buildx-cache
+          mv ${{ runner.temp }}/.buildx-cache-new ${{ runner.temp }}/.buildx-cache
 
       - name: Hack Base Image for Testing
         run: |
@@ -63,26 +75,24 @@ jobs:
       - name: Build docker-salt-master SaltGUI Image
         uses: docker/build-push-action@v6
         with:
-          context: .
           file: ./Dockerfile.gui
           platforms: linux/amd64,linux/arm64
           build-args: |
             BASE_TAG=${{ github.sha }}
-          outputs: |
-            type=image,annotation-index.org.opencontainers.image.description=salt-master latest containerized
-          # cache-from: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha' || '' }}
-          # cache-to: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha,mode=max' || '' }}
-          push: true
+          load: true
           tags: ${{ env.IMAGE_NAME }}-gui
 
-      - name: Stop Docker Registry
-        run: docker stop registry
+      - name: Save Docker Images for Testing
+        run: |
+          mkdir -p ${{ runner.temp }}/images
+          docker save --output ${{ runner.temp }}/images/base-image.tar ${{ env.IMAGE_NAME }}
+          docker save --output ${{ runner.temp }}/images/gui-image.tar ${{ env.IMAGE_NAME }}-gui
 
-      - name: Upload Docker Registry Data for Testing
+      - name: Upload Images for Testing
         uses: actions/upload-artifact@v4
         with:
-          name: docker-registry-data
-          path: ${{ env.REGISTRY_PATH }}/
+          name: docker-images
+          path: ${{ runner.temp }}/images
 
   test:
     name: Test
@@ -98,21 +108,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Download Docker Registry Data from Build Job
+      - name: Download Docker Images from Build Job
         uses: actions/download-artifact@v4
         with:
-          name: docker-registry-data
-          path: ${{ env.REGISTRY_PATH }}
-
-      - name: Start Docker Registry
-        run: |
-          docker run --rm --detach --publish 5000:5000 \
-            --volume ${REGISTRY_PATH}:/var/lib/registry \
-            --name registry registry:${REGISTRY_TAG}
-          sleep 10
+          name: docker-images
+          path: ${{ runner.temp }}
 
       - name: Import Docker Images
-        run: docker pull ${IMAGE_NAME}
+        run: docker image load --input ${{ runner.temp }}/base-image.tar
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -187,8 +190,3 @@ jobs:
         env:
           IMAGE_NAME: ${{ env.IMAGE_NAME }}-gui
         run: tests/salt-api/test.sh
-
-      - name: Cleanup
-        if: always()
-        run: |
-          docker rm --force registry
