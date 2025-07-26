@@ -42,9 +42,6 @@ jobs:
               }
             }
 
-      - name: Create Docker Images Directory
-        run: mkdir -p ${{ runner.temp }}/images
-
       - name: Build docker-salt-master Base Image
         uses: docker/build-push-action@v6
         with:
@@ -53,7 +50,6 @@ jobs:
           # cache-from: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha' || '' }}
           # cache-to: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha,mode=max' || '' }}
           load: true
-          outputs: type=tar,dest=${{ runner.temp }}/images/base-image.tar
           tags: ${{ env.IMAGE_NAME }}
 
       - name: Hack Base Image for Testing
@@ -69,8 +65,14 @@ jobs:
             BASE_TAG=${{ github.sha }}
           # cache-from: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha' || '' }}
           # cache-to: ${{ env.IS_DEPENDABOT != 'true' && 'type=gha,mode=max' || '' }}
-          outputs: type=tar,dest=${{ runner.temp }}/images/gui-image.tar
+          load: true
           tags: ${{ env.IMAGE_NAME }}-gui
+
+      - name: Save Docker Images for Testing
+        run: |
+          mkdir -p ${{ runner.temp }}/images
+          docker save --output ${{ runner.temp }}/images/base-image.tar ${{ env.IMAGE_NAME }}
+          docker save --output ${{ runner.temp }}/images/gui-image.tar ${{ env.IMAGE_NAME }}-gui
 
       - name: Upload Images for Testing
         uses: actions/upload-artifact@v4
