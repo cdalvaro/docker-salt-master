@@ -35,7 +35,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.6
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.6_1
 ```
 
 You can also pull the `latest` tag, which is built from the repository `HEAD`
@@ -80,14 +80,14 @@ There are also specific tags for LTS and STS versions:
 #### Available Tags
 
 - `cdalvaro/docker-salt-master:latest`
-- `cdalvaro/docker-salt-master:3007.6`, `cdalvaro/docker-salt-master:sts`
-- `cdalvaro/docker-salt-master:3006.14`, `cdalvaro/docker-salt-master:lts`
+- `cdalvaro/docker-salt-master:3007.6_1`, `cdalvaro/docker-salt-master:sts`
+- `cdalvaro/docker-salt-master:3006.14_1`, `cdalvaro/docker-salt-master:lts`
 
 All versions have their SaltGUI counterparts:
 
 - `cdalvaro/docker-salt-master:latest-gui`
-- `cdalvaro/docker-salt-master:3007.6-gui`, `cdalvaro/docker-salt-master:sts-gui`
-- `cdalvaro/docker-salt-master:3006.14-gui`, `cdalvaro/docker-salt-master:lts-gui`
+- `cdalvaro/docker-salt-master:3007.6_1-gui`, `cdalvaro/docker-salt-master:sts-gui`
+- `cdalvaro/docker-salt-master:3006.14_1-gui`, `cdalvaro/docker-salt-master:lts-gui`
 
 ### Build From Source
 
@@ -847,6 +847,8 @@ There is a set of dedicated images tagged with `-gui` that include built-in supp
 
 These images have `salt-api` enabled by default. However, it's up to you to define the [permissions](https://docs.saltproject.io/en/latest/topics/eauth/access_control.html) granted to the `salt-api` user. There is more information about permissions in the [SaltGUI documentation](https://github.com/erwindon/SaltGUI/blob/master/docs/PERMISSIONS.md).
 
+If you are running your salt instance behind a reverse proxy, you may want to disable SSL by setting the environment variable `SALT_API_DISABLE_SSL` to `True`.
+
 Below is an example of how to run a container with SaltGUI enabled.
 
 #### Create a Salt API Configuration File
@@ -925,6 +927,7 @@ installation.
 | `SALT_API_USER_PASS_FILE`                                                                                                             | `SALT_API_USER` password file path. Use this variable to set the path of a file containing the password for the `SALT_API_USER`. Useful to load the password from secrets. Has priority over `SALT_API_USER_PASS`. _Unset_ by default.                                                                                                                                |
 | `SALT_API_USER_PASS`                                                                                                                  | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `True`, `SALT_API_USER` is not empty and `SALT_API_USER_PASS_FILE` is unset. _Unset_ by default.                                                                                                                                                                                                  |
 | `SALT_API_CERT_CN`                                                                                                                    | Common name in the request. Default: `localhost`.                                                                                                                                                                                                                                                                                                                     |
+| `SALT_API_DISABLE_SSL`                                                                                                                | Disable SSL for the Cherrypy server. **Warning!** When `True`, your salt authentication credentials will be sent in the clear. Default: `False`.                                                                                                                                                                                                                      |
 | `SALT_MINION_ENABLED`                                                                                                                 | Enable `salt-minion` service. Default: `False`.                                                                                                                                                                                                                                                                                                                       |
 | `SALT_MINION_ID`                                                                                                                      | Set the id of the `salt-minion` service. Default: `builtin.minion`.                                                                                                                                                                                                                                                                                                   |
 | [`SALT_MASTER_SIGN_PUBKEY`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-sign-pubkey)                   | Sign the master auth-replies with a cryptographic signature of the master's public key. Possible values: `True` or `False`. Default: `False`.                                                                                                                                                                                                                         |

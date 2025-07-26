@@ -32,7 +32,7 @@ Para otros métodos de instalación de `salt-master`, por favor consulta la [gu�
 Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) y es el método recomendado para la instalación.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.6
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.6_1
 ```
 
 También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
@@ -76,14 +76,14 @@ También existen etiquetas específicas para las versiones LTS y STS:
 #### Tags Disponibles
 
 - `cdalvaro/docker-salt-master:latest`
-- `cdalvaro/docker-salt-master:3007.6`, `cdalvaro/docker-salt-master:sts`
-- `cdalvaro/docker-salt-master:3006.14`, `cdalvaro/docker-salt-master:lts`
+- `cdalvaro/docker-salt-master:3007.6_1`, `cdalvaro/docker-salt-master:sts`
+- `cdalvaro/docker-salt-master:3006.14_1`, `cdalvaro/docker-salt-master:lts`
 
 Todas las versiones tienen su compañera con SaltGUI:
 
 - `cdalvaro/docker-salt-master:latest-gui`
-- `cdalvaro/docker-salt-master:3007.6-gui`, `cdalvaro/docker-salt-master:sts-gui`
-- `cdalvaro/docker-salt-master:3006.14-gui`, `cdalvaro/docker-salt-master:lts-gui`
+- `cdalvaro/docker-salt-master:3007.6_1-gui`, `cdalvaro/docker-salt-master:sts-gui`
+- `cdalvaro/docker-salt-master:3006.14_1-gui`, `cdalvaro/docker-salt-master:lts-gui`
 
 ### Construir Desde la Fuente
 
@@ -715,6 +715,8 @@ Esta imagen incluye un script de [healthcheck](https://docs.docker.com/engine/re
 
 Si ejecutas esta imagen bajo k8s, puedes definir un _comando de liveness_ como se explica [aquí](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command).
 
+Si estás ejecutando tu instancia de salt detrás de un proxy reverso, puedes deshabilitar SSL estableciendo la variable de entorno `SALT_API_DISABLE_SSL` a `True`.
+
 Si usas `docker compose` como orquestador de contenedores, puedes añadir las siguientes entradas a tu `compose.yml`:
 
 ```yml
@@ -862,6 +864,7 @@ A continuación puedes encontrar una lista con las opciones disponibles que pued
 | `SALT_API_USER_PASS_FILE`                                                                                                             | Archivo con la contraseña para el usuario `SALT_API_USER`. Usa esta variable para establecer la ruta del archivo que contiene la contraseña del usuario `SALT_API_USER`. Es útil para cargar la contraseña usando _secrets_. Esta variable tiene preferencia frente a `SALT_API_USER_PASS`. Por defecto: _No establecida_.                                                                                                                                                    |
 | `SALT_API_USER_PASS`                                                                                                                  | Contraseña del usuario `SALT_API_USER`. Requerida si `SALT_API_SERVICE_ENBALED` es `True`, `SALT_API_USER` no está vacía y no se ha definido `SALT_API_USER_PASS_FILE`. Por defecto: _No establecida_.                                                                                                                                                                                                                                                                        |
 | `SALT_API_CERT_CN`                                                                                                                    | _Common name_ en el certificado de `salt-api`. Por defecto: `localhost`.                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `SALT_API_DISABLE_SSL`                                                                                                                | Deshabilita SSL para el servidor Cherrypy. **Atención!** Cuando es `True`, tus credenciales de autentificacieon de salt se enviarán sin encriptar. Por defecto: `False`.                                                                                                                                                                                                                                                                                                      |
 | `SALT_MINION_ENABLED`                                                                                                                 | Habilita el servicio `salt-minion`. Por defecto: `False`.                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `SALT_MINION_ID`                                                                                                                      | El id del minion. Por defecto: `builtin.minion`.                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | [`SALT_MASTER_SIGN_PUBKEY`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-sign-pubkey)                   | Firma las respuestas de `salt-master` con una firma criptográfica usando la clave pública del master. Valores permitidos: `True` o `False`. Por defecto: `False`.                                                                                                                                                                                                                                                                                                             |
