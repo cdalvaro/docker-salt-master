@@ -74,6 +74,9 @@ jobs:
   publish:
     name: Publish
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     needs: metadata
     if: contains(toJSON(github.event.commits.*.message), 'ci(debug)') == false
     steps:
