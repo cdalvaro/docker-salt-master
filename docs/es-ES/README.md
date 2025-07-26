@@ -43,17 +43,11 @@ docker pull ghcr.io/cdalvaro/docker-salt-master:latest
 
 #### Otros Registros
 
-Estas imágenes están también disponibles en el [Registro de Contenedores de Docker](https://hub.docker.com/r/cdalvaro/docker-salt-master):
+Estas imágenes están también disponibles en:
 
-```sh
-docker pull cdalvaro/docker-salt-master:latest
-```
-
-y en [Quay.io](https://quay.io/repository/cdalvaro/docker-salt-master):
-
-```sh
-docker pull quay.io/cdalvaro/docker-salt-master:latest
-```
+- [AWS ECR](https://gallery.ecr.aws/cdalvaro/docker-salt-master): `public.ecr.aws/cdalvaro/docker-salt-master`
+- [Docker Registry](https://hub.docker.com/r/cdalvaro/docker-salt-master): `docker.io/cdalvaro/docker-salt-master`
+- [Quay.io](https://quay.io/repository/cdalvaro/docker-salt-master): `quay.io/cdalvaro/docker-salt-master`
 
 #### Soporte de Largo Plazo
 
