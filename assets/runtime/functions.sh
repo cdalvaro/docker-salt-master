@@ -541,6 +541,7 @@ api_logfile: ${SALT_LOGS_DIR}/salt/api.log
 rest_cherrypy:
   port: 8000
   host: 0.0.0.0
+  disable_ssl: ${SALT_API_DISABLE_SSL}
   ssl_crt: ${CERTS_PATH}/tls/certs/${SALT_API_CERT_CN}.crt
   ssl_key: ${CERTS_PATH}/tls/certs/${SALT_API_CERT_CN}.key
 EOF

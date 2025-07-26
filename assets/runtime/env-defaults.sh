@@ -12,6 +12,7 @@ if [[ -z ${SALT_API_USER+x} ]]; then
   export SALT_API_USER=salt_api
 fi
 export SALT_API_CERT_CN=${SALT_API_CERT_CN:-localhost}
+export SALT_API_DISABLE_SSL=${SALT_API_DISABLE_SSL:-False}
 
 #####           Salt Minion          #####
 export SALT_MINION_ENABLED=${SALT_MINION_ENABLED:-False}

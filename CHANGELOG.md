@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3007.6 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.6.html)
 for the list of changes in SaltStack.
 
+**3007.6_1**
+
+- Allow disabling SSL for the CherryPy server using the env variable `SALT_API_DISABLE_SSL`.
+
 **3007.6**
 
 - Update `salt-master` to `3007.6` _Chlorine_.
