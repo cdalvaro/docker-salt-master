@@ -115,6 +115,12 @@ jobs:
           role-to-assume: arn:aws:iam::527345795889:role/github-ecr
           aws-region: us-east-1
 
+      - name: Login to Amazon ECR Public
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
+
       - name: Build and Publish Base Image
         uses: docker/build-push-action@v6.18.0
         with:
