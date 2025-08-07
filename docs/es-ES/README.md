@@ -949,11 +949,6 @@ Muchas gracias:
 
 [![Star History Chart](https://api.star-history.com/svg?repos=cdalvaro/docker-salt-master&type=Date)](https://www.star-history.com/#cdalvaro/docker-salt-master&Date)
 
-<div style="display: flex; align-items: center; justify-content: space-around;">
-  <img src="/social/SaltProject_verticallogo_teal.png" alt="SaltProject" height="128px">
-  <img src="/social/jb_beam.svg" alt="JetBrains Beam" height="128px">
-</div>
-
 ## 📖 Referencias
 
 [![StackOverflow Community][stackoverflow_badge]][stackoverflow_community]
