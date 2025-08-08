@@ -12,9 +12,9 @@ fi
 
 #---  ENV VARIABLE  ---------------------------------------------------------------------------------------------------
 #          NAME:  IMAGE_NAME
-#   DESCRIPTION:  The name and tag of the Docker image. Default: 'cdalvaro/docker-salt-master:latest'.
+#   DESCRIPTION:  The name and tag of the Docker image. Required.
 #----------------------------------------------------------------------------------------------------------------------
-export IMAGE_NAME=${IMAGE_NAME:-'cdalvaro/docker-salt-master:latest'}
+export IMAGE_NAME=${IMAGE_NAME?Define the docker-salt-master image for testing}
 
 #---  ENV VARIABLE  ---------------------------------------------------------------------------------------------------
 #          NAME:  CONTAINER_NAME

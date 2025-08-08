@@ -92,7 +92,7 @@ jobs:
         os: [ubuntu-22.04, ubuntu-22.04-arm]
     env:
       DOCKER_CLI_EXPERIMENTAL: enabled
-      BOOTUP_WAIT_SECONDS: 30
+      BOOTUP_WAIT_SECONDS: 20
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Repository
