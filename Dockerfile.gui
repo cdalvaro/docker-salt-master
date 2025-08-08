@@ -1,8 +1,12 @@
+ARG BASE_IMAGE=ghcr.io/cdalvaro/docker-salt-master
 ARG BASE_TAG=latest
+
+FROM ${BASE_IMAGE}:${BASE_TAG}
+
+ARG BASE_IMAGE
+ARG BASE_TAG
 ARG BUILD_DATE
 ARG VCS_REF
-
-FROM ghcr.io/cdalvaro/docker-salt-master:${BASE_TAG}
 
 ENV SALTGUI_VERSION=1.32.1 \
   SALTGUI_SHA256=9c4bbaf6769417c4384bd56b9979aff223bfb707d20f4878aa1c90b740f2b4c8
@@ -26,5 +30,5 @@ LABEL org.opencontainers.image.vendor="cdalvaro"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 LABEL org.opencontainers.image.version="${IMAGE_VERSION}"
 LABEL org.opencontainers.image.revision="${VCS_REF}"
-LABEL org.opencontainers.image.base.name="ghcr.io/cdalvaro/docker-salt-master:${BASE_TAG}"
+LABEL org.opencontainers.image.base.name="${BASE_IMAGE}:${BASE_TAG}"
 LABEL org.opencontainers.image.licenses="MIT"
