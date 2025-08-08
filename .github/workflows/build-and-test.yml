@@ -16,7 +16,9 @@ on:
       - "Makefile"
 
 env:
-  IMAGE_NAME: localhost:5000/${{ github.repository }}:${{ github.sha }}
+  BASE_IMAGE: localhost:5000/${{ github.repository }}
+  BASE_TAG: test-${{ github.sha }}
+  IMAGE_NAME: localhost:5000/${{ github.repository }}:test-${{ github.sha }}
   REGISTRY_PATH: ${{ github.workspace }}/registry
 
 jobs:
@@ -24,9 +26,6 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
       - name: Set Up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -65,20 +64,14 @@ jobs:
           rm -rf ${{ runner.temp }}/.buildx-cache
           mv ${{ runner.temp }}/.buildx-cache-new ${{ runner.temp }}/.buildx-cache
 
-      - name: Hack Base Image for Testing
-        run: |
-          sed -i "s|^FROM ghcr.io/cdalvaro/docker-salt-master:|FROM ${IMAGE_NAME%:*}:|" ./Dockerfile.gui
-
       - name: Build docker-salt-master SaltGUI Image
         uses: docker/build-push-action@v6
         with:
-          context: .
           file: ./Dockerfile.gui
           platforms: linux/amd64,linux/arm64
           build-args: |
-            BASE_TAG=${{ github.sha }}
-          outputs: |
-            type=image,annotation-index.org.opencontainers.image.description=salt-master latest containerized
+            BASE_IMAGE=${{ env.BASE_IMAGE }}
+            BASE_TAG=${{ env.BASE_TAG }}
           push: true
           tags: ${{ env.IMAGE_NAME }}-gui
 
@@ -119,7 +112,9 @@ jobs:
           sleep 10
 
       - name: Import Docker Images
-        run: docker pull ${IMAGE_NAME}
+        run: |
+          docker pull ${IMAGE_NAME}
+          docker pull ${IMAGE_NAME}-gui
 
       - name: Setup Python
         uses: actions/setup-python@v5
