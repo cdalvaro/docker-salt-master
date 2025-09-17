@@ -700,6 +700,9 @@ function initialize_datadir() {
   # Set Salt root permissions
   chown -R "${SALT_USER}": "${SALT_ROOT_DIR}"
 
+  # Set onedir permissions
+  chown -R "${SALT_USER}": /opt/saltstack
+
   # Set Salt run permissions
   mkdir -p /var/run/salt
   chown -R "${SALT_USER}": /var/run/salt
