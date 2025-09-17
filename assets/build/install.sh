@@ -85,13 +85,15 @@ log_info "Configuring supervisor ..."
 cat >/etc/supervisor/conf.d/salt-master.conf <<EOF
 [program:salt-master]
 priority=5
-directory=${SALT_HOME}
-environment=HOME=${SALT_HOME}
+directory=/tmp
 command=/usr/bin/salt-master
 user=root
 autostart=true
 autorestart=true
+startsecs=5
 stopsignal=TERM
+stopasgroup=true
+killasgroup=true
 stdout_logfile=/dev/stdout
 stdout_logfile_maxbytes=0
 stderr_logfile=/dev/stderr
