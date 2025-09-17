@@ -557,17 +557,13 @@ EOF
   # configure supervisord to start salt-api
   cat >/etc/supervisor/conf.d/salt-api.conf <<EOF
 [program:salt-api]
-command=/usr/bin/salt-api
 priority=10
 directory=/tmp
+command=/usr/bin/salt-api
 user=${SALT_USER}
 autostart=true
 autorestart=true
 stopsignal=TERM
-stdout_logfile=/dev/null
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/null
-stderr_logfile_maxbytes=0
 
 [eventlistener:salt-master-watchdog]
 command=/usr/local/sbin/salt-master-watchdog.py
@@ -638,17 +634,13 @@ function configure_salt_minion() {
   log_info " ==> Configuring supervisord to start salt-minion ..."
   cat >/etc/supervisor/conf.d/salt-minion.conf <<EOF
 [program:salt-minion]
-command=/usr/bin/salt-minion
 priority=20
 directory=/tmp
+command=/usr/bin/salt-minion
 user=root
 autostart=true
 autorestart=true
 stopsignal=TERM
-stdout_logfile=/dev/null
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/null
-stderr_logfile_maxbytes=0
 EOF
 
 }
@@ -799,8 +791,8 @@ command=/usr/local/sbin/config-reloader
 user=root
 autostart=true
 autorestart=true
-stdout_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
-stderr_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
+stdout_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
+stderr_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
 EOF
 }
 
