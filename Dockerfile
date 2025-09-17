@@ -48,6 +48,8 @@ RUN chmod -R +x ${SALT_RUNTIME_DIR}
 
 COPY assets/sbin/* /usr/local/sbin/
 
+COPY assets/supervisor/supervisord.conf /etc/supervisor/supervisord.conf
+
 # Cleaning tasks
 WORKDIR ${SALT_HOME}
 RUN rm -rf "${SALT_BUILD_DIR:?}"

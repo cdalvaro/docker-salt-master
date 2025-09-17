@@ -72,26 +72,14 @@ sed -i -e "s|^[# ]*StrictHostKeyChecking.*$|    StrictHostKeyChecking no|" /etc/
   echo "#   IdentityFile salt_ssh_key"
 } >>/etc/ssh/ssh_config
 
-SUPERVISOR_CONFIG_FILE=/etc/supervisor/supervisord.conf
-
 # Configure logrotate
 log_info "Configuring logrotate ..."
-
-# move supervisord.log file to ${SALT_LOGS_DIR}/supervisor/
-sed -i "s|^[#]*logfile=.*|logfile=${SALT_LOGS_DIR}/supervisor/supervisord.log ;|" "${SUPERVISOR_CONFIG_FILE}"
 
 # fix "unknown group 'syslog'" error preventing logrotate from functioning
 sed -i "s|^su root syslog$|su root root|" /etc/logrotate.conf
 
 # Configure supervisor
 log_info "Configuring supervisor ..."
-
-# run supervisord as root
-if grep -E "^user=" "${SUPERVISOR_CONFIG_FILE}"; then
-  sed -i "s|^user=.*|user=root|" "${SUPERVISOR_CONFIG_FILE}"
-else
-  sed -i "s|^\[supervisord\]\$|[supervisord]\nuser=root|" "${SUPERVISOR_CONFIG_FILE}"
-fi
 
 # configure supervisord to start salt-master
 cat >/etc/supervisor/conf.d/salt-master.conf <<EOF
