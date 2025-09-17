@@ -109,8 +109,8 @@ command=/usr/sbin/cron -f
 user=root
 autostart=true
 autorestart=true
-stdout_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
-stderr_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
+stdout_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.stdout.log
+stderr_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.stderr.log
 EOF
 
 # Purge build dependencies and cleanup apt

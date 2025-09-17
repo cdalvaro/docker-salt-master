@@ -557,11 +557,10 @@ EOF
   # configure supervisord to start salt-api
   cat >/etc/supervisor/conf.d/salt-api.conf <<EOF
 [program:salt-api]
-priority=10
-directory=${SALT_HOME}
-environment=HOME=${SALT_HOME}
 command=/usr/bin/salt-api
-user=root
+priority=10
+directory=/tmp
+user=${SALT_USER}
 autostart=true
 autorestart=true
 stopsignal=TERM
@@ -639,10 +638,9 @@ function configure_salt_minion() {
   log_info " ==> Configuring supervisord to start salt-minion ..."
   cat >/etc/supervisor/conf.d/salt-minion.conf <<EOF
 [program:salt-minion]
-priority=20
-directory=${SALT_HOME}
-environment=HOME=${SALT_HOME}
 command=/usr/bin/salt-minion
+priority=20
+directory=/tmp
 user=root
 autostart=true
 autorestart=true
