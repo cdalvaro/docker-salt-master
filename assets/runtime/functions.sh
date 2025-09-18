@@ -744,15 +744,14 @@ function initialize_datadir() {
 #----------------------------------------------------------------------------------------------------------------------
 function configure_logrotate() {
   log_info "Configuring logrotate ..."
-  local LOGROTATE_CONFIG_DIR='/etc/logrotate.d/salt'
-  local LOGROTATE_CONFIG_FILE="${LOGROTATE_CONFIG_DIR}/salt-common.logrotate"
+  local LOGROTATE_CONFIG_DIR='/etc/logrotate.d'
+  local LOGROTATE_CONFIG_FILE="${LOGROTATE_CONFIG_DIR}/salt-common"
 
-  rm -rf "${LOGROTATE_CONFIG_DIR}"
   mkdir -p "${LOGROTATE_CONFIG_DIR}"
 
   # configure supervisord log rotation
   cat >/etc/logrotate.d/supervisord <<EOF
-${SALT_LOGS_DIR}/supervisor/*.log {
+${SALT_LOGS_DIR}/supervisor/* {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
@@ -765,7 +764,7 @@ EOF
 
   # configure salt logs rotation
   cat >"${LOGROTATE_CONFIG_FILE}" <<EOF
-${SALT_LOGS_DIR}/salt/*.log {
+${SALT_LOGS_DIR}/salt/* {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
