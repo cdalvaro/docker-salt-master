@@ -558,10 +558,9 @@ EOF
   cat >/etc/supervisor/conf.d/salt-api.conf <<EOF
 [program:salt-api]
 priority=10
-directory=${SALT_HOME}
-environment=HOME=${SALT_HOME}
+directory=/tmp
 command=/usr/bin/salt-api
-user=root
+user=${SALT_USER}
 autostart=true
 autorestart=true
 stopsignal=TERM
@@ -638,8 +637,7 @@ function configure_salt_minion() {
   cat >/etc/supervisor/conf.d/salt-minion.conf <<EOF
 [program:salt-minion]
 priority=20
-directory=${SALT_HOME}
-environment=HOME=${SALT_HOME}
+directory=/tmp
 command=/usr/bin/salt-minion
 user=root
 autostart=true
