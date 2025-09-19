@@ -7,7 +7,7 @@
 </picture>
 
 <p align="center">
-  <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.7.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-3007.7%20sts-57BCAD.svg?logo=SaltProject"/></a>
+  <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.8.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-3007.8%20sts-57BCAD.svg?logo=SaltProject"/></a>
   <a href="https://docs.saltproject.io/en/3006/topics/releases/3006.15.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-3006.15%20lts-57BCAD.svg?logo=SaltProject"/></a>
   <a href="https://gallery.ecr.aws/ubuntu/ubuntu"><img alt="Ubuntu Image" src="https://img.shields.io/badge/ubuntu-noble--20250716-E95420.svg?logo=Ubuntu"/></a>
   <a href="https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags"><img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED"/></a>
@@ -32,7 +32,7 @@ Para otros métodos de instalación de `salt-master`, por favor consulta la [gu�
 Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) y es el método recomendado para la instalación.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.7
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.8
 ```
 
 También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
@@ -69,15 +69,15 @@ También existen etiquetas específicas para las versiones LTS y STS:
 
 #### Tags Disponibles
 
-- `cdalvaro/docker-salt-master:latest`
-- `cdalvaro/docker-salt-master:3007.7`, `cdalvaro/docker-salt-master:sts`
-- `cdalvaro/docker-salt-master:3006.15`, `cdalvaro/docker-salt-master:lts`
+- `latest`
+- `3007.8`, `sts`
+- `3006.15`, `lts`
 
 Todas las versiones tienen su compañera con SaltGUI:
 
-- `cdalvaro/docker-salt-master:latest-gui`
-- `cdalvaro/docker-salt-master:3007.7-gui`, `cdalvaro/docker-salt-master:sts-gui`
-- `cdalvaro/docker-salt-master:3006.15-gui`, `cdalvaro/docker-salt-master:lts-gui`
+- `latest-gui`
+- `3007.8-gui`, `sts-gui`
+- `3006.15-gui`, `lts-gui`
 
 ### Construir Desde la Fuente
 
