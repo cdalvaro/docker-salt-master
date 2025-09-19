@@ -536,7 +536,7 @@ function configure_salt_api() {
 #####        salt-api settings       #####
 ##########################################
 # Basic configuration for salt-api
-api_logfile: ${SALT_LOGS_DIR}/salt/api.log
+api_logfile: ${SALT_LOGS_DIR}/salt/api
 
 rest_cherrypy:
   port: 8000
@@ -558,17 +558,25 @@ EOF
   cat >/etc/supervisor/conf.d/salt-api.conf <<EOF
 [program:salt-api]
 priority=10
-directory=${SALT_HOME}
-environment=HOME=${SALT_HOME}
+directory=/tmp
 command=/usr/bin/salt-api
-user=root
+user=${SALT_USER}
 autostart=true
 autorestart=true
 stopsignal=TERM
-stdout_logfile=/dev/null
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/null
-stderr_logfile_maxbytes=0
+stdout_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
+stderr_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
+
+[eventlistener:salt-master-watchdog]
+command=/usr/local/sbin/salt-master-watchdog.py
+events=PROCESS_STATE
+priority=5
+user=root
+autostart=true
+autorestart=true
+startsecs=1
+stdout_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
+stderr_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
 EOF
 
 }
@@ -629,17 +637,14 @@ function configure_salt_minion() {
   cat >/etc/supervisor/conf.d/salt-minion.conf <<EOF
 [program:salt-minion]
 priority=20
-directory=${SALT_HOME}
-environment=HOME=${SALT_HOME}
+directory=/tmp
 command=/usr/bin/salt-minion
 user=root
 autostart=true
 autorestart=true
 stopsignal=TERM
-stdout_logfile=/dev/null
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/null
-stderr_logfile_maxbytes=0
+stdout_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
+stderr_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
 EOF
 
 }
@@ -737,15 +742,14 @@ function initialize_datadir() {
 #----------------------------------------------------------------------------------------------------------------------
 function configure_logrotate() {
   log_info "Configuring logrotate ..."
-  local LOGROTATE_CONFIG_DIR='/etc/logrotate.d/salt'
-  local LOGROTATE_CONFIG_FILE="${LOGROTATE_CONFIG_DIR}/salt-common.logrotate"
+  local LOGROTATE_CONFIG_DIR='/etc/logrotate.d'
+  local LOGROTATE_CONFIG_FILE="${LOGROTATE_CONFIG_DIR}/salt-common"
 
-  rm -rf "${LOGROTATE_CONFIG_DIR}"
   mkdir -p "${LOGROTATE_CONFIG_DIR}"
 
   # configure supervisord log rotation
   cat >/etc/logrotate.d/supervisord <<EOF
-${SALT_LOGS_DIR}/supervisor/*.log {
+${SALT_LOGS_DIR}/supervisor/* {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
@@ -758,7 +762,7 @@ EOF
 
   # configure salt logs rotation
   cat >"${LOGROTATE_CONFIG_FILE}" <<EOF
-${SALT_LOGS_DIR}/salt/*.log {
+${SALT_LOGS_DIR}/salt/* {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
@@ -790,8 +794,8 @@ command=/usr/local/sbin/config-reloader
 user=root
 autostart=true
 autorestart=true
-stdout_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
-stderr_logfile=${SALT_LOGS_DIR}/supervisor/%(program_name)s.log
+stdout_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
+stderr_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
 EOF
 }
 

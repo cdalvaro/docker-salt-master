@@ -71,7 +71,7 @@ function cleanup() {
   echo "  - Removing logs ..."
   if [[ -d "${LOGS_DIR}" ]]; then
     for service in master minion api key; do
-      [[ -f "${LOGS_DIR}"/salt/"${service}".log ]] && rm -fv "${LOGS_DIR}"/salt/"${service}".log
+      [[ -f "${LOGS_DIR}/salt/${service}" ]] && rm -fv "${LOGS_DIR}/salt/${service}"
     done
   fi
   [[ -f /var/log/salt/minion ]] && sudo rm -fv /var/log/salt/minion
@@ -141,7 +141,7 @@ function container_log() {
 #   DESCRIPTION:  Print salt-master log.
 #----------------------------------------------------------------------------------------------------------------------
 function master_log() {
-  local SALT_MASTER_LOG="${LOGS_DIR}/salt/master.log"
+  local SALT_MASTER_LOG="${LOGS_DIR}/salt/master"
 
   [[ -f "${SALT_MASTER_LOG}" ]] || return 0
   echo "📝 salt-master log (${SALT_MASTER_LOG})"
@@ -153,7 +153,7 @@ function master_log() {
 #   DESCRIPTION:  Print built-in salt-minion log.
 #----------------------------------------------------------------------------------------------------------------------
 function builtin_minion_log() {
-  local SALT_MINION_LOG="${LOGS_DIR}/salt/minion.log"
+  local SALT_MINION_LOG="${LOGS_DIR}/salt/minion"
 
   [[ -f "${SALT_MINION_LOG}" ]] || return 0
   echo "📝 built-in salt-minion log (${SALT_MINION_LOG})"

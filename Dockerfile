@@ -1,10 +1,10 @@
-FROM public.ecr.aws/docker/library/ubuntu:noble-20250716
+FROM public.ecr.aws/docker/library/ubuntu:noble-20250910
 
 ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
-ENV SALT_VERSION="3007.7"
+ENV SALT_VERSION="3007.8"
 ENV IMAGE_REVISION=
 ENV IMAGE_VERSION="${SALT_VERSION}${IMAGE_REVISION}"
 
@@ -47,6 +47,9 @@ COPY assets/runtime ${SALT_RUNTIME_DIR}
 RUN chmod -R +x ${SALT_RUNTIME_DIR}
 
 COPY assets/sbin/* /usr/local/sbin/
+RUN chmod +x /usr/local/sbin/*
+
+COPY assets/supervisor/supervisord.conf /etc/supervisor/supervisord.conf
 
 # Cleaning tasks
 WORKDIR ${SALT_HOME}
@@ -70,7 +73,7 @@ LABEL org.opencontainers.image.vendor="cdalvaro"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 LABEL org.opencontainers.image.version="${IMAGE_VERSION}"
 LABEL org.opencontainers.image.revision="${VCS_REF}"
-LABEL org.opencontainers.image.base.name="public.ecr.aws/docker/library/ubuntu:noble-20250716"
+LABEL org.opencontainers.image.base.name="public.ecr.aws/docker/library/ubuntu:noble-20250910"
 LABEL org.opencontainers.image.licenses="MIT"
 
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]
