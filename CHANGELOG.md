@@ -1,8 +1,19 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3007.7 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.7.html)
+Please refer to the [Salt 3007.8 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.8.html)
 for the list of changes in SaltStack.
+
+**3007.8**
+
+- Update `salt-master` to `3007.8` _Chlorine_.
+- Change Docker base image to `ubuntu:noble-20250910`.
+- Deterministic `supervisord` config.
+- Restart `salt-api` when `salt-master` restarts.
+- `salt-api` and `salt-minion` outputs are no longer redirected to _stdout/stderr_.
+- `.log` extension has been removed from salt log files.
+- Fix `logrotate` rules.
+- Run `salt-api` under `salt` user.
 
 **3007.7**
 
