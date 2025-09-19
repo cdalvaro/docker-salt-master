@@ -569,6 +569,17 @@ stdout_logfile=/dev/null
 stdout_logfile_maxbytes=0
 stderr_logfile=/dev/null
 stderr_logfile_maxbytes=0
+
+[eventlistener:salt-master-watchdog]
+command=/usr/local/sbin/salt-master-watchdog.py
+events=PROCESS_STATE
+priority=5
+user=root
+autostart=true
+autorestart=true
+startsecs=1
+stdout_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
+stderr_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
 EOF
 
 }
