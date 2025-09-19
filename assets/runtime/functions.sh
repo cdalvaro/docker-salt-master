@@ -536,7 +536,7 @@ function configure_salt_api() {
 #####        salt-api settings       #####
 ##########################################
 # Basic configuration for salt-api
-api_logfile: ${SALT_LOGS_DIR}/salt/api.log
+api_logfile: ${SALT_LOGS_DIR}/salt/api
 
 rest_cherrypy:
   port: 8000

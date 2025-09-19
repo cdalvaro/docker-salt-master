@@ -51,7 +51,7 @@ verify_master_pubkey_sign: {{SALT_MASTER_SIGN_PUBKEY}}
 #####         Logging settings       #####
 ##########################################
 # The location of the master log file
-log_file: {{SALT_LOGS_DIR}}/salt/minion.log
+log_file: {{SALT_LOGS_DIR}}/salt/minion
 
 # The level of messages to send to the console.
 # One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'.
