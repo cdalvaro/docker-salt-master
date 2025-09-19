@@ -115,8 +115,8 @@ syndic_log_file: {{SALT_LOGS_DIR}}/salt/syndic
 #####         Logging settings       #####
 ##########################################
 # The location of the master log file
-log_file: {{SALT_LOGS_DIR}}/salt/master.log
-key_logfile: {{SALT_LOGS_DIR}}/salt/key.log
+log_file: {{SALT_LOGS_DIR}}/salt/master
+key_logfile: {{SALT_LOGS_DIR}}/salt/key
 
 # The level of messages to send to the console.
 # One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'.

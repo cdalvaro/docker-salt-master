@@ -536,7 +536,7 @@ function configure_salt_api() {
 #####        salt-api settings       #####
 ##########################################
 # Basic configuration for salt-api
-api_logfile: ${SALT_LOGS_DIR}/salt/api.log
+api_logfile: ${SALT_LOGS_DIR}/salt/api
 
 rest_cherrypy:
   port: 8000
@@ -564,6 +564,8 @@ user=${SALT_USER}
 autostart=true
 autorestart=true
 stopsignal=TERM
+stdout_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
+stderr_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
 
 [eventlistener:salt-master-watchdog]
 command=/usr/local/sbin/salt-master-watchdog.py
@@ -573,8 +575,8 @@ user=root
 autostart=true
 autorestart=true
 startsecs=1
-stdout_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/salt-master-watchdog.stdout.log
-stderr_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/salt-master-watchdog.stderr.log
+stdout_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
+stderr_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
 EOF
 
 }
@@ -641,6 +643,8 @@ user=root
 autostart=true
 autorestart=true
 stopsignal=TERM
+stdout_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
+stderr_logfile=%(ENV_SALT_LOGS_DIR)s/supervisor/%(program_name)s.log
 EOF
 
 }
