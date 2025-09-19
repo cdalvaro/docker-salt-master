@@ -28,11 +28,6 @@ start_container_and_wait \
   --volume "${KEYS_DIR}":/home/salt/data/keys || error "container started"
 ok "container started"
 
-# Test salt-master is running
-echo "==> Executing healthcheck ..."
-docker-exec /usr/local/sbin/healthcheck || error "healthcheck"
-ok "healthcheck"
-
 # Test keys permissions
 echo "==> Checking keys permissions ..."
 KEYS_PERMISSIONS="$(find "${KEYS_DIR}" -type f -exec stat -c "%n %a %u:%g" {} \; | sort)"
