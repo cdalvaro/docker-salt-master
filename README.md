@@ -774,7 +774,11 @@ services:
     image: ghcr.io/cdalvaro/docker-salt-master:latest
     healthcheck:
       test: ["CMD", "/usr/local/sbin/healthcheck"]
-      start_period: 30s
+      interval: 5m
+      timeout: 30s
+      retries: 3
+      start_period: 1m
+      start_interval: 30s
 ```
 
 (More info available at [compose file](https://docs.docker.com/compose/compose-file/#healthcheck) official
@@ -811,11 +815,15 @@ Then, the output will be something similar to this:
       "Start": "2020-05-23T16:47:55.1046568Z",
       "End": "2020-05-23T16:48:02.3381442Z",
       "ExitCode": 0,
-      "Output": "local:\n    True\n"
+      "Output": ""
     }
   ]
 }
 ```
+
+If the default timeout for the `salt-run jobs.active` command (`20s`) is not sufficient for your configuration,
+you can change it by setting the environment variable `SALT_HEALTHCHECK_TIMEOUT_JOBS_ACTIVE` to a value that
+best fits your needs.
 
 #### Autoheal
 

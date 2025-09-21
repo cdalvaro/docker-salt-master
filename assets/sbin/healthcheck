@@ -6,4 +6,4 @@ source "${FUNCTIONS_FILE}"
 
 pgrep -f "salt-master MainProcess" >/dev/null 2>&1 || exit 1
 
-exec_as_salt timeout 10s salt-run jobs.active >/dev/null 2>&1 || exit 1
+exec_as_salt timeout "${SALT_HEALTHCHECK_TIMEOUT_JOBS_ACTIVE:-20s}" salt-run jobs.active >/dev/null 2>&1 || exit 1
