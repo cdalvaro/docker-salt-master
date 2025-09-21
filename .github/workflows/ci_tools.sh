@@ -15,7 +15,7 @@ set -o nounset
 #----------------------------------------------------------------------------------------------------------------------
 function export_image_tags() {
   local TAG_NAME="${1:?GitHub output variable name required}"
-  local RELEASE_NAME="${2:-Latest release}"
+  local RELEASE_NAME="${2:-Latest Release}"
   local RELEASE_TAG="${3:-latest}"
   local TAG_SUFFIX="$4"
 
@@ -43,4 +43,30 @@ function export_image_tags() {
   echo "Images list: ${TAGS}"
 
   echo "${TAG_NAME}=${TAGS}" >>"${GITHUB_OUTPUT}"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  export_salt_version
+#   DESCRIPTION:  Get the Salt version from the VERSION file and export it as a GitHub output variable.
+#     ARGUMENTS:
+#             1:  The GitHub output variable name.
+#             2:  The release name.
+#----------------------------------------------------------------------------------------------------------------------
+function export_salt_version() {
+  local OUTPUT_ID="${1:?GitHub output variable name required}"
+  local RELEASE_NAME="${2:-Latest Release}"
+
+  local VERSION_FILE="VERSION"
+  if [[ "${RELEASE_NAME,,}" =~ lts$ ]]; then
+    VERSION_FILE="VERSION_LTS"
+  elif [[ "${RELEASE_NAME,,}" =~ sts$ ]]; then
+    VERSION_FILE="VERSION_STS"
+  fi
+
+  local SALT_VERSION
+  SALT_VERSION=$(cat ${VERSION_FILE})
+
+  echo "Salt version: ${SALT_VERSION}"
+
+  echo "${OUTPUT_ID}=${SALT_VERSION}" >>"${GITHUB_OUTPUT}"
 }

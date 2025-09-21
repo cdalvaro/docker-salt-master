@@ -17,6 +17,7 @@ CONTAINER_ENGINE := podman
 endif
 
 IMAGE_NAME := ghcr.io/cdalvaro/docker-salt-master
+SALT_VERSION := $(shell cat VERSION)
 CONTAINER_NAME := salt_master
 
 .PHONY: all help build release quickstart stop purge log
@@ -37,35 +38,34 @@ help:
 build:
 	$(CONTAINER_ENGINE) build --tag=$(IMAGE_NAME):latest . \
 		--build-arg=BUILD_DATE="$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")" \
-		--build-arg=VCS_REF="$(shell git rev-parse --short HEAD)"
+		--build-arg=VCS_REF="$(shell git rev-parse --short HEAD)" \
+		--build-arg=SALT_VERSION=$(SALT_VERSION)
 
 build-gui: build
 	$(CONTAINER_ENGINE) build --tag=$(IMAGE_NAME):latest-gui . \
 		--build-arg=BUILD_DATE="$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")" \
 		--build-arg=VCS_REF="$(shell git rev-parse --short HEAD)" \
+		--build-arg=BASE_IMAGE=$(IMAGE_NAME) \
 		--build-arg=BASE_TAG=latest \
 	  --file Dockerfile.gui
 
 release: build
 	$(CONTAINER_ENGINE) tag $(IMAGE_NAME):latest \
-		$(IMAGE_NAME):$(shell cat VERSION)
+		$(IMAGE_NAME):$(SALT_VERSION)
 
 release-gui: build-gui
 	$(CONTAINER_ENGINE) tag $(IMAGE_NAME):latest-gui \
-		$(IMAGE_NAME):$(shell cat VERSION)-gui
+		$(IMAGE_NAME):$(SALT_VERSION)-gui
 
 quickstart:
-	@echo "Creating volumes..."
-	$(CONTAINER_ENGINE) volume create salt-master-keys
-	$(CONTAINER_ENGINE) volume create salt-master-logs
 	@echo "Starting docker-salt-master container..."
 	$(CONTAINER_ENGINE) run --name=$(CONTAINER_NAME) --detach \
 		--publish=4505:4505/tcp --publish=4506:4506/tcp \
 		--env "PUID=$(shell id -u)" --env "PGID=$(shell id -g)" \
 		--env SALT_LOG_LEVEL=info \
 		--volume $(shell pwd)/roots/:/home/salt/data/srv/ \
-		--volume salt-master-keys:/home/salt/data/keys/ \
-		--volume salt-master-logs:/home/salt/data/logs/ \
+		--volume $(shell pwd)/keys:/home/salt/data/keys/ \
+		--volume $(shell pwd)/logs:/home/salt/data/logs/ \
 		$(IMAGE_NAME):latest
 	@echo "Type 'make log' for the log"
 
@@ -73,12 +73,9 @@ stop:
 	@echo "Stopping container..."
 	$(CONTAINER_ENGINE) stop $(CONTAINER_NAME) > /dev/null
 
-purge:
+purge: stop
 	@echo "Removing stopped container..."
 	$(CONTAINER_ENGINE) rm -f $(CONTAINER_NAME) > /dev/null
-	@echo "Removing volumes..."
-	$(CONTAINER_ENGINE) volume rm salt-master-keys
-	$(CONTAINER_ENGINE) volume rm salt-master-logs
 
 log:
 	$(CONTAINER_ENGINE) logs --follow $(CONTAINER_NAME)

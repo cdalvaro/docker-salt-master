@@ -28,6 +28,7 @@ jobs:
     name: Metadata
     runs-on: ubuntu-24.04
     outputs:
+      salt_version: ${{ steps.salt_version.outputs.salt_version }}
       tags: ${{ steps.tags.outputs.tags }}
       tags_gui: ${{ steps.tags_gui.outputs.tags_gui }}
       vcs_ref: ${{ steps.vcs_ref.outputs.vcs_ref }}
@@ -35,6 +36,12 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v5
+
+      - name: Salt Version
+        id: salt_version
+        run: |
+          source .github/workflows/ci_tools.sh
+          export_salt_version salt_version "${{ github.event.release.name }}"
 
       - name: Base Image Tags
         id: tags
@@ -62,15 +69,6 @@ jobs:
           echo "Created on: ${CREATED_ON}"
           echo "created_on=${CREATED_ON}" >> $GITHUB_OUTPUT
 
-      - name: Dump Environment
-        if: contains(toJSON(github.event.commits.*.message), 'ci(debug)') == true
-        run: env | sort
-      - name: Dump GitHub Context
-        if: contains(toJSON(github.event.commits.*.message), 'ci(debug)') == true
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "${GITHUB_CONTEXT}"
-
   publish:
     name: Publish
     runs-on: ubuntu-24.04
@@ -78,7 +76,6 @@ jobs:
       id-token: write
       contents: read
     needs: metadata
-    if: contains(toJSON(github.event.commits.*.message), 'ci(debug)') == false
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v5
@@ -130,6 +127,7 @@ jobs:
           build-args: |
             VCS_REF=${{ needs.metadata.outputs.vcs_ref }}
             BUILD_DATE=${{ needs.metadata.outputs.created_on }}
+            SALT_VERSION=${{ needs.metadata.outputs.salt_version }}
           outputs: |
             type=image,annotation-index.org.opencontainers.image.description=https://github.com/${{ github.repository }}
           cache-from: type=gha
