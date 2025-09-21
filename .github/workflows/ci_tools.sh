@@ -46,6 +46,31 @@ function export_image_tags() {
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  export_release_type_from_labels
+#   DESCRIPTION:  Get the release type from the PR labels and export it as a GitHub output variable.
+#     ARGUMENTS:
+#             1:  The GitHub output variable name.
+#             2:  The PR labels in JSON format.
+#----------------------------------------------------------------------------------------------------------------------
+function export_release_type_from_labels() {
+  local OUTPUT_ID="${1:?GitHub output variable name required}"
+  local LABELS="$2"
+
+  local TYPE
+  if echo "$LABELS" | grep -q '"name":"sts"'; then
+    TYPE=sts
+  elif echo "$LABELS" | grep -q '"name":"lts"'; then
+    TYPE=lts
+  else
+    TYPE=latest
+  fi
+
+  echo "Release type: ${TYPE}"
+
+  echo "${OUTPUT_ID}=${TYPE}" >> "${GITHUB_OUTPUT}"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  export_salt_version
 #   DESCRIPTION:  Get the Salt version from the VERSION file and export it as a GitHub output variable.
 #     ARGUMENTS:
@@ -68,5 +93,5 @@ function export_salt_version() {
 
   echo "Salt version: ${SALT_VERSION}"
 
-  echo "${OUTPUT_ID}=${SALT_VERSION}" >>"${GITHUB_OUTPUT}"
+  echo "${OUTPUT_ID}=${SALT_VERSION}" >> "${GITHUB_OUTPUT}"
 }

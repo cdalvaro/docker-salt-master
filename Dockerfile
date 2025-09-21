@@ -1,12 +1,11 @@
 FROM public.ecr.aws/docker/library/ubuntu:noble-20250910
 
+ARG SALT_VERSION
 ARG BUILD_DATE
 ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
-ARG SALT_VERSION
 ENV SALT_VERSION=${SALT_VERSION}
-
 ENV IMAGE_REVISION=
 ENV IMAGE_VERSION="${SALT_VERSION}${IMAGE_REVISION}"
 
