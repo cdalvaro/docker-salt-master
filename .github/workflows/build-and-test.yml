@@ -2,6 +2,12 @@ name: Build and Test Docker Image
 
 on:
   pull_request:
+    types:
+      - assigned
+      - ready_for_review
+      - synchronize
+      - labeled
+      - unlabeled
     branches:
       - main
     paths-ignore:
@@ -22,9 +28,50 @@ env:
   REGISTRY_PATH: ${{ github.workspace }}/registry
 
 jobs:
+  metadata:
+    name: Metadata
+    runs-on: ubuntu-24.04
+    outputs:
+      salt_type: ${{ steps.salt_type.outputs.salt_type }}
+      salt_version: ${{ steps.salt_version.outputs.salt_version }}
+      vcs_ref: ${{ steps.vcs_ref.outputs.vcs_ref }}
+      created_on: ${{ steps.created_on.outputs.created_on }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: Release Type
+        id: salt_type
+        env:
+          LABELS: ${{ toJson(github.event.pull_request.labels) }}
+        run: |
+          source .github/workflows/ci_tools.sh
+          export_release_type_from_labels salt_type "$LABELS"
+
+      - name: Salt Version
+        id: salt_version
+        run: |
+          source .github/workflows/ci_tools.sh
+          export_salt_version salt_version "${{ steps.salt_type.outputs.salt_type }}"
+
+      - name: VCS Ref
+        id: vcs_ref
+        run: |
+          VCS_REF="${GITHUB_SHA::8}"
+          echo "VCS ref: ${VCS_REF}"
+          echo "vcs_ref=${VCS_REF}" >> ${GITHUB_OUTPUT}
+
+      - name: Created On
+        id: created_on
+        run: |
+          CREATED_ON="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          echo "Created on: ${CREATED_ON}"
+          echo "created_on=${CREATED_ON}" >> ${GITHUB_OUTPUT}
+
   build:
     name: Build
     runs-on: ubuntu-24.04
+    needs: metadata
     steps:
       - name: Set Up QEMU
         uses: docker/setup-qemu-action@v3
@@ -54,6 +101,10 @@ jobs:
         with:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            VCS_REF=${{ needs.metadata.outputs.vcs_ref }}
+            BUILD_DATE=${{ needs.metadata.outputs.created_on }}
+            SALT_VERSION=${{ needs.metadata.outputs.salt_version }}
           push: true
           tags: ${{ env.IMAGE_NAME }}
           cache-from: type=local,src=${{ runner.temp }}/.buildx-cache
@@ -86,11 +137,14 @@ jobs:
 
   test:
     name: Test
-    needs: build
+    needs:
+      - build
+      - metadata
     strategy:
       matrix:
         os: [ubuntu-24.04, ubuntu-24.04-arm]
     env:
+      SALT_VERSION: ${{ needs.metadata.outputs.salt_version }}
       DOCKER_CLI_EXPERIMENTAL: enabled
       BOOTUP_WAIT_SECONDS: 20
     runs-on: ${{ matrix.os }}

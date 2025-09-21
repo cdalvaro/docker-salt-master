@@ -56,13 +56,11 @@ function export_release_type_from_labels() {
   local OUTPUT_ID="${1:?GitHub output variable name required}"
   local LABELS="$2"
 
-  local TYPE
-  if echo "$LABELS" | grep -q '"name":"sts"'; then
-    TYPE=sts
-  elif echo "$LABELS" | grep -q '"name":"lts"'; then
-    TYPE=lts
-  else
-    TYPE=latest
+  local TYPE='latest'
+  if echo "$LABELS" | jq -e 'any(.[]; .name == "sts")' > /dev/null; then
+    TYPE='sts'
+  elif echo "$LABELS" | jq -e 'any(.[]; .name == "lts")' > /dev/null; then
+    TYPE='lts'
   fi
 
   echo "Release type: ${TYPE}"

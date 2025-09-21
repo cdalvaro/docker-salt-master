@@ -21,7 +21,7 @@ start_container_and_wait || error "container started"
 ok "container started"
 
 # Check salt versions
-EXPECTED_VERSION="$(cat VERSION)"
+EXPECTED_VERSION="${SALT_VERSION}"
 
 echo "==> Checking salt-master version ..."
 output=$(docker-exec salt-master --versions)

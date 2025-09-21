@@ -34,7 +34,7 @@ ok "salt-minion is running inside the container"
 echo "==> Test salt-minion version with test.version ..."
 TEST_VERSION_OUTPUT="$(docker-exec salt --out=json "${SALT_MINION_ID}" test.version)"
 MINION_VERSION="$(echo -n "${TEST_VERSION_OUTPUT}" | jq -rM --arg mID "${SALT_MINION_ID}" '.[$mID]')"
-check_equal "${MINION_VERSION}" "$(cat VERSION)" "salt-minion version"
+check_equal "${MINION_VERSION}" "${SALT_VERSION}" "salt-minion version"
 
 # Stop container
 echo "==> Stopping previous container ..."
