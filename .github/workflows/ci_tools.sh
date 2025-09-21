@@ -26,7 +26,7 @@ function export_image_tags() {
   elif [[ "${RELEASE_NAME,,}" =~ sts$ ]]; then
     IMAGE_TAGS+=('sts')
   fi
-  echo "Tags: ${IMAGE_TAGS[@]}"
+  echo "Tags: ${IMAGE_TAGS[*]}"
 
   TAGS=""
   for _IMAGE_TAG in "${IMAGE_TAGS[@]}"; do
