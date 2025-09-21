@@ -2,6 +2,12 @@ name: Security Analysis
 
 on:
   pull_request:
+    types:
+      - assigned
+      - ready_for_review
+      - synchronize
+      - labeled
+      - unlabeled
     branches:
       - main
   schedule:
