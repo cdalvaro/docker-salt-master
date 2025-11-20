@@ -1,3 +1,4 @@
+---
 name: Lint Code
 
 on:
@@ -5,18 +6,28 @@ on:
     branches:
       - main
 
+permissions: {}
+
 jobs:
   lint:
     name: Super Linter
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: read
+      # To report GitHub Actions status checks
+      statuses: write
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Lint Code Base
-        uses: github/super-linter@v7
+        uses: super-linter/super-linter@v8.2.0
         env:
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_DOCKERFILE_HADOLINT: true

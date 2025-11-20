@@ -60,7 +60,7 @@ install_pkgs \
 log_info "Installing python packages ..."
 # FIXME: Downgrade to pip 22.3.1 for bug: https://github.com/saltstack/salt/issues/65025
 salt-pip install pip==22.3.1
-salt-pip install pygit2==1.14.1
+salt-pip install pygit2==1.18.2
 salt-pip install python-ldap
 
 # Configure ssh

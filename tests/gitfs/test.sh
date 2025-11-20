@@ -35,7 +35,7 @@ output=$(docker-exec salt-master --versions)
 
 # shellcheck disable=SC2016
 CURRENT_VERSION="$(echo -n "${output}" | grep -Ei 'pygit2: ([^\s]+)' | awk '{print $2}')"
-EXPECTED_VERSION="1.14.1"
+EXPECTED_VERSION="1.18.2"
 check_equal "${CURRENT_VERSION%%-*}" "${EXPECTED_VERSION%%-*}" "pygit2 version"
 
 # Update repositories
