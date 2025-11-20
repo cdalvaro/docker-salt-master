@@ -8,6 +8,7 @@ for the list of changes in SaltStack.
 
 - Update `salt-master` to `3007.9` _Chlorine_.
 - Change Docker base image to `ubuntu:noble-20251013`.
+- Update `pygit2` to version `1.18.2`.
 
 **3007.8**
 
