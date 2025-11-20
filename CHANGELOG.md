@@ -1,8 +1,12 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3007.8 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.8.html)
+Please refer to the [Salt 3007.9 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.9.html)
 for the list of changes in SaltStack.
+
+**3007.9**
+
+- Change Docker base image to `ubuntu:noble-20251013`.
 
 **3007.8**
 
