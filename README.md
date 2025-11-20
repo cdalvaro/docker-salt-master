@@ -7,7 +7,7 @@
 </picture>
 
 <p align="center">
-  <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.8.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-3007.8%20sts-57BCAD.svg?logo=SaltProject"/></a>
+  <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.9.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-3007.9%20sts-57BCAD.svg?logo=SaltProject"/></a>
   <a href="https://docs.saltproject.io/en/3006/topics/releases/3006.16.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-3006.16%20lts-57BCAD.svg?logo=SaltProject"/></a>
   <a href="https://gallery.ecr.aws/ubuntu/ubuntu"><img alt="Ubuntu Image" src="https://img.shields.io/badge/ubuntu-noble--20251013-E95420.svg?logo=Ubuntu"/></a>
   <a href="https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags"><img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED"/></a>
@@ -35,7 +35,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3007.8
+docker pull ghcr.io/cdalvaro/docker-salt-master:3007.9
 ```
 
 You can also pull the `latest` tag, which is built from the repository `HEAD`
@@ -73,13 +73,13 @@ There are also specific tags for LTS and STS versions:
 #### Available Tags
 
 - `latest`
-- `3007.8`, `sts`
+- `3007.9`, `sts`
 - `3006.16`, `lts`
 
 All versions have their SaltGUI counterparts:
 
 - `latest-gui`
-- `3007.8-gui`, `sts-gui`
+- `3007.9-gui`, `sts-gui`
 - `3006.16-gui`, `lts-gui`
 
 ### Build From Source
