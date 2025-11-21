@@ -38,7 +38,7 @@ jobs:
       created_on: ${{ steps.created_on.outputs.created_on }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Release Type
         id: salt_type
@@ -150,7 +150,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Download Docker Registry Data from Build Job
         uses: actions/download-artifact@v6
