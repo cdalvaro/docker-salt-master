@@ -27,7 +27,7 @@ jobs:
       created_on: ${{ steps.created_on.outputs.created_on }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Release Type
         id: salt_type
@@ -67,7 +67,7 @@ jobs:
     needs: metadata
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set Up QEMU
         uses: docker/setup-qemu-action@v3
