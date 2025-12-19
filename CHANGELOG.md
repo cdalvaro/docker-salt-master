@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3007.9 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.9.html)
 for the list of changes in SaltStack.
 
+**3006.18**
+
+- Update `salt-master` to `3006.18` _Sulfur_.
+
 **3007.9**
 
 - Update `salt-master` to `3007.9` _Chlorine_.
