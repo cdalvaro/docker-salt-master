@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.10.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-3007.10%20sts-57BCAD.svg?logo=SaltProject"/></a>
-  <a href="https://docs.saltproject.io/en/3006/topics/releases/3006.18.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-3006.18%20lts-57BCAD.svg?logo=SaltProject"/></a>
+  <a href="https://docs.saltproject.io/en/3006/topics/releases/3006.19.html"><img alt="Salt Project" src="https://img.shields.io/badge/Salt-3006.19%20lts-57BCAD.svg?logo=SaltProject"/></a>
   <a href="https://gallery.ecr.aws/ubuntu/ubuntu"><img alt="Ubuntu Image" src="https://img.shields.io/badge/ubuntu-noble--20251013-E95420.svg?logo=Ubuntu"/></a>
   <a href="https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags"><img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED"/></a>
   <a href="https://github.com/users/cdalvaro/packages/container/package/docker-salt-master"><img alt="Architecture AMD64" src="https://img.shields.io/badge/arch-amd64-inactive.svg"/></a>
@@ -57,7 +57,7 @@ These images are also available from:
 In addition to the latest Salt version, when new LTS (Long Term Support) versions are released, they will be packed into new images which will be available in the container registries as well.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3006.18
+docker pull ghcr.io/cdalvaro/docker-salt-master:3006.19
 ```
 
 There are also specific tags for LTS and STS versions:
@@ -74,13 +74,13 @@ There are also specific tags for LTS and STS versions:
 
 - `latest`
 - `3007.10`, `sts`
-- `3006.18`, `lts`
+- `3006.19`, `lts`
 
 All versions have their SaltGUI counterparts:
 
 - `latest-gui`
 - `3007.10-gui`, `sts-gui`
-- `3006.18-gui`, `lts-gui`
+- `3006.19-gui`, `lts-gui`
 
 ### Build From Source
 
