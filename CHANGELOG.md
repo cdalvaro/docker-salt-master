@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3007.10 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.10.html)
 for the list of changes in SaltStack.
 
+**3006.19**
+
+- Update `salt-master` to `3006.19` _Sulfur_.
+
 **3007.10**
 
 - Update `salt-master` to `3007.10` _Chlorine_.
