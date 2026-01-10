@@ -1,8 +1,12 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3007.10 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.10.html)
+Please refer to the [Salt 3007.11 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.11.html)
 for the list of changes in SaltStack.
+
+**3007.11**
+
+- Update `salt-master` to `3007.11` _Chlorine_.
 
 **3006.19**
 
