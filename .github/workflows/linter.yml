@@ -11,7 +11,7 @@ permissions: {}
 jobs:
   lint:
     name: Super Linter
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
 
     permissions:
       contents: read
