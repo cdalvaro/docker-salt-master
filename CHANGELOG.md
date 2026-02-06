@@ -1,8 +1,13 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3007.11 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.11.html)
+Please refer to the [Salt 3007.12 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.12.html)
 for the list of changes in SaltStack.
+
+**3007.12**
+
+- Update `salt-master` to `3007.12` _Chlorine_.
+- Change Docker base image to `ubuntu:noble-20260113`.
 
 **3006.20**
 
