@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/ubuntu:noble-20251013
+FROM public.ecr.aws/docker/library/ubuntu:noble-20260113
 
 ARG SALT_VERSION
 ARG BUILD_DATE
@@ -74,7 +74,7 @@ LABEL org.opencontainers.image.vendor="cdalvaro"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 LABEL org.opencontainers.image.version="${IMAGE_VERSION}"
 LABEL org.opencontainers.image.revision="${VCS_REF}"
-LABEL org.opencontainers.image.base.name="public.ecr.aws/docker/library/ubuntu:noble-20251013"
+LABEL org.opencontainers.image.base.name="public.ecr.aws/docker/library/ubuntu:noble-20260113"
 LABEL org.opencontainers.image.licenses="MIT"
 
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]

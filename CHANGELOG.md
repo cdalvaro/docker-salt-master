@@ -7,6 +7,7 @@ for the list of changes in SaltStack.
 **3006.20**
 
 - Update `salt-master` to `3006.20` _Sulfur_.
+- Change Docker base image to `ubuntu:noble-20260113`.
 
 **3007.11**
 
