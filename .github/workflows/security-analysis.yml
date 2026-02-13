@@ -91,7 +91,7 @@ jobs:
           tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
 
       - name: Run Trivy Vulnerability Scanner
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.34.0
         with:
           image-ref: "ghcr.io/${{ github.repository }}:${{ github.sha }}"
           format: "template"
