@@ -812,7 +812,7 @@ function install_python_additional_packages() {
       return 1
     fi
 
-    salt-pip install --no-cache-dir -r "${PYTHON_PACKAGES_FILE}"
+    exec_as_salt salt-pip install --no-cache-dir -r "${PYTHON_PACKAGES_FILE}"
     local RETURN_CODE=$?
     [[ -z "${PYTHON_PACKAGES}" ]] || log_warn "PYTHON_PACKAGES is set, but it will be ignored because PYTHON_PACKAGES_FILE is set."
     return "${RETURN_CODE}"
@@ -821,7 +821,7 @@ function install_python_additional_packages() {
   if [[ -n "${PYTHON_PACKAGES}" ]]; then
     IFS=" " read -ra PYTHON_PACKAGES <<<"${PYTHON_PACKAGES}"
     log_info "Installing additional python packages: ${PYTHON_PACKAGES[*]} ..."
-    salt-pip install --no-cache-dir "${PYTHON_PACKAGES[@]}"
+    exec_as_salt salt-pip install --no-cache-dir "${PYTHON_PACKAGES[@]}"
     return $?
   fi
 }
