@@ -119,7 +119,7 @@ jobs:
           registry-type: public
 
       - name: Build and Publish Base Image
-        uses: docker/build-push-action@v6.18.0
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
@@ -137,7 +137,7 @@ jobs:
           tags: ${{ needs.metadata.outputs.tags }}
 
       - name: Build and Publish SaltGUI Image
-        uses: docker/build-push-action@v6.18.0
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile.gui

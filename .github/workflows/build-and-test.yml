@@ -97,7 +97,7 @@ jobs:
             docker-cache-
 
       - name: Build docker-salt-master Base Image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
@@ -116,7 +116,7 @@ jobs:
           mv ${{ runner.temp }}/.buildx-cache-new ${{ runner.temp }}/.buildx-cache
 
       - name: Build docker-salt-master SaltGUI Image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           file: ./Dockerfile.gui
           platforms: linux/amd64,linux/arm64
