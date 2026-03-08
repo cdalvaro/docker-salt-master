@@ -1,0 +1,18 @@
+name: pre-commit
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: read-all
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v3
+      - uses: pre-commit/action@v3.0.1
