@@ -4,9 +4,9 @@ repos:
     rev: v6.0.0
     hooks:
       - id: end-of-file-fixer
-        exclude: (^VERSION|.*\.key$)
+        exclude: (^VERSION|.*\.key$|.*\.pxd$)
       - id: trailing-whitespace
-        exclude: tests/gpg/roots/pillar/foo\.sls
+        exclude: (tests/gpg/roots/pillar/foo\.sls|.*\.pxd$)
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
     rev: v1.23.0
     hooks:
