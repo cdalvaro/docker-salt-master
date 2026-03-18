@@ -39,6 +39,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Release Type
         id: salt_type
@@ -50,9 +52,11 @@ jobs:
 
       - name: Salt Version
         id: salt_version
+        env:
+          SALT_TYPE: "${{ steps.salt_type.outputs.salt_type }}"
         run: |
           source .github/workflows/ci_tools.sh
-          export_salt_version salt_version "${{ steps.salt_type.outputs.salt_type }}"
+          export_salt_version salt_version "${SALT_TYPE}"
 
       - name: VCS Ref
         id: vcs_ref
@@ -151,6 +155,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Download Docker Registry Data from Build Job
         uses: actions/download-artifact@v8

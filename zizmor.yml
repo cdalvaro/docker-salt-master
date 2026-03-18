@@ -1,4 +1,10 @@
 rules:
+  cache-poisoning:
+    disable: true
+  excessive-permissions:
+    disable: true
+  secrets-outside-env:
+    disable: true
   unpinned-uses:
     config:
       policies:

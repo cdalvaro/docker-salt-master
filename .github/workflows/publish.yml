@@ -36,24 +36,34 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Salt Version
         id: salt_version
+        env:
+          RELEASE_NAME: "${{ github.event.release.name }}"
         run: |
           source .github/workflows/ci_tools.sh
-          export_salt_version salt_version "${{ github.event.release.name }}"
+          export_salt_version salt_version "${RELEASE_NAME}"
 
       - name: Base Image Tags
         id: tags
+        env:
+          RELEASE_NAME: "${{ github.event.release.name }}"
+          TAG_NAME: "${{ github.event.release.tag_name }}"
         run: |
           source .github/workflows/ci_tools.sh
-          export_image_tags tags "${{ github.event.release.name }}" "${{ github.event.release.tag_name }}" ""
+          export_image_tags tags "${RELEASE_NAME}" "${TAG_NAME}" ""
 
       - name: GUI Image Tags
         id: tags_gui
+        env:
+          RELEASE_NAME: "${{ github.event.release.name }}"
+          TAG_NAME: "${{ github.event.release.tag_name }}"
         run: |
           source .github/workflows/ci_tools.sh
-          export_image_tags tags_gui "${{ github.event.release.name }}" "${{ github.event.release.tag_name }}" "gui"
+          export_image_tags tags_gui "${RELEASE_NAME}" "${TAG_NAME}" "gui"
 
       - name: VCS Ref
         id: vcs_ref
@@ -79,6 +89,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Set Up QEMU
         uses: docker/setup-qemu-action@v4
