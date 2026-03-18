@@ -6,6 +6,7 @@ repos:
       - id: end-of-file-fixer
         exclude: (^VERSION)
       - id: trailing-whitespace
+        exclude: tests/gpg/roots/pillar/foo.sls
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
     rev: v1.23.0
     hooks:

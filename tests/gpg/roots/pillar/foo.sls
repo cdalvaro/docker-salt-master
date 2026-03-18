@@ -4,7 +4,7 @@ foo:
   decrypted: Hello, test.minion!
   encrypted: |
     -----BEGIN PGP MESSAGE-----
-
+    
     hQGMA8cPgeDyHMJ1AQv+JMGpcorefcMTMZDrVutzFeg6E9TjHHYbLdwNtKQWSJv9
     fZ4MuSTpl7tWhOLbEWW/pm/7/sy3noFCTB46pPExSvR9cL6YxbNV/vFpmIjtH1UF
     /VMzF0HqJye858hFBcULjf+jxs249aqCT0AScobN/gt6fEFX3EHmvnItLFXtHNlI
