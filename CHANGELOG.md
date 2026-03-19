@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3007.13 Release Notes](https://docs.saltstack.com/en/latest/topics/releases/3007.13.html)
 for the list of changes in SaltStack.
 
+**3007.13_1** & **3006.23_1**
+
+- Fix the matrioska effect with `logrotate`.
+
 **3006.23**
 
 - Update `salt-master` to `3006.23` _Sulfur_.

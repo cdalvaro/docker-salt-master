@@ -757,6 +757,8 @@ ${SALT_LOGS_DIR}/supervisor/* {
   delaycompress
   notifempty
   copytruncate
+  dateext
+  dateformat -%Y%m%d
 }
 EOF
 
@@ -767,7 +769,10 @@ ${SALT_LOGS_DIR}/salt/* {
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
   compress
+  delaycompress
   notifempty
+  dateext
+  dateformat -%Y%m%d
   create 0640 ${SALT_USER} ${SALT_USER}
 }
 
