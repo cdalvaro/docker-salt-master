@@ -222,13 +222,11 @@ jobs:
         if: always()
         env:
           GITFS_KEYS_DIR: tests/gitfs/data/keys/gitfs
-          SSH_PRIVATE_KEY: ${{ secrets.TESTS_REPO_PRIVATE_KEY }}
-          SSH_PUBLIC_KEY: ${{ secrets.TESTS_REPO_PUBLIC_KEY }}
         run: |
           mkdir -p "${GITFS_KEYS_DIR}"
-          echo "${SSH_PRIVATE_KEY}" | base64 -d > "${GITFS_KEYS_DIR}"/gitfs_ssh
+          cp tests/gitfs/ssh/gitfs_ed25519 "${GITFS_KEYS_DIR}"/gitfs_ssh
           chmod 600 "${GITFS_KEYS_DIR}"/gitfs_ssh
-          echo "${SSH_PUBLIC_KEY}" | base64 -d > "${GITFS_KEYS_DIR}"/gitfs_ssh.pub
+          cp tests/gitfs/ssh/gitfs_ed25519.pub "${GITFS_KEYS_DIR}"/gitfs_ssh.pub
           chmod 644 "${GITFS_KEYS_DIR}"/gitfs_ssh.pub
           tests/gitfs/test.sh
 
