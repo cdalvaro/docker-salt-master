@@ -55,13 +55,12 @@ docker-exec bash -c 'test $(stat -c "%U:%G" "${SALT_HOME}") = "${SALT_USER}:${SA
 ok "salt home permissions"
 
 # Test salt PUID and PGID
-EXPECTED_USER_ID="salt:x:$(id -u):$(id -g):Salt:/home/salt:/usr/sbin/nologin"
-CURRENT_USER_ID="$(docker-exec bash -c 'getent passwd salt')"
-check_equal "${CURRENT_USER_ID}" "${EXPECTED_USER_ID}" "salt user id"
-
-EXPECTED_GROUP_ID="salt:x:$(id -g):"
-CURRENT_GROUP_ID="$(docker-exec bash -c 'getent group salt')"
-check_equal "${CURRENT_GROUP_ID}" "${EXPECTED_GROUP_ID}" "salt group id"
+EXPECTED_PUID="$(id -u)"
+EXPECTED_PGID="$(id -g)"
+CURRENT_PUID="$(docker-exec bash -c 'id -u salt')"
+CURRENT_PGID="$(docker-exec bash -c 'id -g salt')"
+check_equal "${CURRENT_PUID}" "${EXPECTED_PUID}" "salt user id"
+check_equal "${CURRENT_PGID}" "${EXPECTED_PGID}" "salt group id"
 
 echo "==> Checking there is not ubuntu user/group ..."
 docker-exec bash -c 'getent passwd ubuntu >/dev/null 2>&1' && error "ubuntu user is present inside the container"
