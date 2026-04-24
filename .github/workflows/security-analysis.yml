@@ -91,7 +91,7 @@ jobs:
             BUILD_DATE=${{ needs.metadata.outputs.created_on }}
             SALT_VERSION=${{ needs.metadata.outputs.salt_version }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=max,ignore-error=true
           pull: true
           load: true
           tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
