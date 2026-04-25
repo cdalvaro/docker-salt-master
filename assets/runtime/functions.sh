@@ -757,24 +757,22 @@ ${SALT_LOGS_DIR}/supervisor/*.log {
   delaycompress
   notifempty
   copytruncate
-  dateext
-  dateformat -%Y%m%d
 }
 EOF
 
   # configure salt logs rotation
   cat >"${LOGROTATE_CONFIG_FILE}" <<EOF
 ${SALT_LOGS_DIR}/salt/api
+${SALT_LOGS_DIR}/salt/cloud
 ${SALT_LOGS_DIR}/salt/master
-${SALT_LOGS_DIR}/salt/minion {
+${SALT_LOGS_DIR}/salt/minion
+${SALT_LOGS_DIR}/salt/ssh {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
   compress
   delaycompress
   notifempty
-  dateext
-  dateformat -%Y%m%d
   create 0640 ${SALT_USER} ${SALT_USER}
 }
 
