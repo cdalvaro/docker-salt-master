@@ -33,8 +33,8 @@ echo "==> Checking keys permissions ..."
 KEYS_PERMISSIONS="$(find "${KEYS_DIR}" -type f -exec stat -c "%n %a %u:%g" {} \; | sort)"
 EXPECTED_PERMISSIONS=$(
   cat <<EOF
-${KEYS_DIR}/master.pem 400 ${USER_UID}:${USER_GID}
-${KEYS_DIR}/master.pub 644 ${USER_UID}:${USER_GID}
+${KEYS_DIR}/master.pem 400 ${USER_UID}:0
+${KEYS_DIR}/master.pub 644 ${USER_UID}:0
 ${KEYS_DIR}/master_pubkey_signature 644 ${USER_UID}:${USER_GID}
 ${KEYS_DIR}/master_sign.pem 400 ${USER_UID}:${USER_GID}
 ${KEYS_DIR}/master_sign.pub 644 ${USER_UID}:${USER_GID}
