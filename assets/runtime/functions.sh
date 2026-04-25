@@ -749,7 +749,7 @@ function configure_logrotate() {
 
   # configure supervisord log rotation
   cat >/etc/logrotate.d/supervisord <<EOF
-${SALT_LOGS_DIR}/supervisor/* {
+${SALT_LOGS_DIR}/supervisor/*.log {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
@@ -764,7 +764,9 @@ EOF
 
   # configure salt logs rotation
   cat >"${LOGROTATE_CONFIG_FILE}" <<EOF
-${SALT_LOGS_DIR}/salt/* {
+${SALT_LOGS_DIR}/salt/api
+${SALT_LOGS_DIR}/salt/master
+${SALT_LOGS_DIR}/salt/minion {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
