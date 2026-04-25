@@ -51,10 +51,10 @@ EOF
 # Install salt packages
 log_info "Installing salt packages ..."
 install_pkgs \
-  salt-common="${SALT_VERSION}" \
-  salt-master="${SALT_VERSION}" \
-  salt-minion="${SALT_VERSION}" \
-  salt-api="${SALT_VERSION}"
+  salt-common="${SALT_VERSION/rc/~rc}" \
+  salt-master="${SALT_VERSION/rc/~rc}" \
+  salt-minion="${SALT_VERSION/rc/~rc}" \
+  salt-api="${SALT_VERSION/rc/~rc}"
 
 # Install python packages
 log_info "Installing python packages ..."
