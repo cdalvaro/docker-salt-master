@@ -30,21 +30,11 @@ echo "==> Test salt-minion is running inside the container ..."
 docker-exec bash -c 'test -n "$(ps aux | grep salt-minion | grep -v grep)"' || error "salt-minion is not running inside the container"
 ok "salt-minion is running inside the container"
 
-# Wait until the built-in minion can actually answer commands.
-# Seeing the process in ps does not guarantee the TCP handshake with the master
-# has completed yet, which makes the next assertion flaky on Salt 3008.0rc1.
-echo "==> Waiting for salt-minion to respond ..."
-MINION_READY=false
-for _ in $(seq 1 12); do
-  if docker-exec salt --out=json "${SALT_MINION_ID}" test.ping >/dev/null 2>&1; then
-    MINION_READY=true
-    break
-  fi
-  sleep 5
-done
-
-[[ "${MINION_READY}" == true ]] || error "salt-minion did not become ready in time"
-ok "salt-minion is responding"
+# Give the built-in minion extra time to complete the TCP handshake with the master
+# before issuing commands. The initial BOOTUP_WAIT_SECONDS covers master startup,
+# but the minion connection negotiation may still be in progress at that point.
+echo "==> Waiting for salt-minion to establish connection with master ..."
+sleep 20
 
 # Test salt-minion version
 echo "==> Test salt-minion version with test.version ..."
