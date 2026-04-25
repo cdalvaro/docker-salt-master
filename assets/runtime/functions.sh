@@ -192,6 +192,11 @@ function gen_signed_keys() {
   mv "${generated_keys_dir}/master_sign".{pem,pub} "${output_dir}/"
   mv "${generated_keys_dir}/master_pubkey_signature" "${output_dir}/"
 
+  # Fix permissions on generated keys
+  chmod 400 "${output_dir}/master_sign.pem"
+  chmod 644 "${output_dir}/master_sign.pub"
+  chmod 644 "${output_dir}/master_pubkey_signature"
+
   # Cleanup
   rm -rf "${generated_keys_dir}"
 
