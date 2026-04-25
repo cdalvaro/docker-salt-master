@@ -763,10 +763,8 @@ EOF
   # configure salt logs rotation
   cat >"${LOGROTATE_CONFIG_FILE}" <<EOF
 ${SALT_LOGS_DIR}/salt/api
-${SALT_LOGS_DIR}/salt/cloud
 ${SALT_LOGS_DIR}/salt/master
-${SALT_LOGS_DIR}/salt/minion
-${SALT_LOGS_DIR}/salt/ssh {
+${SALT_LOGS_DIR}/salt/minion {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
