@@ -30,12 +30,6 @@ echo "==> Test salt-minion is running inside the container ..."
 docker-exec bash -c 'test -n "$(ps aux | grep salt-minion | grep -v grep)"' || error "salt-minion is not running inside the container"
 ok "salt-minion is running inside the container"
 
-# Give the built-in minion extra time to complete the TCP handshake with the master
-# before issuing commands. The initial BOOTUP_WAIT_SECONDS covers master startup,
-# but the minion connection negotiation may still be in progress at that point.
-echo "==> Waiting for salt-minion to establish connection with master ..."
-sleep 20
-
 # Test salt-minion version
 echo "==> Test salt-minion version with test.version ..."
 TEST_VERSION_OUTPUT="$(docker-exec salt --out=json "${SALT_MINION_ID}" test.version)"
