@@ -64,8 +64,21 @@ function cleanup() {
   if [[ -f "${SCRIPT_PATH:?}/salt-minion.pid" ]]; then
     MINION_PID=$(cat "${SCRIPT_PATH}/salt-minion.pid")
     echo "  - Stopping salt-minion (${MINION_PID}) ..."
-    sudo kill "${MINION_PID}"
-    sleep 5
+    sudo kill "${MINION_PID}" || true
+
+    local timeout_seconds=30
+    local elapsed_seconds=0
+    while sudo kill -0 "${MINION_PID}" >/dev/null 2>&1; do
+      if [[ ${elapsed_seconds} -ge ${timeout_seconds} ]]; then
+        echo "  - salt-minion (${MINION_PID}) did not stop after ${timeout_seconds}s. Sending SIGKILL ..."
+        sudo kill -9 "${MINION_PID}" || true
+        break
+      fi
+      sleep 1
+      ((elapsed_seconds += 1))
+    done
+
+    rm -f "${SCRIPT_PATH}/salt-minion.pid"
   fi
 
   echo "  - Removing logs ..."
