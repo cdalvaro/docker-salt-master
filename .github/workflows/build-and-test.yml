@@ -1,5 +1,9 @@
 name: Build and Test Docker Image
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     types:
@@ -91,15 +95,6 @@ jobs:
             --volume ${REGISTRY_PATH}:/var/lib/registry \
             --name registry registry:2
 
-      - name: Cache Docker layers
-        uses: actions/cache@v5
-        with:
-          path: ${{ runner.temp }}/.buildx-cache
-          key: docker-cache-${{ github.event.pull_request.head.sha }}
-          restore-keys: |
-            docker-cache-${{ github.event.pull_request.head.ref }}
-            docker-cache-
-
       - name: Build docker-salt-master Base Image
         uses: docker/build-push-action@v7
         with:
@@ -111,13 +106,8 @@ jobs:
             SALT_VERSION=${{ needs.metadata.outputs.salt_version }}
           push: true
           tags: ${{ env.IMAGE_NAME }}
-          cache-from: type=local,src=${{ runner.temp }}/.buildx-cache
-          cache-to: type=local,dest=${{ runner.temp }}/.buildx-cache-new,mode=max
-
-      - name: Move new cache
-        run: |
-          rm -rf ${{ runner.temp }}/.buildx-cache
-          mv ${{ runner.temp }}/.buildx-cache-new ${{ runner.temp }}/.buildx-cache
+          cache-from: type=gha,scope=build-and-test-base
+          cache-to: type=gha,mode=max,scope=build-and-test-base
 
       - name: Build docker-salt-master SaltGUI Image
         uses: docker/build-push-action@v7
@@ -129,6 +119,8 @@ jobs:
             BASE_TAG=${{ env.BASE_TAG }}
           push: true
           tags: ${{ env.IMAGE_NAME }}-gui
+          cache-from: type=gha,scope=build-and-test-gui
+          cache-to: type=gha,mode=max,scope=build-and-test-gui
 
       - name: Stop Docker Registry
         run: docker stop registry
