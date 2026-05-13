@@ -45,6 +45,11 @@ UPDATE_REPOS="$(salt-run fileserver.update)"
 echo "${UPDATE_REPOS}" | grep -qi true || error "update gitfs"
 ok "update gitfs"
 
+# Update git pillar
+echo "==> Updating git pillar repositories ..."
+salt-run git_pillar.update
+ok "update git_pillar"
+
 # Check gitfs files
 echo "==> Checking gitfs files ..."
 FILE_LIST=$(salt-run fileserver.file_list)
