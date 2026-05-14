@@ -86,7 +86,7 @@ function map_uidgid() {
   if [[ "${PUID}" != "${ORIG_PUID}" ]] || [[ "${PGID}" != "${ORIG_PGID}" ]]; then
     log_info "Mapping UID and GID for ${SALT_USER}:${SALT_USER} to ${PUID}:${PGID} ..."
     groupmod -o -g "${PGID}" "${SALT_USER}"
-    sed -i -e "s|:${ORIG_PUID}:${PGID}:|:${PUID}:${PGID}:|" /etc/passwd
+    sed -i -e "s|:${ORIG_PUID}:${ORIG_PGID}:|:${PUID}:${PGID}:|" /etc/passwd
     find "${SALT_HOME}" \
       -not -path "${SALT_CONFS_DIR}*" \
       -not -path "${SALT_KEYS_DIR}*" \
@@ -95,7 +95,7 @@ function map_uidgid() {
       -not -path "${SALT_FORMULAS_DIR}*" \
       -path "${SALT_DATA_DIR}/*" \
       \( ! -uid "${ORIG_PUID}" -o ! -gid "${ORIG_PGID}" \) \
-      -print0 | xargs -0 chown -h "${SALT_USER}": "${SALT_HOME}"
+      -exec chown -h ${SALT_USER}: {} +
   fi
 }
 
@@ -724,15 +724,6 @@ function initialize_datadir() {
     exit 1
   fi
 
-  # Logs directory
-  if [[ ! -w "${SALT_LOGS_DIR}" ]]; then
-    log_error "Logs directory: '${SALT_LOGS_DIR}' must be mounted as a read-write volume"
-    exit 1
-  fi
-  mkdir -p "${SALT_LOGS_DIR}/salt" "${SALT_LOGS_DIR}/supervisor"
-  chmod -R 0755 "${SALT_LOGS_DIR}/supervisor"
-  chown -R "${SALT_USER}": "${SALT_LOGS_DIR}/supervisor"
-
   # Salt formulas
   if [[ -w "${SALT_FORMULAS_DIR}" ]]; then
     chown -R "${SALT_USER}": "${SALT_FORMULAS_DIR}" || log_error "Unable to change '${SALT_FORMULAS_DIR}' ownership"
@@ -740,10 +731,18 @@ function initialize_datadir() {
     log_info "${SALT_FORMULAS_DIR} is mounted as a read-only volume. Ownership won't be changed."
   fi
 
+  # Logs directory
+  if [[ ! -w "${SALT_LOGS_DIR}" ]]; then
+    log_error "Logs directory: '${SALT_LOGS_DIR}' must be mounted as a read-write volume"
+    exit 1
+  fi
+
   [[ -d /var/log/salt ]] && [[ ! -L /var/log/salt ]] && rm -rf /var/log/salt
-  mkdir -p "${SALT_LOGS_DIR}/salt" /var/log
+  mkdir -p "${SALT_LOGS_DIR}/salt" "${SALT_LOGS_DIR}/supervisor" /var/log
   ln -sfnv "${SALT_LOGS_DIR}/salt" /var/log/salt
-  chown -R "${SALT_USER}": "${SALT_LOGS_DIR}/salt"
+
+  chmod -R 0755 "${SALT_LOGS_DIR}"
+  chown -R "${SALT_USER}": "${SALT_LOGS_DIR}"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
