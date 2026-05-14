@@ -63,10 +63,10 @@ ok "salt-minion started"
 
 # Test pillar
 echo "==> Checking gitfs pillar docker-salt-master-test:email content from minion ..."
-PILLAR_CONTENT="$(salt "${TEST_MINION_ID}" pillar.get 'docker-salt-master-test:email' || error "Unable to get pillar 'docker-salt-master-test:email'")"
+PILLAR_CONTENT="$(salt --out=json --static "${TEST_MINION_ID}" pillar.get 'docker-salt-master-test:email' || error "Unable to get pillar 'docker-salt-master-test:email'")"
 echo "${PILLAR_CONTENT}"
-echo -n "${PILLAR_CONTENT}" | grep -q 'github@cdalvaro.io' || error "Check gitfs pillar 'docker-salt-master-test:email'"
-ok "Check gitfs pillar 'docker-salt-master-test:email'"
+PILLAR_EMAIL="$(echo -n "${PILLAR_CONTENT}" | jq -rM --arg mID "${TEST_MINION_ID}" '.[$mID]')"
+check_equal "${PILLAR_EMAIL}" 'github@cdalvaro.io' "Check gitfs pillar 'docker-salt-master-test:email'"
 
 # Test gitfs deploy
 echo "==> Checking gitfs top.sls (state.apply) ..."

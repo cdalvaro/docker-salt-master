@@ -27,7 +27,7 @@ ok "salt-minion started"
 
 # Test foo pillar
 echo "==> Getting gpg encrypted pillar.foo.encrypted from minion ..."
-PILLAR_FOO="$(salt "${TEST_MINION_ID}" pillar.get 'foo:encrypted' || error "Unable to get pillar 'foo:encrypted'")"
+PILLAR_FOO="$(salt --out=json --static "${TEST_MINION_ID}" pillar.get 'foo:encrypted' || error "Unable to get pillar 'foo:encrypted'")"
 echo "${PILLAR_FOO}"
-echo -n "${PILLAR_FOO}" | grep -q 'Hello, test.minion!' || error "gpg encrypted pillar.foo.encrypted"
-ok "gpg encrypted pillar.foo.encrypted"
+PILLAR_FOO_VALUE="$(echo -n "${PILLAR_FOO}" | jq -rM --arg mID "${TEST_MINION_ID}" '.[$mID]')"
+check_equal "${PILLAR_FOO_VALUE}" 'Hello, test.minion!' "gpg encrypted pillar.foo.encrypted"
