@@ -146,6 +146,28 @@ function salt() {
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  wait_for_minion
+#   DESCRIPTION:  Wait until the given minion starts responding to Salt commands.
+#     ARGUMENTS:  $1 -> Minion id. $2 -> Timeout in seconds (default: 40).
+#----------------------------------------------------------------------------------------------------------------------
+function wait_for_minion() {
+  local minion_id="$1"
+  local timeout_seconds="${2:-40}"
+  local elapsed_seconds=0
+
+  echo "==> Waiting for minion '${minion_id}' to respond ..."
+  while [[ ${elapsed_seconds} -lt ${timeout_seconds} ]]; do
+    if salt --out=json "${minion_id}" test.ping >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 2
+    ((elapsed_seconds += 2))
+  done
+
+  return 1
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  container_log
 #   DESCRIPTION:  Print container log.
 #----------------------------------------------------------------------------------------------------------------------
