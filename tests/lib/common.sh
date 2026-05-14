@@ -102,6 +102,15 @@ function docker-exec() {
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  docker-exec-as-salt
+#   DESCRIPTION:  Execute the given command inside the container as the `salt` user.
+#     ARGUMENTS:  $@ -> The command to execute with extra arguments if needed.
+#----------------------------------------------------------------------------------------------------------------------
+function docker-exec-as-salt() {
+  docker exec --user salt "${CONTAINER_NAME}" "$@"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  docker-logs
 #   DESCRIPTION:  Get the logs of the container.
 #----------------------------------------------------------------------------------------------------------------------
@@ -115,7 +124,7 @@ function docker-logs() {
 #     ARGUMENTS:  $@ -> Extra arguments for the command.
 #----------------------------------------------------------------------------------------------------------------------
 function salt-run() {
-  docker-exec salt-run "$@"
+  docker-exec-as-salt salt-run "$@"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -124,7 +133,7 @@ function salt-run() {
 #     ARGUMENTS:  $@ -> Extra arguments for the command.
 #----------------------------------------------------------------------------------------------------------------------
 function salt-call() {
-  docker-exec salt-call "$@"
+  docker-exec-as-salt salt-call "$@"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -133,7 +142,7 @@ function salt-call() {
 #     ARGUMENTS:  $@ -> Extra arguments for the command.
 #----------------------------------------------------------------------------------------------------------------------
 function salt() {
-  docker-exec salt "$@"
+  docker-exec-as-salt salt "$@"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
