@@ -85,8 +85,14 @@ function map_uidgid() {
   PUID=${PUID:-$ORIG_PUID}
   if [[ "${PUID}" != "${ORIG_PUID}" ]] || [[ "${PGID}" != "${ORIG_PGID}" ]]; then
     log_info "Mapping UID and GID for ${SALT_USER}:${SALT_USER} to ${PUID}:${PGID} ..."
-    groupmod -o -g "${PGID}" "${SALT_USER}"
-    sed -i -e "s|:${ORIG_PUID}:${ORIG_PGID}:|:${PUID}:${PGID}:|" /etc/passwd
+    if ! groupmod -o -g "${PGID}" "${SALT_USER}"; then
+      log_error "Failed to update GID for '${SALT_USER}' to ${PGID}"
+      return 1
+    fi
+    if ! usermod -o -u "${PUID}" -g "${PGID}" "${SALT_USER}"; then
+      log_error "Failed to update UID for '${SALT_USER}' to ${PUID}"
+      return 1
+    fi
     find "${SALT_HOME}" \
       -not -path "${SALT_CONFS_DIR}*" \
       -not -path "${SALT_KEYS_DIR}*" \
