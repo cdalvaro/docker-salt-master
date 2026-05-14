@@ -12,11 +12,11 @@ source "${FUNCTIONS_FILE}"
 
 log_info "Installing required packages and build dependencies ..."
 REQUIRED_PACKAGES=(
-  binutils patchelf libldap-common
+  binutils patchelf libldap-common libgit2-1.9
 )
 
 BUILD_DEPENDENCIES=(
-  gcc libsasl2-dev libldap2-dev
+  gcc libssl-dev libsasl2-dev libldap2-dev libgit2-dev
 )
 
 log_info "Adding salt repository..."
@@ -58,7 +58,7 @@ install_pkgs \
 
 # Install python packages
 log_info "Installing python packages ..."
-salt-pip install pygit2==1.18.2
+salt-pip install pygit2==1.19.2
 salt-pip install python-ldap
 
 # Configure ssh
