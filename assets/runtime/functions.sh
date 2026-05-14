@@ -95,7 +95,7 @@ function map_uidgid() {
       -not -path "${SALT_FORMULAS_DIR}*" \
       -path "${SALT_DATA_DIR}/*" \
       \( ! -uid "${ORIG_PUID}" -o ! -gid "${ORIG_PGID}" \) \
-      -exec chown -h ${SALT_USER}: {} +
+      -exec chown -h "${SALT_USER}": {} +
   fi
 }
 
@@ -413,12 +413,11 @@ function _setup_gpgkeys() {
   log_info "     Setting trust level to ultimate ..."
   local key_id=
   key_id="$(exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --list-packets "${private_key}" | awk '/keyid:/{ print $2 }' | head -1)"
-  (
-    echo trust &
-    echo 5 &
-    echo y &
-    echo quit
-  ) | exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --command-fd 0 --edit-key "${key_id}"
+  if [[ -z "${key_id}" ]]; then
+    log_error "Unable to determine GPG key id from '${private_key}'. Skipping trust setup."
+    return 1
+  fi
+  printf 'trust\n5\ny\nquit\n' | exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --command-fd 0 --edit-key "${key_id}"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
