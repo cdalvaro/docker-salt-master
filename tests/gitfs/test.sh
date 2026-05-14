@@ -26,6 +26,7 @@ ok "gitfs keys"
 # Run test instance
 echo "==> Starting docker-salt-master (${PLATFORM}) with ed25519 ssh key ..."
 start_container_and_wait \
+  --volume "$(pwd)/tests/gitfs/roots":/home/salt/data/srv:ro \
   --volume "$(pwd)/${GITFS_KEYS_DIR%%/gitfs}":/home/salt/data/keys ||
   error "container started"
 ok "container started"
@@ -35,7 +36,7 @@ output=$(docker-exec salt-master --versions)
 
 # shellcheck disable=SC2016
 CURRENT_VERSION="$(echo -n "${output}" | grep -Ei 'pygit2: ([^\s]+)' | awk '{print $2}')"
-EXPECTED_VERSION="1.18.2"
+EXPECTED_VERSION="1.19.2"
 check_equal "${CURRENT_VERSION%%-*}" "${EXPECTED_VERSION%%-*}" "pygit2 version"
 
 # Update repositories
@@ -63,10 +64,10 @@ ok "salt-minion started"
 
 # Test pillar
 echo "==> Checking gitfs pillar docker-salt-master-test:email content from minion ..."
-PILLAR_CONTENT="$(salt "${TEST_MINION_ID}" pillar.get 'docker-salt-master-test:email' || error "Unable to get pillar 'docker-salt-master-test:email'")"
-echo "${PILLAR_CONTENT}"
-echo -n "${PILLAR_CONTENT}" | grep -q 'github@cdalvaro.io' || error "Check gitfs pillar 'docker-salt-master-test:email'"
-ok "Check gitfs pillar 'docker-salt-master-test:email'"
+STATE_OUTPUT="$(salt --out=json --static "${TEST_MINION_ID}" state.apply check_pillar || error "Unable to apply state 'check_pillar'")"
+echo "${STATE_OUTPUT}"
+PILLAR_CHECK_RESULT="$(echo -n "${STATE_OUTPUT}" | jq -rM --arg mID "${TEST_MINION_ID}" '.[$mID] | to_entries[0].value.result')"
+check_equal "${PILLAR_CHECK_RESULT}" 'true' "Check gitfs pillar 'docker-salt-master-test:email'"
 
 # Test gitfs deploy
 echo "==> Checking gitfs top.sls (state.apply) ..."

@@ -11,6 +11,10 @@ for the list of changes in SaltStack.
 - Install `libgit2-dev 1.9.1` from apt as a build dependency to support `pygit2 1.19.2`.
 - Dearmor Salt GPG key for APT compatibility.
 
+**3006.25**
+
+- Update `salt-master` to `3006.25` _Sulfur_.
+
 **3007.14**
 
 - Update `salt-master` to `3007.14` _Chlorine_.
