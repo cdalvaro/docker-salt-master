@@ -9,6 +9,7 @@ for the list of changes in SaltStack.
 - Update `salt-master` to `3008.0rc3` _Chlorine_.
 - Change Docker base image to `ubuntu:resolute-20260413`.
 - Install `libgit2-dev 1.9.1` from apt as a build dependency to support `pygit2 1.19.2`.
+- Dearmor Salt GPG key for APT compatibility.
 
 **3007.14**
 
