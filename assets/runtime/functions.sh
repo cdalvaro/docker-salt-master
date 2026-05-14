@@ -532,7 +532,12 @@ function configure_salt_api() {
 
   CERTS_PATH=/etc/pki
   rm -rf "${CERTS_PATH}"/tls/certs/*
-  salt-call --local tls.create_self_signed_cert cacert_path="${CERTS_PATH}" CN="${SALT_API_CERT_CN}"
+  mkdir -p "${CERTS_PATH}/tls/certs"
+  openssl req -x509 -nodes -newkey rsa:2048 \
+    -keyout "${CERTS_PATH}/tls/certs/${SALT_API_CERT_CN}.key" \
+    -out "${CERTS_PATH}/tls/certs/${SALT_API_CERT_CN}.crt" \
+    -days 3650 \
+    -subj "/CN=${SALT_API_CERT_CN}" >/dev/null 2>&1
   chown "${SALT_USER}": "${CERTS_PATH}/tls/certs/${SALT_API_CERT_CN}".{crt,key}
 
   cat >>"${SALT_ROOT_DIR}/master" <<EOF
