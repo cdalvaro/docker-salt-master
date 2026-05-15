@@ -610,8 +610,74 @@ function configure_salt_minion() {
 
   # Get master's fingerprint
   log_info " ==> Getting master's fingerprint ..."
+  #
+  # WORKAROUND: Salt 3008 regression — `salt-key -f` / `--finger-all`
+  # returns a fingerprint that does NOT match what the minion verifies
+  # against during authentication. Root cause:
+  #
+  #   * Minion auth verifier (salt/crypt.py, ~line 1689) calls
+  #     `pem_finger(<path>)` (positional → path=) which reads the file
+  #     from disk, drops the first/last non-empty lines (BEGIN/END
+  #     markers) and normalizes CRLF→LF before hashing.
+  #
+  #   * `salt-key.finger()` in 3008 (salt/key.py) was refactored to load
+  #     keys from a cache and call `pem_finger(key=<raw_bytes>)`. The
+  #     `key=` branch of pem_finger does NOT apply the same normalization,
+  #     so it emits a different digest than the minion's verifier — no
+  #     CLI flag exists to force the file-based code path.
+  #
+  # Result: the minion's `master_finger` config (sourced from salt-key)
+  # never matches the master's actual key → repeated CRITICAL
+  # "fingerprint does not match" errors and failed auth.
+  #
+  # Fix: bypass `salt-key` and call `salt.utils.crypt.pem_finger`
+  # directly from Python with the file path. This guarantees byte-for-
+  # byte equivalence with the minion's verifier because BOTH call the
+  # exact same function with the exact same argument shape. If Salt
+  # ever changes the algorithm (e.g. adopts the base64-decoded-binary
+  # approach proposed in saltstack/salt#63742, or tweaks line handling),
+  # the minion and this command update together — no manual re-sync.
+  #
+  # Tracking:
+  #   * Upstream issue (related, not the same bug): saltstack/salt#63742
+  #     https://github.com/saltstack/salt/issues/63742
+  #   * Related upstream issues:
+  #     - https://github.com/saltstack/salt/issues/55779 (--finger-all listing)
+  #     - https://github.com/saltstack/salt/issues/30078 (invalid fingerprint)
+  #   * Salt source references (v3008.0rc3):
+  #     - salt/key.py `finger()` (uses cache + key=raw):
+  #       https://github.com/saltstack/salt/blob/v3008.0rc3/salt/key.py
+  #     - salt/crypt.py minion verifier (uses path=):
+  #       https://github.com/saltstack/salt/blob/v3008.0rc3/salt/crypt.py
+  #     - salt/utils/crypt.py `pem_finger()`:
+  #       https://github.com/saltstack/salt/blob/v3008.0rc3/salt/utils/crypt.py
+  #   * Previous attempts in this repo (all produced wrong digests):
+  #     - 9fd4f29  `salt-key --finger-all`              (Salt 3008 bug above)
+  #     - c12483a  `openssl rsa -outform DER | sha256`  (hashes DER bytes,
+  #                                                     not PEM text body)
+  #     - bash reimpl (strip BEGIN/END + ALL whitespace, sha256)
+  #                (drops `\n` between base64 lines that Salt 3008 keeps)
+  #     - bash reimpl (awk NF | sed 1d;$d | tr -d \r | sha256)
+  #                (algorithmically correct against 3008rc3, but brittle:
+  #                 any change in pem_finger upstream would silently break
+  #                 the digest again — same trap as the previous attempts)
+  #
+  # Note on the interpreter: Salt 3008 ships as a "onedir" package with
+  # its own bundled Python at /opt/saltstack/salt/bin/python3. The
+  # system `python3` (if present) does NOT have the `salt` module on
+  # its sys.path, so we must invoke the bundled interpreter explicitly.
+  # See: https://docs.saltproject.io/en/latest/topics/packaging/index.html
+  #
+  # Revisit on every Salt upgrade: surface area is the interpreter
+  # path, the import path, and the function name. If any of those
+  # change (onedir layout, module move, signature change) the call
+  # below must be updated. Algorithm changes inside pem_finger are
+  # absorbed automatically.
+  #
   # shellcheck disable=SC2034
-  SALT_MASTER_FINGERPRINT="$(salt-key --finger-all 2>/dev/null | grep -Ei 'master\.pub: ([^\s]+)' | awk '{print $2}')"
+  SALT_MASTER_FINGERPRINT="$(/opt/saltstack/salt/bin/python3 -c \
+    'import sys; from salt.utils.crypt import pem_finger; print(pem_finger(sys.argv[1]))' \
+    "${SALT_KEYS_DIR}/master.pub")"
 
   # Update main configuration
   exec_as_salt cp -p "${SALT_RUNTIME_DIR}/config/minion.yml" "${SALT_ROOT_DIR}/minion"
