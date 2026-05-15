@@ -93,6 +93,8 @@ function map_uidgid() {
       log_error "Failed to update UID for '${SALT_USER}' to ${PUID}"
       return 1
     fi
+
+    chown -h "${SALT_USER}:${SALT_USER}" "${SALT_HOME}"
     find "${SALT_HOME}" \
       -not -path "${SALT_CONFS_DIR}*" \
       -not -path "${SALT_KEYS_DIR}*" \
@@ -100,7 +102,7 @@ function map_uidgid() {
       -not -path "${SALT_LOGS_DIR}*" \
       -not -path "${SALT_FORMULAS_DIR}*" \
       -path "${SALT_DATA_DIR}/*" \
-      \( ! -uid "${ORIG_PUID}" -o ! -gid "${ORIG_PGID}" \) \
+      \( ! -uid "${PUID}" -o ! -gid "${PGID}" \) \
       -exec chown -h "${SALT_USER}": {} +
   fi
 }
