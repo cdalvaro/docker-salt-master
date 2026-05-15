@@ -609,7 +609,7 @@ function configure_salt_minion() {
   # Get master's fingerprint
   log_info " ==> Getting master's fingerprint ..."
   # shellcheck disable=SC2034
-  SALT_MASTER_FINGERPRINT="$(salt-key -f master.pub | grep -Ei 'master.pub: ([^\s]+)' | awk '{print $2}')"
+  SALT_MASTER_FINGERPRINT="$(salt-key --finger-all 2>/dev/null | grep -Ei 'master\.pub: ([^\s]+)' | awk '{print $2}')"
 
   # Update main configuration
   exec_as_salt cp -p "${SALT_RUNTIME_DIR}/config/minion.yml" "${SALT_ROOT_DIR}/minion"
