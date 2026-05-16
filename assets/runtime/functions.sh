@@ -413,7 +413,12 @@ function _setup_gpgkeys() {
   chown "${SALT_USER}:${SALT_USER}" "${SALT_GPGKEYS_DIR}"
   chmod 700 "${SALT_GPGKEYS_DIR}"
 
-  local GPG_COMMON_OPTS=(--no-tty --homedir="${SALT_GPGKEYS_DIR}")
+  local GPG_COMMON_OPTS=(
+    --no-tty
+    --batch                         # non-interactive mode
+    --pinentry-mode loopback        # do not use gpg-agent
+    --homedir="${SALT_GPGKEYS_DIR}"
+  )
 
   exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --import "${private_key}"
   exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --import "${public_key}"
