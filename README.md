@@ -250,6 +250,40 @@ Where `XXXXX` is a random code to avoid possible collisions with previous genera
 
 #### Working with Secrets
 
+> [!IMPORTANT]
+> **Change introduced in 3008.0 — please read if you use secrets.**
+>
+> Up to Salt 3007, master keys provided via secrets were **symlinked** into the
+> keys directory, so the private material never left `/run/secrets` even if the
+> whole keys volume was bind-mounted.
+>
+> Salt 3008.0 changed how the master loads its keys: the new `localfs_key`
+> cache driver **rejects symlinked key files**. To remain compatible, secret
+> keys are now **copied** into the keys directory (`/home/salt/data/keys`) as
+> regular files.
+>
+> **Consequence:** if you both provide keys via secrets **and** bind-mount the
+> full keys volume (`/home/salt/data/keys`), the master private key will be
+> **copied onto that persisted volume** and is therefore more exposed than
+> before. To keep the private material off persistent storage, when using
+> secrets it is **recommended to NOT bind-mount the whole keys volume**. Mount
+> only the minion key sub-directories you actually need to persist — usually
+> just the accepted minions:
+>
+> - `/home/salt/data/keys/minions` — accepted minion keys (most common)
+> - `/home/salt/data/keys/minions_rejected` — rejected minion keys (optional)
+> - `/home/salt/data/keys/minions_pre`, `minions_denied`, `minions_autosign` — optional
+>
+> These are bind-mounted directories (not symlinks), so Salt 3008.0 accepts
+> them while the master keys stay on the container's ephemeral layer, recreated
+> from the secrets on every start.
+>
+> **Migration / safety net:** on upgrade, any pre-existing **symlinked** master
+> key is automatically replaced by a copy of the secret. If a master key is
+> already present as a **regular file** (e.g. you mounted the full keys volume),
+> it is **not** overwritten: it is validated against the secret and, on
+> mismatch, a `WARN` is logged — the on-disk key wins and the secret is ignored.
+
 Master keys can be provided via Docker secrets. To do that, you have to set the following environment variable:
 
 - `SALT_MASTER_KEY_FILE`: The path to the master-key-pair {pem,pub} files without suffixes.
@@ -313,6 +347,17 @@ secrets:
     file: keys/master_sign.pub
   salt-master-signature:
     file: keys/master_pubkey_signature
+```
+
+Note that the example above intentionally does **not** bind-mount the whole
+keys volume. To persist accepted minion keys across container recreation while
+keeping the master private key off persistent storage, mount only the minion
+sub-directory:
+
+```yml
+    volumes:
+      - ./config:/home/salt/data/config
+      - ./keys/minions:/home/salt/data/keys/minions
 ```
 
 ### Salt API

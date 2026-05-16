@@ -245,6 +245,171 @@ function _symlink_key_pair_files() {
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _copy_secret
+#   DESCRIPTION:  Copy a secret file as a regular file into pki_dir with the
+#                 given mode, owned by the salt user.
+#     ARGUMENTS:
+#           - 1: Source file
+#           - 2: Target file (inside pki_dir)
+#           - 3: chmod mode for the copied file
+#----------------------------------------------------------------------------------------------------------------------
+function _copy_secret() {
+  local source_file="$1"
+  local target_file="$2"
+  local mode="$3"
+
+  exec_as_salt cp -fL "${source_file}" "${target_file}"
+  chmod "${mode}" "${target_file}"
+  chown "${SALT_USER}": "${target_file}"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _install_key_pair_files
+#   DESCRIPTION:  Copy a key-pair (private 400, public 644) into pki_dir.
+#     ARGUMENTS:
+#           - 1: Source key-pair file (without .pem/.pub suffix)
+#           - 2: Target key-pair file (without .pem/.pub suffix)
+#----------------------------------------------------------------------------------------------------------------------
+function _install_key_pair_files() {
+  local source_key_pair="$1"
+  local target_key_pair="$2"
+
+  _copy_secret "${source_key_pair}.pem" "${target_key_pair}.pem" 400
+  _copy_secret "${source_key_pair}.pub" "${target_key_pair}.pub" 644
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _warn_secret_ignored
+#   DESCRIPTION:  Warn that on-disk key material takes precedence over the
+#                 provided secret.
+#     ARGUMENTS:
+#           - 1: Name of the env variable that provided the secret
+#           - 2: Source (secret) path as configured
+#           - 3: Human-readable label
+#           - 4: Target directory holding the on-disk file(s)
+#----------------------------------------------------------------------------------------------------------------------
+function _warn_secret_ignored() {
+  local env_var="$1"
+  local source_path="$2"
+  local label="$3"
+  local target_dir="$4"
+
+  log_warn "  ${env_var} is set to '${source_path}' but the ${label} already present in '${target_dir}' do NOT match it."
+  log_warn "  The on-disk ${label} take precedence and the secret is IGNORED. Remove the mounted ${label} (or fix the mismatch) if you want the secret to be used."
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _provision_key_pair
+#   DESCRIPTION:  Provision a master key-pair from a complete externally
+#                 provided (secret) key-pair, honouring the Salt 3008.0
+#                 constraint that keys in pki_dir must be regular files.
+#
+#                 The source key-pair is assumed complete: callers validate it
+#                 with _check_key_pair_exists beforehand.
+#     ARGUMENTS:
+#           - 1: Source (secret) key-pair file without suffix
+#           - 2: Target key-pair file without suffix (inside pki_dir)
+#           - 3: Human-readable label (e.g. master, master_sign)
+#           - 4: Name of the env variable that provided the secret
+#----------------------------------------------------------------------------------------------------------------------
+function _provision_key_pair() {
+  local source_key_pair="$1"
+  local target_key_pair="$2"
+  local label="$3"
+  local env_var="$4"
+
+  # localfs_key rejects symlinks, and a symlinked target would make `cp` write
+  # through the link. Drop both legs' symlinks up-front; only the private
+  # key's symlink marks a legacy (<3008) layout.
+  local pem_was_symlink=false
+  if [[ -L "${target_key_pair}.pem" ]]; then
+    rm -f "${target_key_pair}.pem"
+    pem_was_symlink=true
+  fi
+  [[ -L "${target_key_pair}.pub" ]] && rm -f "${target_key_pair}.pub"
+
+  if [[ "${pem_was_symlink}" == true ]]; then
+    log_info "     Replacing legacy symlinked ${label} keys with a copy of '${source_key_pair}.{pem,pub}' (Salt 3008.0 rejects symlinked keys) ..."
+    _install_key_pair_files "${source_key_pair}" "${target_key_pair}"
+  elif [[ ! -f "${target_key_pair}.pem" ]]; then
+    log_info "     Copying ${label} keys from '${source_key_pair}.{pem,pub}' ..."
+    _install_key_pair_files "${source_key_pair}" "${target_key_pair}"
+  elif cmp -s "${source_key_pair}.pem" "${target_key_pair}.pem"; then
+    log_info "     Using existing ${label} keys (they match the provided secret) ..."
+    _install_key_pair_files "${source_key_pair}" "${target_key_pair}"
+  else
+    # The on-disk private key wins and is left untouched.
+    _warn_secret_ignored "${env_var}" "${source_key_pair}" "${label} keys" "$(dirname "${target_key_pair}")"
+  fi
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _provision_protected_file
+#   DESCRIPTION:  Provision a single authoritative, non-derivable file (e.g.
+#                 master_pubkey_signature) from a provided secret, with the
+#                 same precedence rules as _provision_key_pair: a symlinked or
+#                 missing target is replaced by a COPY of the secret; an
+#                 existing regular file is NEVER overwritten and, on mismatch,
+#                 a non-fatal WARNING is logged (on-disk file wins).
+#     ARGUMENTS:
+#           - 1: Source (secret) file
+#           - 2: Target file (inside pki_dir)
+#           - 3: Human-readable label
+#           - 4: Name of the env variable that provided the secret
+#           - 5: (optional) chmod mode for the copied file (default 644)
+#----------------------------------------------------------------------------------------------------------------------
+function _provision_protected_file() {
+  local source_file="$1"
+  local target_file="$2"
+  local label="$3"
+  local env_var="$4"
+  local mode="${5:-644}"
+
+  if [[ -L "${target_file}" ]]; then
+    log_info "     Replacing legacy symlinked ${label} with a copy of '${source_file}' (Salt 3008.0 rejects symlinked keys) ..."
+    rm -f "${target_file}"
+  fi
+
+  if [[ ! -f "${target_file}" ]]; then
+    log_info "     Copying ${label} from '${source_file}' ..."
+    _copy_secret "${source_file}" "${target_file}" "${mode}"
+  elif cmp -s "${source_file}" "${target_file}"; then
+    log_info "     Using existing ${label} (it matches the provided secret) ..."
+  else
+    _warn_secret_ignored "${env_var}" "${source_file}" "${label}" "$(dirname "${target_file}")"
+  fi
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  setup_master_keys
+#   DESCRIPTION:  Setup the salt-master key-pair.
+#                 If a key-pair is provided via SALT_MASTER_KEY_FILE it is
+#                 copied into pki_dir (see _provision_key_pair). Otherwise the
+#                 existing key-pair is kept, or a new one is generated.
+#----------------------------------------------------------------------------------------------------------------------
+function setup_master_keys() {
+  log_info " ==> Setting up salt-master keys ..."
+
+  local target_key_pair="${SALT_KEYS_DIR}/master"
+
+  if [[ -n "${SALT_MASTER_KEY_FILE}" ]]; then
+    # shellcheck disable=SC2310
+    _check_key_pair_exists "${SALT_MASTER_KEY_FILE}" || return 1
+    _provision_key_pair "${SALT_MASTER_KEY_FILE}" "${target_key_pair}" master SALT_MASTER_KEY_FILE
+  elif [[ ! -f "${target_key_pair}.pem" ]]; then
+    log_info "     Creating new keys ..."
+    # Fix issue #226
+    local tmp_gen_dir=
+    tmp_gen_dir="$(exec_as_salt mktemp -d)"
+    salt-key --gen-keys master --gen-keys-dir "${tmp_gen_dir}" --user "${SALT_USER}" >/dev/null 2>&1
+    mv "${tmp_gen_dir}"/master.{pem,pub} "${SALT_KEYS_DIR}/"
+    rm -rf "${tmp_gen_dir}"
+  else
+    log_info "     Using existing keys ..."
+  fi
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  setup_keys_for_service
 #   DESCRIPTION:  Setup keys for the given service.
 #                 If a key-pair is provided via env variable, it will be used.
@@ -305,30 +470,15 @@ function setup_keys_for_service() {
 function _setup_master_sign_keys() {
   log_info " ==> Setting up master_sign keys ..."
 
+  local target_key_pair="${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}"
+
   if [[ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]]; then
     # shellcheck disable=SC2310
     _check_key_pair_exists "${SALT_MASTER_SIGN_KEY_FILE}" || return 1
-  fi
-
-  if [[ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ]]; then
-    if [[ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]]; then
-      # Link master_sign keys provided via external files
-      local target_key_pair="${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}"
-      log_info "     Linking '${SALT_MASTER_SIGN_KEY_FILE}' keys to '${target_key_pair}.{pem,pub}' ..."
-      _symlink_key_pair_files "${SALT_MASTER_SIGN_KEY_FILE}" "${target_key_pair}"
-    else
-      log_info "     Generating signed keys ..."
-      gen_signed_keys "${SALT_KEYS_DIR}" >/dev/null
-    fi
-  else
-    if [[ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]]; then
-      # If a master_sign key-pair is provided via SALT_MASTER_SIGN_KEY_FILE, check it is the same as the one in the keys directory
-      if ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pem" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ||
-        ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pub" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub"; then
-        log_error "     SALT_MASTER_SIGN_KEY_FILE is set to '${SALT_MASTER_SIGN_KEY_FILE}' but keys don't match the master_sign keys inside '${SALT_KEYS_DIR}'."
-        return 1
-      fi
-    fi
+    _provision_key_pair "${SALT_MASTER_SIGN_KEY_FILE}" "${target_key_pair}" master_sign SALT_MASTER_SIGN_KEY_FILE
+  elif [[ ! -f "${target_key_pair}.pem" ]]; then
+    log_info "     Generating signed keys ..."
+    gen_signed_keys "${SALT_KEYS_DIR}" >/dev/null
   fi
 
   if [[ -n "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" ]]; then
@@ -336,17 +486,9 @@ function _setup_master_sign_keys() {
       log_error "     SALT_MASTER_PUBKEY_SIGNATURE_FILE is set to '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' but it doesn't exist."
       return 1
     fi
-
-    if [[ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}" ]]; then
-      log_info "     Linking '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' to '${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}' ..."
-      ln -sfn "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}"
-    else
-      # If a master_pubkey_signature is provided via SALT_MASTER_PUBKEY_SIGNATURE_FILE, check it is the same as the one in the keys directory
-      if ! cmp -s "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}"; then
-        log_error "     SALT_MASTER_PUBKEY_SIGNATURE_FILE is set to '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' but it doesn't match the ${SALT_MASTER_PUBKEY_SIGNATURE} inside '${SALT_KEYS_DIR}'."
-        return 1
-      fi
-    fi
+    _provision_protected_file "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" \
+      "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}" \
+      master_pubkey_signature SALT_MASTER_PUBKEY_SIGNATURE_FILE 644
   fi
 }
 
@@ -443,7 +585,7 @@ function setup_salt_keys() {
   mkdir -p "${SALT_KEYS_DIR}/minions"
   find "${SALT_KEYS_DIR}" -type d -exec chown "${SALT_USER}": {} \;
 
-  setup_keys_for_service master SALT_MASTER_KEY_FILE "${SALT_KEYS_DIR}"
+  setup_master_keys
   [[ "${SALT_MASTER_SIGN_PUBKEY}" == True ]] && _setup_master_sign_keys
   _setup_gpgkeys
 

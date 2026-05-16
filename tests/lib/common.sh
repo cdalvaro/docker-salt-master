@@ -217,6 +217,41 @@ function minion_log() {
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  assert_log_contains / assert_log_not_contains
+#   DESCRIPTION:  Assert the container log does (not) contain the given string.
+#     ARGUMENTS:  $1 -> Substring. $2 -> Assertion message.
+#----------------------------------------------------------------------------------------------------------------------
+# NOTE: capture the log into a variable and grep a here-string instead of
+# `docker-logs | grep -qF`. Under `set -o pipefail`, `grep -q` exits on the
+# first match and closes the pipe, so `docker logs` is killed by SIGPIPE
+# (exit 141) and the pipeline reports failure even though the needle WAS
+# found — which made assert_log_contains always fail and
+# assert_log_not_contains always pass (masking real regressions).
+function assert_log_contains() {
+  local needle="$1"
+  local message="$2"
+  local logs
+  logs="$(docker-logs 2>&1 || true)"
+  if grep -qF -- "${needle}" <<<"${logs}"; then
+    ok "${message}"
+  else
+    error "${message} (expected log to contain: '${needle}')"
+  fi
+}
+
+function assert_log_not_contains() {
+  local needle="$1"
+  local message="$2"
+  local logs
+  logs="$(docker-logs 2>&1 || true)"
+  if grep -qF -- "${needle}" <<<"${logs}"; then
+    error "${message} (unexpected log entry: '${needle}')"
+  else
+    ok "${message}"
+  fi
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  wait_container
 #   DESCRIPTION:  Wait for the container to boot up.
 #     ARGUMENTS:  $@ -> Extra arguments for the docker run command.
