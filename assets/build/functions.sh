@@ -136,10 +136,15 @@ function add_salt_repository() {
   local arch=amd64
   is_arm64 && arch=arm64
 
-  # Download public key
-  local keyring_file="/etc/apt/keyrings/salt-archive-keyring-2023.pgp"
+  # Download public key and dearmor it so APT can use it as a binary keyring
+  local keyring_file="/etc/apt/keyrings/salt-archive-keyring.gpg"
   local key_url="https://packages.broadcom.com/artifactory/api/security/keypair/SaltProjectKey/public"
-  download "${key_url}" "${keyring_file}"
+  local tmp_key
+  tmp_key=$(mktemp)
+  download "${key_url}" "${tmp_key}"
+  gpg --dearmor < "${tmp_key}" > "${keyring_file}"
+  rm -f "${tmp_key}"
+  chmod 644 "${keyring_file}"
 
   # Create apt repo target configuration
   local target_url="https://packages.broadcom.com/artifactory/saltproject-deb/"

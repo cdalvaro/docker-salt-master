@@ -30,9 +30,12 @@ echo "==> Test salt-minion is running inside the container ..."
 docker-exec bash -c 'test -n "$(ps aux | grep salt-minion | grep -v grep)"' || error "salt-minion is not running inside the container"
 ok "salt-minion is running inside the container"
 
+wait_for_minion "${SALT_MINION_ID}" || error "salt-minion ready"
+ok "salt-minion ready"
+
 # Test salt-minion version
 echo "==> Test salt-minion version with test.version ..."
-TEST_VERSION_OUTPUT="$(docker-exec salt --out=json "${SALT_MINION_ID}" test.version)"
+TEST_VERSION_OUTPUT="$(salt --out=json "${SALT_MINION_ID}" test.version || error "salt-minion test.version")"
 MINION_VERSION="$(echo -n "${TEST_VERSION_OUTPUT}" | jq -rM --arg mID "${SALT_MINION_ID}" '.[$mID]')"
 check_equal "${MINION_VERSION}" "${SALT_VERSION}" "salt-minion version"
 
@@ -57,7 +60,8 @@ ok "keys directory"
 
 # Test salt-minion test.ping
 echo "==> Test salt-minion test.ping ..."
-docker-exec salt "${SALT_MINION_ID}" test.ping || error "salt-minion test.ping"
+wait_for_minion "${SALT_MINION_ID}" || error "salt-minion ready with signed keys"
+salt "${SALT_MINION_ID}" test.ping || error "salt-minion test.ping"
 ok "salt-minion test.ping"
 
 # Stop container
@@ -86,11 +90,12 @@ ok "container started"
 
 # Test the minion is responding
 echo "==> Test salt-minion is responding when reusing previous keys ..."
-docker-exec salt "${SALT_MINION_ID}" test.ping || error "salt-minion test.ping with previous keys"
+wait_for_minion "${SALT_MINION_ID}" || error "salt-minion ready with previous keys"
+salt "${SALT_MINION_ID}" test.ping || error "salt-minion test.ping with previous keys"
 ok "salt-minion test.ping with previous keys"
 
 # Test the configuration is loaded properly
 echo "==> Test salt-minion pyenv configuration ..."
-TEST_PYENV_OUTPUT="$(docker-exec salt --out=json "${SALT_MINION_ID}" config.get 'pyenv.root')"
+TEST_PYENV_OUTPUT="$(salt --out=json "${SALT_MINION_ID}" config.get 'pyenv.root' || error "salt-minion config.get pyenv.root")"
 PYENV_ROOT_PATH="$(echo -n "${TEST_PYENV_OUTPUT}" | jq -rM --arg mID "${SALT_MINION_ID}" '.[$mID]')"
 check_equal "${PYENV_ROOT_PATH}" "${EXPECTED_PYENV_ROOT_PATH}" "salt-minion pyenv configuration"

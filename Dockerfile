@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/ubuntu:noble-20260113
+FROM public.ecr.aws/docker/library/ubuntu:resolute-20260413
 
 ARG SALT_VERSION
 ARG BUILD_DATE
@@ -32,7 +32,7 @@ WORKDIR ${SALT_BUILD_DIR}
 # hadolint ignore=DL3008
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
-  sudo ca-certificates apt-transport-https wget locales openssh-client gpg gpg-agent \
+  sudo ca-certificates apt-transport-https wget locales openssh-client gpg gpg-agent openssl \
   supervisor logrotate git gettext-base tzdata inotify-tools psmisc \
   && DEBIAN_FRONTEND=noninteractive update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \
   locale-gen en_US.UTF-8 \
@@ -74,7 +74,7 @@ LABEL org.opencontainers.image.vendor="cdalvaro"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 LABEL org.opencontainers.image.version="${IMAGE_VERSION}"
 LABEL org.opencontainers.image.revision="${VCS_REF}"
-LABEL org.opencontainers.image.base.name="public.ecr.aws/docker/library/ubuntu:noble-20260113"
+LABEL org.opencontainers.image.base.name="public.ecr.aws/docker/library/ubuntu:resolute-20260413"
 LABEL org.opencontainers.image.licenses="MIT"
 
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]

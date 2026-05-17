@@ -7,7 +7,7 @@ export DEBUG=${DEBUG:-False}
 export TIMEZONE=${TIMEZONE:-${TZ:-UTC}}
 
 #####            Salt API            #####
-export SALT_API_ENABLED=${SALT_API_ENABLED:False}
+export SALT_API_ENABLED=${SALT_API_ENABLED:-False}
 if [[ -z ${SALT_API_USER+x} ]]; then
   export SALT_API_USER=salt_api
 fi

@@ -6,6 +6,10 @@
 # after the comment then the value is presented as an example and is not the
 # default.
 
+# Explicitly declare the id for this master to ensure key files are always
+# named master.pem/master.pub regardless of the container hostname.
+id: master
+
 # The master will automatically include all config files from:
 default_include: {{SALT_CONFS_DIR}}/*.conf
 
