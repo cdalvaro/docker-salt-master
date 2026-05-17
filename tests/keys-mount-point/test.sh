@@ -250,19 +250,21 @@ assert_log_not_contains "is not a valid key path" "no SaltCacheError (secret, mi
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Scenario 6: secret provided + pre-existing regular master.pem that does NOT
-#             match the secret, but WITHOUT master.pub. The decision must be
-#             governed by the PRIVATE key alone: the on-disk private key must
-#             NOT be overwritten just because the public key is missing, and
-#             salt-master regenerates master.pub from it on start-up.
+#             match the secret, but WITHOUT master.pub. The on-disk private key
+#             still wins, but the key-pair is incomplete and must be fatal: the
+#             container must not start by silently deriving a new public key.
 # ---------------------------------------------------------------------------------------------------------------------
-echo "==> [6/6] Secret provided, regular master.pem without master.pub (private key preserved) ..."
+echo "==> [6/6] Secret provided, regular master.pem without master.pub (fatal incomplete key-pair) ..."
 reset_scenario
 gen_master_keypair "${WRONG_DIR}" || error "mismatching key-pair generated"
 cp "${WRONG_DIR}/master.pem" "${KEYS_DIR}/master.pem" # private key only, no master.pub
-start_container_and_wait \
+if start_container_and_wait \
   "${SECRET_ENV[@]}" \
-  --volume "${KEYS_DIR}":/home/salt/data/keys || error "container started (secret, pem-only)"
-assert_master_running "salt-master running (pem-only, on-disk key wins)"
+  --volume "${KEYS_DIR}":/home/salt/data/keys; then
+  error "container refused to start with an incomplete mismatching key-pair"
+else
+  ok "container refused to start with an incomplete mismatching key-pair"
+fi
 if cmp -s "${WRONG_DIR}/master.pem" "${KEYS_DIR}/master.pem"; then
   ok "on-disk private key preserved (not overwritten by the secret)"
 else
@@ -273,9 +275,8 @@ if cmp -s "${SECRETS_DIR}/master.pem" "${KEYS_DIR}/master.pem"; then
 else
   ok "secret did not overwrite the on-disk private key"
 fi
-assert_regular_file "${KEYS_DIR}/master.pub" "master.pub regenerated as a regular file"
 assert_log_contains "do NOT match it" "mismatch warning logged (pem-only)"
-assert_log_not_contains "is not a valid key path" "no SaltCacheError (secret, pem-only)"
+assert_log_contains "Refusing to start with an incomplete mismatching master key-pair" "fatal incomplete key-pair logged"
 
 # Cleanup scenario fixtures (container is removed by the EXIT trap).
 rm -rf "${SECRETS_DIR}" "${WRONG_DIR}"

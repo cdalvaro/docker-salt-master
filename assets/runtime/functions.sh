@@ -340,6 +340,11 @@ function _provision_key_pair() {
   else
     # The on-disk private key wins and is left untouched.
     _warn_secret_ignored "${env_var}" "${source_key_pair}" "${label} keys" "$(dirname "${target_key_pair}")"
+    if [[ ! -f "${target_key_pair}.pub" ]]; then
+      log_error "  ${env_var} is set to '${source_key_pair}' but ${target_key_pair}.pem does not match it and ${target_key_pair}.pub is missing."
+      log_error "  Refusing to start with an incomplete mismatching ${label} key-pair. Add the matching public key, remove the mounted private key, or fix the secret."
+      return 1
+    fi
   fi
 }
 
