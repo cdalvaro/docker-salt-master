@@ -85,8 +85,16 @@ function map_uidgid() {
   PUID=${PUID:-$ORIG_PUID}
   if [[ "${PUID}" != "${ORIG_PUID}" ]] || [[ "${PGID}" != "${ORIG_PGID}" ]]; then
     log_info "Mapping UID and GID for ${SALT_USER}:${SALT_USER} to ${PUID}:${PGID} ..."
-    groupmod -o -g "${PGID}" "${SALT_USER}"
-    sed -i -e "s|:${ORIG_PUID}:${PGID}:|:${PUID}:${PGID}:|" /etc/passwd
+    if ! groupmod -o -g "${PGID}" "${SALT_USER}"; then
+      log_error "Failed to update GID for '${SALT_USER}' to ${PGID}"
+      return 1
+    fi
+    if ! usermod -o -u "${PUID}" -g "${PGID}" "${SALT_USER}"; then
+      log_error "Failed to update UID for '${SALT_USER}' to ${PUID}"
+      return 1
+    fi
+
+    chown -h "${SALT_USER}:${SALT_USER}" "${SALT_HOME}"
     find "${SALT_HOME}" \
       -not -path "${SALT_CONFS_DIR}*" \
       -not -path "${SALT_KEYS_DIR}*" \
@@ -94,8 +102,8 @@ function map_uidgid() {
       -not -path "${SALT_LOGS_DIR}*" \
       -not -path "${SALT_FORMULAS_DIR}*" \
       -path "${SALT_DATA_DIR}/*" \
-      \( ! -uid "${ORIG_PUID}" -o ! -gid "${ORIG_PGID}" \) \
-      -print0 | xargs -0 chown -h "${SALT_USER}": "${SALT_HOME}"
+      \( ! -uid "${PUID}" -o ! -gid "${PGID}" \) \
+      -exec chown -h "${SALT_USER}": {} +
   fi
 }
 
@@ -192,6 +200,11 @@ function gen_signed_keys() {
   mv "${generated_keys_dir}/master_sign".{pem,pub} "${output_dir}/"
   mv "${generated_keys_dir}/master_pubkey_signature" "${output_dir}/"
 
+  # Fix permissions on generated keys
+  chmod 400 "${output_dir}/master_sign.pem"
+  chmod 644 "${output_dir}/master_sign.pub"
+  chmod 644 "${output_dir}/master_pubkey_signature"
+
   # Cleanup
   rm -rf "${generated_keys_dir}"
 
@@ -229,6 +242,171 @@ function _symlink_key_pair_files() {
 
   ln -sfn "${source_key_pair}.pem" "${target_key_pair}.pem"
   ln -sfn "${source_key_pair}.pub" "${target_key_pair}.pub"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _copy_secret
+#   DESCRIPTION:  Copy a secret file as a regular file into pki_dir with the
+#                 given mode, owned by the salt user.
+#     ARGUMENTS:
+#           - 1: Source file
+#           - 2: Target file (inside pki_dir)
+#           - 3: chmod mode for the copied file
+#----------------------------------------------------------------------------------------------------------------------
+function _copy_secret() {
+  local source_file="$1"
+  local target_file="$2"
+  local mode="$3"
+
+  exec_as_salt cp -fL "${source_file}" "${target_file}"
+  chmod "${mode}" "${target_file}"
+  chown "${SALT_USER}": "${target_file}"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _install_key_pair_files
+#   DESCRIPTION:  Copy a key-pair (private 400, public 644) into pki_dir.
+#     ARGUMENTS:
+#           - 1: Source key-pair file (without .pem/.pub suffix)
+#           - 2: Target key-pair file (without .pem/.pub suffix)
+#----------------------------------------------------------------------------------------------------------------------
+function _install_key_pair_files() {
+  local source_key_pair="$1"
+  local target_key_pair="$2"
+
+  _copy_secret "${source_key_pair}.pem" "${target_key_pair}.pem" 400
+  _copy_secret "${source_key_pair}.pub" "${target_key_pair}.pub" 644
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _warn_secret_ignored
+#   DESCRIPTION:  Warn that on-disk key material takes precedence over the
+#                 provided secret.
+#     ARGUMENTS:
+#           - 1: Name of the env variable that provided the secret
+#           - 2: Source (secret) path as configured
+#           - 3: Human-readable label
+#           - 4: Target directory holding the on-disk file(s)
+#----------------------------------------------------------------------------------------------------------------------
+function _warn_secret_ignored() {
+  local env_var="$1"
+  local source_path="$2"
+  local label="$3"
+  local target_dir="$4"
+
+  log_warn "  ${env_var} is set to '${source_path}' but the ${label} already present in '${target_dir}' do NOT match it."
+  log_warn "  The on-disk ${label} take precedence and the secret is IGNORED. Remove the mounted ${label} (or fix the mismatch) if you want the secret to be used."
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _provision_key_pair
+#   DESCRIPTION:  Provision a master key-pair from a complete externally
+#                 provided (secret) key-pair, honouring the Salt 3008.0
+#                 constraint that keys in pki_dir must be regular files.
+#
+#                 The source key-pair is assumed complete: callers validate it
+#                 with _check_key_pair_exists beforehand.
+#     ARGUMENTS:
+#           - 1: Source (secret) key-pair file without suffix
+#           - 2: Target key-pair file without suffix (inside pki_dir)
+#           - 3: Human-readable label (e.g. master, master_sign)
+#           - 4: Name of the env variable that provided the secret
+#----------------------------------------------------------------------------------------------------------------------
+function _provision_key_pair() {
+  local source_key_pair="$1"
+  local target_key_pair="$2"
+  local label="$3"
+  local env_var="$4"
+
+  # localfs_key rejects symlinks, and a symlinked target would make `cp` write
+  # through the link. Drop both legs' symlinks up-front; only the private
+  # key's symlink marks a legacy (<3008) layout.
+  local pem_was_symlink=false
+  if [[ -L "${target_key_pair}.pem" ]]; then
+    rm -f "${target_key_pair}.pem"
+    pem_was_symlink=true
+  fi
+  [[ -L "${target_key_pair}.pub" ]] && rm -f "${target_key_pair}.pub"
+
+  if [[ "${pem_was_symlink}" == true ]]; then
+    log_info "     Replacing legacy symlinked ${label} keys with a copy of '${source_key_pair}.{pem,pub}' (Salt 3008.0 rejects symlinked keys) ..."
+    _install_key_pair_files "${source_key_pair}" "${target_key_pair}"
+  elif [[ ! -f "${target_key_pair}.pem" ]]; then
+    log_info "     Copying ${label} keys from '${source_key_pair}.{pem,pub}' ..."
+    _install_key_pair_files "${source_key_pair}" "${target_key_pair}"
+  elif cmp -s "${source_key_pair}.pem" "${target_key_pair}.pem"; then
+    log_info "     Using existing ${label} keys (they match the provided secret) ..."
+    _install_key_pair_files "${source_key_pair}" "${target_key_pair}"
+  else
+    # The on-disk private key wins and is left untouched.
+    _warn_secret_ignored "${env_var}" "${source_key_pair}" "${label} keys" "$(dirname "${target_key_pair}")"
+  fi
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _provision_protected_file
+#   DESCRIPTION:  Provision a single authoritative, non-derivable file (e.g.
+#                 master_pubkey_signature) from a provided secret, with the
+#                 same precedence rules as _provision_key_pair: a symlinked or
+#                 missing target is replaced by a COPY of the secret; an
+#                 existing regular file is NEVER overwritten and, on mismatch,
+#                 a non-fatal WARNING is logged (on-disk file wins).
+#     ARGUMENTS:
+#           - 1: Source (secret) file
+#           - 2: Target file (inside pki_dir)
+#           - 3: Human-readable label
+#           - 4: Name of the env variable that provided the secret
+#           - 5: (optional) chmod mode for the copied file (default 644)
+#----------------------------------------------------------------------------------------------------------------------
+function _provision_protected_file() {
+  local source_file="$1"
+  local target_file="$2"
+  local label="$3"
+  local env_var="$4"
+  local mode="${5:-644}"
+
+  if [[ -L "${target_file}" ]]; then
+    log_info "     Replacing legacy symlinked ${label} with a copy of '${source_file}' (Salt 3008.0 rejects symlinked keys) ..."
+    rm -f "${target_file}"
+  fi
+
+  if [[ ! -f "${target_file}" ]]; then
+    log_info "     Copying ${label} from '${source_file}' ..."
+    _copy_secret "${source_file}" "${target_file}" "${mode}"
+  elif cmp -s "${source_file}" "${target_file}"; then
+    log_info "     Using existing ${label} (it matches the provided secret) ..."
+  else
+    _warn_secret_ignored "${env_var}" "${source_file}" "${label}" "$(dirname "${target_file}")"
+  fi
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  setup_master_keys
+#   DESCRIPTION:  Setup the salt-master key-pair.
+#                 If a key-pair is provided via SALT_MASTER_KEY_FILE it is
+#                 copied into pki_dir (see _provision_key_pair). Otherwise the
+#                 existing key-pair is kept, or a new one is generated.
+#----------------------------------------------------------------------------------------------------------------------
+function setup_master_keys() {
+  log_info " ==> Setting up salt-master keys ..."
+
+  local target_key_pair="${SALT_KEYS_DIR}/master"
+
+  if [[ -n "${SALT_MASTER_KEY_FILE}" ]]; then
+    # shellcheck disable=SC2310
+    _check_key_pair_exists "${SALT_MASTER_KEY_FILE}" || return 1
+    _provision_key_pair "${SALT_MASTER_KEY_FILE}" "${target_key_pair}" master SALT_MASTER_KEY_FILE
+  elif [[ ! -f "${target_key_pair}.pem" ]]; then
+    log_info "     Creating new keys ..."
+    # Fix issue #226
+    local tmp_gen_dir=
+    tmp_gen_dir="$(exec_as_salt mktemp -d)"
+    salt-key --gen-keys master --gen-keys-dir "${tmp_gen_dir}" --user "${SALT_USER}" >/dev/null 2>&1
+    mv "${tmp_gen_dir}"/master.{pem,pub} "${SALT_KEYS_DIR}/"
+    rm -rf "${tmp_gen_dir}"
+  else
+    log_info "     Using existing keys ..."
+  fi
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -292,30 +470,15 @@ function setup_keys_for_service() {
 function _setup_master_sign_keys() {
   log_info " ==> Setting up master_sign keys ..."
 
+  local target_key_pair="${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}"
+
   if [[ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]]; then
     # shellcheck disable=SC2310
     _check_key_pair_exists "${SALT_MASTER_SIGN_KEY_FILE}" || return 1
-  fi
-
-  if [[ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ]]; then
-    if [[ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]]; then
-      # Link master_sign keys provided via external files
-      local target_key_pair="${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}"
-      log_info "     Linking '${SALT_MASTER_SIGN_KEY_FILE}' keys to '${target_key_pair}.{pem,pub}' ..."
-      _symlink_key_pair_files "${SALT_MASTER_SIGN_KEY_FILE}" "${target_key_pair}"
-    else
-      log_info "     Generating signed keys ..."
-      gen_signed_keys "${SALT_KEYS_DIR}" >/dev/null
-    fi
-  else
-    if [[ -n "${SALT_MASTER_SIGN_KEY_FILE}" ]]; then
-      # If a master_sign key-pair is provided via SALT_MASTER_SIGN_KEY_FILE, check it is the same as the one in the keys directory
-      if ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pem" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pem" ||
-        ! cmp -s "${SALT_MASTER_SIGN_KEY_FILE}.pub" "${SALT_KEYS_DIR}/${SALT_MASTER_SIGN_KEY_NAME}.pub"; then
-        log_error "     SALT_MASTER_SIGN_KEY_FILE is set to '${SALT_MASTER_SIGN_KEY_FILE}' but keys don't match the master_sign keys inside '${SALT_KEYS_DIR}'."
-        return 1
-      fi
-    fi
+    _provision_key_pair "${SALT_MASTER_SIGN_KEY_FILE}" "${target_key_pair}" master_sign SALT_MASTER_SIGN_KEY_FILE
+  elif [[ ! -f "${target_key_pair}.pem" ]]; then
+    log_info "     Generating signed keys ..."
+    gen_signed_keys "${SALT_KEYS_DIR}" >/dev/null
   fi
 
   if [[ -n "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" ]]; then
@@ -323,17 +486,9 @@ function _setup_master_sign_keys() {
       log_error "     SALT_MASTER_PUBKEY_SIGNATURE_FILE is set to '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' but it doesn't exist."
       return 1
     fi
-
-    if [[ ! -f "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}" ]]; then
-      log_info "     Linking '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' to '${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}' ..."
-      ln -sfn "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}"
-    else
-      # If a master_pubkey_signature is provided via SALT_MASTER_PUBKEY_SIGNATURE_FILE, check it is the same as the one in the keys directory
-      if ! cmp -s "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}"; then
-        log_error "     SALT_MASTER_PUBKEY_SIGNATURE_FILE is set to '${SALT_MASTER_PUBKEY_SIGNATURE_FILE}' but it doesn't match the ${SALT_MASTER_PUBKEY_SIGNATURE} inside '${SALT_KEYS_DIR}'."
-        return 1
-      fi
-    fi
+    _provision_protected_file "${SALT_MASTER_PUBKEY_SIGNATURE_FILE}" \
+      "${SALT_KEYS_DIR}/${SALT_MASTER_PUBKEY_SIGNATURE}" \
+      master_pubkey_signature SALT_MASTER_PUBKEY_SIGNATURE_FILE 644
   fi
 }
 
@@ -400,7 +555,12 @@ function _setup_gpgkeys() {
   chown "${SALT_USER}:${SALT_USER}" "${SALT_GPGKEYS_DIR}"
   chmod 700 "${SALT_GPGKEYS_DIR}"
 
-  local GPG_COMMON_OPTS=(--no-tty --homedir="${SALT_GPGKEYS_DIR}")
+  local GPG_COMMON_OPTS=(
+    --no-tty
+    --batch                         # non-interactive mode
+    --pinentry-mode loopback        # do not use gpg-agent
+    --homedir="${SALT_GPGKEYS_DIR}"
+  )
 
   exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --import "${private_key}"
   exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --import "${public_key}"
@@ -408,12 +568,11 @@ function _setup_gpgkeys() {
   log_info "     Setting trust level to ultimate ..."
   local key_id=
   key_id="$(exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --list-packets "${private_key}" | awk '/keyid:/{ print $2 }' | head -1)"
-  (
-    echo trust &
-    echo 5 &
-    echo y &
-    echo quit
-  ) | exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --command-fd 0 --edit-key "${key_id}"
+  if [[ -z "${key_id}" ]]; then
+    log_error "Unable to determine GPG key id from '${private_key}'. Skipping trust setup."
+    return 1
+  fi
+  printf 'trust\n5\ny\nquit\n' | exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --command-fd 0 --edit-key "${key_id}"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -426,7 +585,7 @@ function setup_salt_keys() {
   mkdir -p "${SALT_KEYS_DIR}/minions"
   find "${SALT_KEYS_DIR}" -type d -exec chown "${SALT_USER}": {} \;
 
-  setup_keys_for_service master SALT_MASTER_KEY_FILE "${SALT_KEYS_DIR}"
+  setup_master_keys
   [[ "${SALT_MASTER_SIGN_PUBKEY}" == True ]] && _setup_master_sign_keys
   _setup_gpgkeys
 
@@ -527,7 +686,12 @@ function configure_salt_api() {
 
   CERTS_PATH=/etc/pki
   rm -rf "${CERTS_PATH}"/tls/certs/*
-  salt-call --local tls.create_self_signed_cert cacert_path="${CERTS_PATH}" CN="${SALT_API_CERT_CN}"
+  mkdir -p "${CERTS_PATH}/tls/certs"
+  openssl req -x509 -nodes -newkey rsa:2048 \
+    -keyout "${CERTS_PATH}/tls/certs/${SALT_API_CERT_CN}.key" \
+    -out "${CERTS_PATH}/tls/certs/${SALT_API_CERT_CN}.crt" \
+    -days 3650 \
+    -subj "/CN=${SALT_API_CERT_CN}" >/dev/null 2>&1
   chown "${SALT_USER}": "${CERTS_PATH}/tls/certs/${SALT_API_CERT_CN}".{crt,key}
 
   cat >>"${SALT_ROOT_DIR}/master" <<EOF
@@ -593,8 +757,74 @@ function configure_salt_minion() {
 
   # Get master's fingerprint
   log_info " ==> Getting master's fingerprint ..."
+  #
+  # WORKAROUND: Salt 3008 regression — `salt-key -f` / `--finger-all`
+  # returns a fingerprint that does NOT match what the minion verifies
+  # against during authentication. Root cause:
+  #
+  #   * Minion auth verifier (salt/crypt.py, ~line 1689) calls
+  #     `pem_finger(<path>)` (positional → path=) which reads the file
+  #     from disk, drops the first/last non-empty lines (BEGIN/END
+  #     markers) and normalizes CRLF→LF before hashing.
+  #
+  #   * `salt-key.finger()` in 3008 (salt/key.py) was refactored to load
+  #     keys from a cache and call `pem_finger(key=<raw_bytes>)`. The
+  #     `key=` branch of pem_finger does NOT apply the same normalization,
+  #     so it emits a different digest than the minion's verifier — no
+  #     CLI flag exists to force the file-based code path.
+  #
+  # Result: the minion's `master_finger` config (sourced from salt-key)
+  # never matches the master's actual key → repeated CRITICAL
+  # "fingerprint does not match" errors and failed auth.
+  #
+  # Fix: bypass `salt-key` and call `salt.utils.crypt.pem_finger`
+  # directly from Python with the file path. This guarantees byte-for-
+  # byte equivalence with the minion's verifier because BOTH call the
+  # exact same function with the exact same argument shape. If Salt
+  # ever changes the algorithm (e.g. adopts the base64-decoded-binary
+  # approach proposed in saltstack/salt#63742, or tweaks line handling),
+  # the minion and this command update together — no manual re-sync.
+  #
+  # Tracking:
+  #   * Upstream issue (related, not the same bug): saltstack/salt#63742
+  #     https://github.com/saltstack/salt/issues/63742
+  #   * Related upstream issues:
+  #     - https://github.com/saltstack/salt/issues/55779 (--finger-all listing)
+  #     - https://github.com/saltstack/salt/issues/30078 (invalid fingerprint)
+  #   * Salt source references (v3008.0rc3):
+  #     - salt/key.py `finger()` (uses cache + key=raw):
+  #       https://github.com/saltstack/salt/blob/v3008.0rc3/salt/key.py
+  #     - salt/crypt.py minion verifier (uses path=):
+  #       https://github.com/saltstack/salt/blob/v3008.0rc3/salt/crypt.py
+  #     - salt/utils/crypt.py `pem_finger()`:
+  #       https://github.com/saltstack/salt/blob/v3008.0rc3/salt/utils/crypt.py
+  #   * Previous attempts in this repo (all produced wrong digests):
+  #     - 9fd4f29  `salt-key --finger-all`              (Salt 3008 bug above)
+  #     - c12483a  `openssl rsa -outform DER | sha256`  (hashes DER bytes,
+  #                                                     not PEM text body)
+  #     - bash reimpl (strip BEGIN/END + ALL whitespace, sha256)
+  #                (drops `\n` between base64 lines that Salt 3008 keeps)
+  #     - bash reimpl (awk NF | sed 1d;$d | tr -d \r | sha256)
+  #                (algorithmically correct against 3008rc3, but brittle:
+  #                 any change in pem_finger upstream would silently break
+  #                 the digest again — same trap as the previous attempts)
+  #
+  # Note on the interpreter: Salt 3008 ships as a "onedir" package with
+  # its own bundled Python at /opt/saltstack/salt/bin/python3. The
+  # system `python3` (if present) does NOT have the `salt` module on
+  # its sys.path, so we must invoke the bundled interpreter explicitly.
+  # See: https://docs.saltproject.io/en/latest/topics/packaging/index.html
+  #
+  # Revisit on every Salt upgrade: surface area is the interpreter
+  # path, the import path, and the function name. If any of those
+  # change (onedir layout, module move, signature change) the call
+  # below must be updated. Algorithm changes inside pem_finger are
+  # absorbed automatically.
+  #
   # shellcheck disable=SC2034
-  SALT_MASTER_FINGERPRINT="$(salt-key -f master.pub | grep -Ei 'master.pub: ([^\s]+)' | awk '{print $2}')"
+  SALT_MASTER_FINGERPRINT="$(/opt/saltstack/salt/bin/python3 -c \
+    'import sys; from salt.utils.crypt import pem_finger; print(pem_finger(sys.argv[1]))' \
+    "${SALT_KEYS_DIR}/master.pub")"
 
   # Update main configuration
   exec_as_salt cp -p "${SALT_RUNTIME_DIR}/config/minion.yml" "${SALT_ROOT_DIR}/minion"
@@ -714,15 +944,6 @@ function initialize_datadir() {
     exit 1
   fi
 
-  # Logs directory
-  if [[ ! -w "${SALT_LOGS_DIR}" ]]; then
-    log_error "Logs directory: '${SALT_LOGS_DIR}' must be mounted as a read-write volume"
-    exit 1
-  fi
-  mkdir -p "${SALT_LOGS_DIR}/salt" "${SALT_LOGS_DIR}/supervisor"
-  chmod -R 0755 "${SALT_LOGS_DIR}/supervisor"
-  chown -R "${SALT_USER}": "${SALT_LOGS_DIR}/supervisor"
-
   # Salt formulas
   if [[ -w "${SALT_FORMULAS_DIR}" ]]; then
     chown -R "${SALT_USER}": "${SALT_FORMULAS_DIR}" || log_error "Unable to change '${SALT_FORMULAS_DIR}' ownership"
@@ -730,10 +951,18 @@ function initialize_datadir() {
     log_info "${SALT_FORMULAS_DIR} is mounted as a read-only volume. Ownership won't be changed."
   fi
 
+  # Logs directory
+  if [[ ! -w "${SALT_LOGS_DIR}" ]]; then
+    log_error "Logs directory: '${SALT_LOGS_DIR}' must be mounted as a read-write volume"
+    exit 1
+  fi
+
   [[ -d /var/log/salt ]] && [[ ! -L /var/log/salt ]] && rm -rf /var/log/salt
-  mkdir -p "${SALT_LOGS_DIR}/salt" /var/log
+  mkdir -p "${SALT_LOGS_DIR}/salt" "${SALT_LOGS_DIR}/supervisor" /var/log
   ln -sfnv "${SALT_LOGS_DIR}/salt" /var/log/salt
-  chown -R "${SALT_USER}": "${SALT_LOGS_DIR}/salt"
+
+  chmod -R 0755 "${SALT_LOGS_DIR}"
+  chown -R "${SALT_USER}": "${SALT_LOGS_DIR}"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------

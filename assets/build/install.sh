@@ -12,11 +12,11 @@ source "${FUNCTIONS_FILE}"
 
 log_info "Installing required packages and build dependencies ..."
 REQUIRED_PACKAGES=(
-  binutils patchelf libldap-common
+  binutils patchelf libldap-common libgit2-1.9
 )
 
 BUILD_DEPENDENCIES=(
-  gcc libsasl2-dev libldap2-dev
+  gcc libssl-dev libsasl2-dev libldap2-dev libgit2-dev
 )
 
 log_info "Adding salt repository..."
@@ -51,16 +51,14 @@ EOF
 # Install salt packages
 log_info "Installing salt packages ..."
 install_pkgs \
-  salt-common="${SALT_VERSION}" \
-  salt-master="${SALT_VERSION}" \
-  salt-minion="${SALT_VERSION}" \
-  salt-api="${SALT_VERSION}"
+  salt-common="${SALT_VERSION/rc/~rc}" \
+  salt-master="${SALT_VERSION/rc/~rc}" \
+  salt-minion="${SALT_VERSION/rc/~rc}" \
+  salt-api="${SALT_VERSION/rc/~rc}"
 
 # Install python packages
 log_info "Installing python packages ..."
-# FIXME: Downgrade to pip 22.3.1 for bug: https://github.com/saltstack/salt/issues/65025
-salt-pip install pip==22.3.1
-salt-pip install pygit2==1.18.2
+salt-pip install pygit2==1.19.2
 salt-pip install python-ldap
 
 # Configure ssh

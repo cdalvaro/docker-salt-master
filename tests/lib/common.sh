@@ -102,6 +102,15 @@ function docker-exec() {
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  docker-exec-as-salt
+#   DESCRIPTION:  Execute the given command inside the container as the `salt` user.
+#     ARGUMENTS:  $@ -> The command to execute with extra arguments if needed.
+#----------------------------------------------------------------------------------------------------------------------
+function docker-exec-as-salt() {
+  docker exec --user salt "${CONTAINER_NAME}" "$@"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  docker-logs
 #   DESCRIPTION:  Get the logs of the container.
 #----------------------------------------------------------------------------------------------------------------------
@@ -115,7 +124,7 @@ function docker-logs() {
 #     ARGUMENTS:  $@ -> Extra arguments for the command.
 #----------------------------------------------------------------------------------------------------------------------
 function salt-run() {
-  docker-exec salt-run "$@"
+  docker-exec-as-salt salt-run "$@"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -124,7 +133,7 @@ function salt-run() {
 #     ARGUMENTS:  $@ -> Extra arguments for the command.
 #----------------------------------------------------------------------------------------------------------------------
 function salt-call() {
-  docker-exec salt-call "$@"
+  docker-exec-as-salt salt-call "$@"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -133,7 +142,29 @@ function salt-call() {
 #     ARGUMENTS:  $@ -> Extra arguments for the command.
 #----------------------------------------------------------------------------------------------------------------------
 function salt() {
-  docker-exec salt "$@"
+  docker-exec-as-salt salt "$@"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  wait_for_minion
+#   DESCRIPTION:  Wait until the given minion starts responding to Salt commands.
+#     ARGUMENTS:  $1 -> Minion id. $2 -> Timeout in seconds (default: 40).
+#----------------------------------------------------------------------------------------------------------------------
+function wait_for_minion() {
+  local minion_id="$1"
+  local timeout_seconds="${2:-40}"
+  local elapsed_seconds=0
+
+  echo "==> Waiting for minion '${minion_id}' to respond ..."
+  while [[ ${elapsed_seconds} -lt ${timeout_seconds} ]]; do
+    if salt --out=json "${minion_id}" test.ping >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 2
+    ((elapsed_seconds += 2))
+  done
+
+  return 1
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -183,6 +214,41 @@ function minion_log() {
   [[ -f "${SALT_MINION_LOG}" ]] || return 0
   echo "📝 salt-minion log (${SALT_MINION_LOG})"
   sudo cat "${SALT_MINION_LOG}"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  assert_log_contains / assert_log_not_contains
+#   DESCRIPTION:  Assert the container log does (not) contain the given string.
+#     ARGUMENTS:  $1 -> Substring. $2 -> Assertion message.
+#----------------------------------------------------------------------------------------------------------------------
+# NOTE: capture the log into a variable and grep a here-string instead of
+# `docker-logs | grep -qF`. Under `set -o pipefail`, `grep -q` exits on the
+# first match and closes the pipe, so `docker logs` is killed by SIGPIPE
+# (exit 141) and the pipeline reports failure even though the needle WAS
+# found — which made assert_log_contains always fail and
+# assert_log_not_contains always pass (masking real regressions).
+function assert_log_contains() {
+  local needle="$1"
+  local message="$2"
+  local logs
+  logs="$(docker-logs 2>&1 || true)"
+  if grep -qF -- "${needle}" <<<"${logs}"; then
+    ok "${message}"
+  else
+    error "${message} (expected log to contain: '${needle}')"
+  fi
+}
+
+function assert_log_not_contains() {
+  local needle="$1"
+  local message="$2"
+  local logs
+  logs="$(docker-logs 2>&1 || true)"
+  if grep -qF -- "${needle}" <<<"${logs}"; then
+    error "${message} (unexpected log entry: '${needle}')"
+  else
+    ok "${message}"
+  fi
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------

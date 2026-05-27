@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.14.html"><img alt="Salt Project" src="https://img.shields.io/badge/salt-3007.14%20sts-57BCAD.svg?logo=SaltProject"/></a>
   <a href="https://docs.saltproject.io/en/3006/topics/releases/3006.25.html"><img alt="Salt Project" src="https://img.shields.io/badge/salt-3006.25%20lts-57BCAD.svg?logo=SaltProject"/></a>
-  <a href="https://gallery.ecr.aws/ubuntu/ubuntu"><img alt="Ubuntu Image" src="https://img.shields.io/badge/ubuntu-noble--20260113-E95420.svg?logo=Ubuntu"/></a>
+  <a href="https://gallery.ecr.aws/ubuntu/ubuntu"><img alt="Ubuntu Image" src="https://img.shields.io/badge/ubuntu-resolute--20260413-E95420.svg?logo=Ubuntu"/></a>
   <a href="https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags"><img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED"/></a>
   <a href="https://github.com/users/cdalvaro/packages/container/package/docker-salt-master"><img alt="Architecture AMD64" src="https://img.shields.io/badge/arch-amd64-inactive.svg"/></a>
   <a href="https://github.com/users/cdalvaro/packages/container/package/docker-salt-master"><img alt="Architecture ARM64" src="https://img.shields.io/badge/arch-arm64-inactive.svg"/></a>
@@ -235,6 +235,44 @@ claves que se hubiesen creado previamente.
 
 #### Trabajando con _Secrets_
 
+> [!IMPORTANT]
+> **Cambio introducido en 3008.0 — léelo si usas _secrets_.**
+>
+> Hasta Salt 3007, las claves del master proporcionadas vía _secrets_ se
+> **enlazaban simbólicamente** al directorio de claves, por lo que el material
+> privado nunca salía de `/run/secrets` aunque se montase el volumen completo
+> de claves.
+>
+> Salt 3008.0 cambió la forma en que el master carga sus claves: el nuevo
+> _driver_ de caché `localfs_key` **rechaza las claves enlazadas
+> simbólicamente**. Para mantener la compatibilidad, las claves de _secrets_
+> ahora se **copian** al directorio de claves (`/home/salt/data/keys`) como
+> ficheros regulares.
+>
+> **Consecuencia:** si proporcionas las claves vía _secrets_ **y además**
+> haces _bind-mount_ del volumen completo de claves
+> (`/home/salt/data/keys`), la clave privada del master se **copiará a ese
+> volumen persistente** y queda más expuesta que antes. Para mantener el
+> material privado fuera del almacenamiento persistente, cuando uses _secrets_
+> se **recomienda NO montar el volumen completo de claves**. Monta solo los
+> subdirectorios de claves de minions que realmente necesites persistir —
+> normalmente solo los minions aceptados:
+>
+> - `/home/salt/data/keys/minions` — claves de minions aceptados (lo habitual)
+> - `/home/salt/data/keys/minions_rejected` — claves de minions rechazados (opcional)
+> - `/home/salt/data/keys/minions_pre`, `minions_denied`, `minions_autosign` — opcionales
+>
+> Son directorios montados (no enlaces simbólicos), por lo que Salt 3008.0 los
+> acepta mientras las claves del master permanecen en la capa efímera del
+> contenedor, recreadas desde los _secrets_ en cada arranque.
+>
+> **Migración / red de seguridad:** al actualizar, cualquier clave del master
+> **enlazada simbólicamente** se reemplaza automáticamente por una copia del
+> _secret_. Si una clave del master ya está presente como **fichero regular**
+> (p. ej. montaste el volumen completo de claves), no se sobrescribe: se
+> valida frente al _secret_ y, si no coincide, se registra un `WARN` — la
+> clave en disco prevalece y el _secret_ se ignora.
+
 Las claves del master pueden ser proporcionadas a través de _secrets_ de Docker. Para hacerlo, debes establecer la siguiente variable de entorno:
 
 - `SALT_MASTER_KEY_FILE`: Ruta al par de claves del master {pem,pub} sin sufijos.
@@ -298,6 +336,17 @@ secrets:
     file: keys/master_sign.pub
   salt-master-signature:
     file: keys/master_pubkey_signature
+```
+
+Observa que el ejemplo anterior intencionadamente **no** monta el volumen
+completo de claves. Para persistir las claves de minions aceptados entre
+recreaciones del contenedor manteniendo la clave privada del master fuera del
+almacenamiento persistente, monta solo el subdirectorio de minions:
+
+```yml
+    volumes:
+      - ./config:/home/salt/data/config
+      - ./keys/minions:/home/salt/data/keys/minions
 ```
 
 ### Salt API
