@@ -86,7 +86,7 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Build docker-salt-master Base Image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@v7.1.0
         with:
           context: .
           file: ./Dockerfile
@@ -110,6 +110,6 @@ jobs:
           severity: "CRITICAL,HIGH"
 
       - name: Upload Trivy Scan Results to GitHub Security Tab
-        uses: github/codeql-action/upload-sarif@v4.35.4
+        uses: github/codeql-action/upload-sarif@v4.35.5
         with:
           sarif_file: "trivy-results.sarif"
