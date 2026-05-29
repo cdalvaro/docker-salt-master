@@ -791,13 +791,13 @@ function configure_salt_minion() {
   #   * Related upstream issues:
   #     - https://github.com/saltstack/salt/issues/55779 (--finger-all listing)
   #     - https://github.com/saltstack/salt/issues/30078 (invalid fingerprint)
-  #   * Salt source references (v3008.0rc3):
+  #   * Salt source references (v3008.0):
   #     - salt/key.py `finger()` (uses cache + key=raw):
-  #       https://github.com/saltstack/salt/blob/v3008.0rc3/salt/key.py
+  #       https://github.com/saltstack/salt/blob/v3008.0/salt/key.py
   #     - salt/crypt.py minion verifier (uses path=):
-  #       https://github.com/saltstack/salt/blob/v3008.0rc3/salt/crypt.py
+  #       https://github.com/saltstack/salt/blob/v3008.0/salt/crypt.py
   #     - salt/utils/crypt.py `pem_finger()`:
-  #       https://github.com/saltstack/salt/blob/v3008.0rc3/salt/utils/crypt.py
+  #       https://github.com/saltstack/salt/blob/v3008.0/salt/utils/crypt.py
   #   * Previous attempts in this repo (all produced wrong digests):
   #     - 9fd4f29  `salt-key --finger-all`              (Salt 3008 bug above)
   #     - c12483a  `openssl rsa -outform DER | sha256`  (hashes DER bytes,
@@ -805,7 +805,7 @@ function configure_salt_minion() {
   #     - bash reimpl (strip BEGIN/END + ALL whitespace, sha256)
   #                (drops `\n` between base64 lines that Salt 3008 keeps)
   #     - bash reimpl (awk NF | sed 1d;$d | tr -d \r | sha256)
-  #                (algorithmically correct against 3008rc3, but brittle:
+  #                (algorithmically correct against 3008.0, but brittle:
   #                 any change in pem_finger upstream would silently break
   #                 the digest again — same trap as the previous attempts)
   #
