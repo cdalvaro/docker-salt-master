@@ -556,9 +556,7 @@ function _setup_gpgkeys() {
   chmod 700 "${SALT_GPGKEYS_DIR}"
 
   local GPG_COMMON_OPTS=(
-    --no-tty
-    --batch                         # non-interactive mode
-    --pinentry-mode loopback        # do not use gpg-agent
+    --no-tty --batch # non-interactive mode
     --homedir="${SALT_GPGKEYS_DIR}"
   )
 
