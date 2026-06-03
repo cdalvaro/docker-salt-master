@@ -571,6 +571,9 @@ function _setup_gpgkeys() {
     return 1
   fi
   printf 'trust\n5\ny\nquit\n' | exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --command-fd 0 --edit-key "${key_id}"
+
+  log_info "     Killing GnuPG background processes for the Salt GPG homedir ..."
+  exec_as_salt gpgconf --homedir /etc/salt/gpgkeys --kill all
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
