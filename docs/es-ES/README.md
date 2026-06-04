@@ -35,7 +35,7 @@ Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub
 docker pull ghcr.io/cdalvaro/docker-salt-master:3008.0
 ```
 
-También puedes obtener la imagen `latest`, que siempre apunta a la imagen más reciente.
+También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
 
 ```sh
 docker pull ghcr.io/cdalvaro/docker-salt-master:latest

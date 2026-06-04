@@ -38,7 +38,7 @@ the recommended method of installation.
 docker pull ghcr.io/cdalvaro/docker-salt-master:3008.0
 ```
 
-You can also pull the `latest` tag, which always points to the newest image.
+You can also pull the `latest` tag, which is built from the repository `HEAD`
 
 ```sh
 docker pull ghcr.io/cdalvaro/docker-salt-master:latest
