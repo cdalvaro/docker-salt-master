@@ -22,7 +22,7 @@ function export_image_tags() {
   IMAGE_TAGS=("${RELEASE_TAG}")
 
   if [[ "${RELEASE_NAME,,}" =~ lts$ ]]; then
-    IMAGE_TAGS+=('lts')
+    IMAGE_TAGS+=('latest' 'lts')
   elif [[ "${RELEASE_NAME,,}" =~ sts$ ]]; then
     IMAGE_TAGS+=('sts')
   fi

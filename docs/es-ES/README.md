@@ -7,8 +7,8 @@
 </picture>
 
 <p align="center">
-  <a href="https://docs.saltproject.io/en/latest/topics/releases/3008.0.html"><img alt="Salt Project" src="https://img.shields.io/badge/salt-3008.0%20sts-57BCAD.svg?logo=SaltProject"/></a>
-  <a href="https://docs.saltproject.io/en/3006/topics/releases/3006.25.html"><img alt="Salt Project" src="https://img.shields.io/badge/salt-3006.25%20lts-57BCAD.svg?logo=SaltProject"/></a>
+  <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.14.html"><img alt="Salt Project" src="https://img.shields.io/badge/salt-3007.14%20sts-57BCAD.svg?logo=SaltProject"/></a>
+  <a href="https://docs.saltproject.io/en/3008/topics/releases/3008.0.html"><img alt="Salt Project" src="https://img.shields.io/badge/salt-3008.0%20lts-57BCAD.svg?logo=SaltProject"/></a>
   <a href="https://gallery.ecr.aws/ubuntu/ubuntu"><img alt="Ubuntu Image" src="https://img.shields.io/badge/ubuntu-resolute--20260413-E95420.svg?logo=Ubuntu"/></a>
   <a href="https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags"><img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED"/></a>
   <a href="https://github.com/users/cdalvaro/packages/container/package/docker-salt-master"><img alt="Architecture AMD64" src="https://img.shields.io/badge/arch-amd64-inactive.svg"/></a>
@@ -35,7 +35,7 @@ Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub
 docker pull ghcr.io/cdalvaro/docker-salt-master:3008.0
 ```
 
-También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
+También puedes obtener la imagen `latest`, que sigue la imagen LTS actual.
 
 ```sh
 docker pull ghcr.io/cdalvaro/docker-salt-master:latest
@@ -51,10 +51,10 @@ Estas imágenes están también disponibles en:
 
 #### Soporte de Largo Plazo
 
-Además de la última versión de Salt, cuando se publica una nueva versión LTS (Long Term Support), se genera una imagen específica que también está disponible en los registros de contenedores.
+La versión LTS (Long Term Support) actual de Salt también está disponible mediante la etiqueta de versión explícita.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3006.25
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.0
 ```
 
 También existen etiquetas específicas para las versiones LTS y STS:
@@ -63,21 +63,19 @@ También existen etiquetas específicas para las versiones LTS y STS:
 - `ghcr.io/cdalvaro/docker-salt-master:sts`
 
 > [!NOTE]
-> La imagen `lts` contiene las mismas características que la imagen `latest` en el momento en que se publicó la versión LTS, pero no se actualiza con nuevas funcionalidades añadidas posteriormente a `latest`.
+> La imagen `latest` sigue la versión LTS actual, por lo que apunta a la misma versión de Salt que la etiqueta `lts`.
 >
-> La imagen `sts` sigue la última versión STS (Short Term Support) de Salt, y puede no coincidir con `latest` si se han introducido cambios adicionales tras la publicación de la versión STS.
+> La imagen `sts` sigue la última versión STS (Short Term Support) de Salt, y puede diferir de `latest` mientras LTS permanece como canal por defecto.
 
 #### Tags Disponibles
 
-- `latest`
-- `3008.0`, `sts`
-- `3006.25`, `lts`
+- `latest`, `3008.0`, `lts`
+- `3007.14`, `sts`
 
 Todas las versiones tienen su compañera con SaltGUI:
 
-- `latest-gui`
-- `3008.0-gui`, `sts-gui`
-- `3006.25-gui`, `lts-gui`
+- `latest-gui`, `3008.0-gui`, `lts-gui`
+- `3007.14-gui`, `sts-gui`
 
 ### Construir Desde la Fuente
 
