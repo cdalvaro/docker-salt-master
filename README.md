@@ -38,7 +38,7 @@ the recommended method of installation.
 docker pull ghcr.io/cdalvaro/docker-salt-master:3008.0
 ```
 
-You can also pull the `latest` tag, which tracks the current LTS image
+You can also pull the `latest` tag, which always points to the newest image.
 
 ```sh
 docker pull ghcr.io/cdalvaro/docker-salt-master:latest
@@ -66,18 +66,18 @@ There are also specific tags for LTS and STS versions:
 - `ghcr.io/cdalvaro/docker-salt-master:sts`
 
 > [!NOTE]
-> The `latest` image tracks the current LTS release, so it points to the same Salt version as the `lts` tag.
->
-> The `sts` image tracks the latest Short Term Support release of Salt and may differ from `latest` while LTS remains the default channel.
+> The `sts` image tracks the latest Short Term Support release of Salt.
 
 #### Available Tags
 
-- `latest`, `3008.0`, `lts`
+- `latest`
+- `3008.0`, `lts`
 - `3007.14`, `sts`
 
 All versions have their SaltGUI counterparts:
 
-- `latest-gui`, `3008.0-gui`, `lts-gui`
+- `latest-gui`
+- `3008.0-gui`, `lts-gui`
 - `3007.14-gui`, `sts-gui`
 
 ### Build From Source

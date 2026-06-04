@@ -35,7 +35,7 @@ Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub
 docker pull ghcr.io/cdalvaro/docker-salt-master:3008.0
 ```
 
-También puedes obtener la imagen `latest`, que sigue la imagen LTS actual.
+También puedes obtener la imagen `latest`, que siempre apunta a la imagen más reciente.
 
 ```sh
 docker pull ghcr.io/cdalvaro/docker-salt-master:latest
@@ -63,18 +63,18 @@ También existen etiquetas específicas para las versiones LTS y STS:
 - `ghcr.io/cdalvaro/docker-salt-master:sts`
 
 > [!NOTE]
-> La imagen `latest` sigue la versión LTS actual, por lo que apunta a la misma versión de Salt que la etiqueta `lts`.
->
-> La imagen `sts` sigue la última versión STS (Short Term Support) de Salt, y puede diferir de `latest` mientras LTS permanece como canal por defecto.
+> La imagen `sts` sigue la última versión STS (Short Term Support) de Salt.
 
 #### Tags Disponibles
 
-- `latest`, `3008.0`, `lts`
+- `latest`
+- `3008.0`, `lts`
 - `3007.14`, `sts`
 
 Todas las versiones tienen su compañera con SaltGUI:
 
-- `latest-gui`, `3008.0-gui`, `lts-gui`
+- `latest-gui`
+- `3008.0-gui`, `lts-gui`
 - `3007.14-gui`, `sts-gui`
 
 ### Construir Desde la Fuente
