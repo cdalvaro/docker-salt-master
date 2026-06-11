@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.14.html"><img alt="Salt Project" src="https://img.shields.io/badge/salt-3007.14%20sts-57BCAD.svg?logo=SaltProject"/></a>
-  <a href="https://docs.saltproject.io/en/3008/topics/releases/3008.0.html"><img alt="Salt Project" src="https://img.shields.io/badge/salt-3008.0%20lts-57BCAD.svg?logo=SaltProject"/></a>
+  <a href="https://docs.saltproject.io/en/3008/topics/releases/3008.1.html"><img alt="Salt Project" src="https://img.shields.io/badge/salt-3008.1%20lts-57BCAD.svg?logo=SaltProject"/></a>
   <a href="https://gallery.ecr.aws/ubuntu/ubuntu"><img alt="Ubuntu Image" src="https://img.shields.io/badge/ubuntu-resolute--20260413-E95420.svg?logo=Ubuntu"/></a>
   <a href="https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags"><img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED"/></a>
   <a href="https://github.com/users/cdalvaro/packages/container/package/docker-salt-master"><img alt="Architecture AMD64" src="https://img.shields.io/badge/arch-amd64-inactive.svg"/></a>
@@ -32,7 +32,7 @@ Para otros métodos de instalación de `salt-master`, por favor consulta la [gu�
 Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) y es el método recomendado para la instalación.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3008.0
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.1
 ```
 
 También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
@@ -54,7 +54,7 @@ Estas imágenes están también disponibles en:
 La versión LTS (Long Term Support) actual de Salt también está disponible mediante la etiqueta de versión explícita.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3008.0
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.1
 ```
 
 También existen etiquetas específicas para las versiones LTS y STS:
@@ -68,13 +68,13 @@ También existen etiquetas específicas para las versiones LTS y STS:
 #### Tags Disponibles
 
 - `latest`
-- `3008.0`, `lts`
+- `3008.1`, `lts`
 - `3007.14`, `sts`
 
 Todas las versiones tienen su compañera con SaltGUI:
 
 - `latest-gui`
-- `3008.0-gui`, `lts-gui`
+- `3008.1-gui`, `lts-gui`
 - `3007.14-gui`, `sts-gui`
 
 ### Construir Desde la Fuente
