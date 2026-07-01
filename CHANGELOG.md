@@ -1,8 +1,13 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3008.1 Release Notes](https://docs.saltproject.io/en/3008/topics/releases/3008.1.html)
+Please refer to the [Salt 3008.2 Release Notes](https://docs.saltproject.io/en/3008/topics/releases/3008.2.html)
 for the list of changes in SaltStack.
+
+**3008.2**
+
+- Update `salt-master` to `3008.2`.
+- Change Docker base image to `ubuntu:resolute-20260610`.
 
 **3008.1**
 
