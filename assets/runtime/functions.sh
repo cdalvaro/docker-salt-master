@@ -646,6 +646,11 @@ function configure_salt_master() {
 function configure_salt_api() {
   rm -f /etc/supervisor/conf.d/salt-api.conf
 
+  if [[ -n "${SALT_API_SERVICE_ENABLED}" ]]; then
+    log_deprecated 3008 "SALT_API_SERVICE_ENABLED is deprecated. Use SALT_API_ENABLED instead."
+    return 1
+  fi
+
   [[ ${SALT_API_ENABLED,,} == true || -n "${SALTGUI_VERSION}" ]] || return 0
 
   if [[ -n "${SALT_API_USER}" ]]; then
