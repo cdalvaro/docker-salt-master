@@ -1040,10 +1040,10 @@ function install_python_additional_packages() {
       return 1
     fi
 
-    salt-pip install --no-cache-dir -r "${PYTHON_PACKAGES_FILE}"
-    local RETURN_CODE=$?
     [[ -z "${PYTHON_PACKAGES}" ]] || log_warn "PYTHON_PACKAGES is set, but it will be ignored because PYTHON_PACKAGES_FILE is set."
-    return "${RETURN_CODE}"
+
+    salt-pip install --no-cache-dir -r "${PYTHON_PACKAGES_FILE}"
+    return $?
   fi
 
   if [[ -n "${PYTHON_PACKAGES}" ]]; then
