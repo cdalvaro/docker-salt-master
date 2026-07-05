@@ -40,5 +40,8 @@ export SALT_MASTER_USE_PUBKEY_SIGNATURE=${SALT_MASTER_USE_PUBKEY_SIGNATURE:-Fals
 export SALT_MASTER_SIGN_KEY_NAME=${SALT_MASTER_SIGN_KEY_NAME:-master_sign}
 export SALT_MASTER_PUBKEY_SIGNATURE=${SALT_MASTER_PUBKEY_SIGNATURE:-master_pubkey_signature}
 
+#####              GNUPG             #####
+export GNUPGHOME="${SALT_ROOT_DIR}/gpgkeys"
+
 # Directory where GPG keys will be looking for
 export SALT_KEYS_GPGKEYS_DIR="${SALT_KEYS_DIR}/gpgkeys"

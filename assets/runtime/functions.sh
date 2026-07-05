@@ -550,14 +550,13 @@ function _setup_gpgkeys() {
 
   log_info "     Importing GPG keys ..."
 
-  local SALT_GPGKEYS_DIR="${SALT_ROOT_DIR}"/gpgkeys
-  mkdir -p "${SALT_GPGKEYS_DIR}"
-  chown "${SALT_USER}:${SALT_USER}" "${SALT_GPGKEYS_DIR}"
-  chmod 700 "${SALT_GPGKEYS_DIR}"
+  mkdir -p "${GNUPGHOME}"
+  chown "${SALT_USER}:${SALT_USER}" "${GNUPGHOME}"
+  chmod 700 "${GNUPGHOME}"
 
   local GPG_COMMON_OPTS=(
     --no-tty --batch # non-interactive mode
-    --homedir="${SALT_GPGKEYS_DIR}"
+    --homedir="${GNUPGHOME}"
   )
 
   exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --import "${private_key}"
@@ -573,7 +572,7 @@ function _setup_gpgkeys() {
   printf 'trust\n5\ny\nquit\n' | exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --command-fd 0 --edit-key "${key_id}"
 
   log_info "     Killing GnuPG background processes for the Salt GPG homedir ..."
-  exec_as_salt gpgconf --homedir /etc/salt/gpgkeys --kill all
+  exec_as_salt gpgconf --homedir "${GNUPGHOME}" --kill all
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -629,7 +628,8 @@ function configure_salt_master() {
     SALT_CONFS_DIR \
     SALT_KEYS_DIR \
     SALT_REACTOR_WORKER_THREADS \
-    SALT_WORKER_THREADS
+    SALT_WORKER_THREADS \
+    GNUPGHOME
 
   # Update keys configuration
   update_template "${SALT_ROOT_DIR}/master" \
