@@ -35,7 +35,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2_1
 ```
 
 You can also pull the `latest` tag, which is built from the repository `HEAD`
@@ -57,7 +57,7 @@ These images are also available from:
 The current LTS (Long Term Support) Salt version is also available through the explicit version tag.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2_1
 ```
 
 There are also specific tags for LTS and STS versions:
@@ -71,13 +71,13 @@ There are also specific tags for LTS and STS versions:
 #### Available Tags
 
 - `latest`
-- `3008.2`, `lts`
+- `3008.2_1`, `lts`
 - `3007.14`, `sts`
 
 All versions have their SaltGUI counterparts:
 
 - `latest-gui`
-- `3008.2-gui`, `lts-gui`
+- `3008.2_1-gui`, `lts-gui`
 - `3007.14-gui`, `sts-gui`
 
 ### Build From Source
