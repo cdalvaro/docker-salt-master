@@ -93,3 +93,39 @@ function export_salt_version() {
 
   echo "${OUTPUT_ID}=${SALT_VERSION}" >> "${GITHUB_OUTPUT}"
 }
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  check_image_revision_reset
+#   DESCRIPTION:  Ensure IMAGE_REVISION is reset to an empty string whenever a
+#                 VERSION file is bumped. A Salt version bump starts a new image
+#                 at revision 0; the IMAGE_REVISION suffix (_1, _2, ...) is only
+#                 for re-releases of the same Salt version.
+#     ARGUMENTS:
+#             1:  The base git ref/sha to diff against.
+#             2:  The head git ref/sha (default: HEAD).
+#----------------------------------------------------------------------------------------------------------------------
+function check_image_revision_reset() {
+  local BASE_REF="${1:?base git ref required}"
+  local HEAD_REF="${2:-HEAD}"
+
+  local changed_version_files
+  changed_version_files=$(git diff --name-only "${BASE_REF}...${HEAD_REF}" -- VERSION VERSION_STS VERSION_LTS)
+
+  if [[ -z "${changed_version_files}" ]]; then
+    echo "No VERSION files changed; IMAGE_REVISION check not required."
+    return 0
+  fi
+
+  echo "Changed VERSION file(s):"
+  echo "${changed_version_files}"
+
+  local image_revision
+  image_revision=$(sed -n 's/^ENV IMAGE_REVISION="\(.*\)"/\1/p' Dockerfile)
+
+  if [[ -n "${image_revision}" ]]; then
+    echo "::error file=Dockerfile::A VERSION file was modified but IMAGE_REVISION is set to '${image_revision}'. Reset IMAGE_REVISION to \"\" when bumping a Salt version."
+    return 1
+  fi
+
+  echo "OK: IMAGE_REVISION is reset to an empty string."
+}
