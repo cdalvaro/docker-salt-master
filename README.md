@@ -353,9 +353,9 @@ keeping the master private key off persistent storage, mount only the minion
 sub-directory:
 
 ```yml
-    volumes:
-      - ./config:/home/salt/data/config
-      - ./keys/minions:/home/salt/data/keys/minions
+volumes:
+  - ./config:/home/salt/data/config
+  - ./keys/minions:/home/salt/data/keys/minions
 ```
 
 ### Salt API
@@ -969,7 +969,7 @@ installation.
 | [`SALT_API_ENABLED`](https://docs.saltproject.io/en/latest/ref/cli/salt-api.html)                                                     | Enable `salt-api` service. Default: `False`.                                                                                                                                                                                                                                                                                                                          |
 | `SALT_API_USER`                                                                                                                       | Set username for `salt-api` service. Default: `salt_api`.                                                                                                                                                                                                                                                                                                             |
 | `SALT_API_USER_PASS_FILE`                                                                                                             | `SALT_API_USER` password file path. Use this variable to set the path of a file containing the password for the `SALT_API_USER`. Useful to load the password from secrets. Has priority over `SALT_API_USER_PASS`. _Unset_ by default.                                                                                                                                |
-| `SALT_API_USER_PASS`                                                                                                                  | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `True`, `SALT_API_USER` is not empty and `SALT_API_USER_PASS_FILE` is unset. _Unset_ by default.                                                                                                                                                                                                  |
+| `SALT_API_USER_PASS`                                                                                                                  | `SALT_API_USER` password. Required if `SALT_API_ENABLED` is `True`, `SALT_API_USER` is not empty and `SALT_API_USER_PASS_FILE` is unset. _Unset_ by default.                                                                                                                                                                                                          |
 | `SALT_API_CERT_CN`                                                                                                                    | Common name in the request. Default: `localhost`.                                                                                                                                                                                                                                                                                                                     |
 | `SALT_API_DISABLE_SSL`                                                                                                                | Disable SSL for the Cherrypy server. **Warning!** When `True`, your salt authentication credentials will be sent in the clear. Default: `False`.                                                                                                                                                                                                                      |
 | `SALT_MINION_ENABLED`                                                                                                                 | Enable `salt-minion` service. Default: `False`.                                                                                                                                                                                                                                                                                                                       |
