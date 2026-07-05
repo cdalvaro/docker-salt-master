@@ -755,11 +755,12 @@ function configure_salt_minion() {
   rm -f /etc/supervisor/conf.d/salt-minion.conf
   [[ ${SALT_MINION_ENABLED,,} == true ]] || return 0
 
-  # SALT_MINION_ID is interpolated into filesystem paths (the minion keys
-  # directory and the preaccepted key filename). Reject path separators and
-  # parent references to avoid writing outside the keys directory.
-  if [[ "${SALT_MINION_ID}" == *"/"* || "${SALT_MINION_ID}" == *".."* ]]; then
-    log_error "Invalid SALT_MINION_ID '${SALT_MINION_ID}': it must not contain '/' or '..'."
+  # SALT_MINION_ID is rendered unquoted into minion.yml (`id: ...`) and used to
+  # build filesystem paths (the minion keys directory and the preaccepted key
+  # filename). Restrict it to a YAML- and path-safe allow-list, and reject
+  # parent references, so both the config value and the paths stay boring.
+  if [[ ! "${SALT_MINION_ID}" =~ ^[A-Za-z0-9_.-]+$ || "${SALT_MINION_ID}" == *".."* ]]; then
+    log_error "Invalid SALT_MINION_ID '${SALT_MINION_ID}': only [A-Za-z0-9_.-] characters are allowed and '..' is not permitted."
     return 1
   fi
 
