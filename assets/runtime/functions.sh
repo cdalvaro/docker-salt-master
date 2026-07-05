@@ -689,6 +689,7 @@ function configure_salt_api() {
     -days 3650 \
     -subj "/CN=${SALT_API_CERT_CN}" >/dev/null 2>&1
   chown "${SALT_USER}": "${CERTS_PATH}/tls/certs/${SALT_API_CERT_CN}".{crt,key}
+  chmod 600 "${CERTS_PATH}/tls/certs/${SALT_API_CERT_CN}.key"
 
   cat >>"${SALT_ROOT_DIR}/master" <<EOF
 
@@ -748,6 +749,14 @@ EOF
 function configure_salt_minion() {
   rm -f /etc/supervisor/conf.d/salt-minion.conf
   [[ ${SALT_MINION_ENABLED,,} == true ]] || return 0
+
+  # SALT_MINION_ID is interpolated into filesystem paths (the minion keys
+  # directory and the preaccepted key filename). Reject path separators and
+  # parent references to avoid writing outside the keys directory.
+  if [[ "${SALT_MINION_ID}" == *"/"* || "${SALT_MINION_ID}" == *".."* ]]; then
+    log_error "Invalid SALT_MINION_ID '${SALT_MINION_ID}': it must not contain '/' or '..'."
+    return 1
+  fi
 
   log_info "Configuring salt-minion service ..."
 
