@@ -9,6 +9,8 @@ on:
       - VERSION_STS
       - VERSION_LTS
       - Dockerfile
+      - .github/workflows/version-guard.yml
+      - .github/workflows/ci_tools.sh
 
 jobs:
   image-revision:
