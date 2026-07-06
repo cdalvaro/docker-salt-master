@@ -550,14 +550,13 @@ function _setup_gpgkeys() {
 
   log_info "     Importing GPG keys ..."
 
-  local SALT_GPGKEYS_DIR="${SALT_ROOT_DIR}"/gpgkeys
-  mkdir -p "${SALT_GPGKEYS_DIR}"
-  chown "${SALT_USER}:${SALT_USER}" "${SALT_GPGKEYS_DIR}"
-  chmod 700 "${SALT_GPGKEYS_DIR}"
+  mkdir -p "${GNUPGHOME}"
+  chown "${SALT_USER}:${SALT_USER}" "${GNUPGHOME}"
+  chmod 700 "${GNUPGHOME}"
 
   local GPG_COMMON_OPTS=(
     --no-tty --batch # non-interactive mode
-    --homedir="${SALT_GPGKEYS_DIR}"
+    --homedir="${GNUPGHOME}"
   )
 
   exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --import "${private_key}"
@@ -573,7 +572,7 @@ function _setup_gpgkeys() {
   printf 'trust\n5\ny\nquit\n' | exec_as_salt gpg "${GPG_COMMON_OPTS[@]}" --command-fd 0 --edit-key "${key_id}"
 
   log_info "     Killing GnuPG background processes for the Salt GPG homedir ..."
-  exec_as_salt gpgconf --homedir /etc/salt/gpgkeys --kill all
+  exec_as_salt gpgconf --homedir "${GNUPGHOME}" --kill all
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -629,7 +628,8 @@ function configure_salt_master() {
     SALT_CONFS_DIR \
     SALT_KEYS_DIR \
     SALT_REACTOR_WORKER_THREADS \
-    SALT_WORKER_THREADS
+    SALT_WORKER_THREADS \
+    GNUPGHOME
 
   # Update keys configuration
   update_template "${SALT_ROOT_DIR}/master" \
@@ -647,8 +647,8 @@ function configure_salt_api() {
   rm -f /etc/supervisor/conf.d/salt-api.conf
 
   if [[ -n "${SALT_API_SERVICE_ENABLED}" ]]; then
-    log_deprecated 3008 "SALT_API_SERVICE_ENABLED is deprecated. Use SALT_API_ENABLED instead." || return 1
-    export SALT_API_ENABLED="${SALT_API_SERVICE_ENABLED}"
+    log_deprecated 3008 "SALT_API_SERVICE_ENABLED is deprecated. Use SALT_API_ENABLED instead."
+    return 1
   fi
 
   [[ ${SALT_API_ENABLED,,} == true || -n "${SALTGUI_VERSION}" ]] || return 0
@@ -694,6 +694,7 @@ function configure_salt_api() {
     -days 3650 \
     -subj "/CN=${SALT_API_CERT_CN}" >/dev/null 2>&1
   chown "${SALT_USER}": "${CERTS_PATH}/tls/certs/${SALT_API_CERT_CN}".{crt,key}
+  chmod 600 "${CERTS_PATH}/tls/certs/${SALT_API_CERT_CN}.key"
 
   cat >>"${SALT_ROOT_DIR}/master" <<EOF
 
@@ -753,6 +754,15 @@ EOF
 function configure_salt_minion() {
   rm -f /etc/supervisor/conf.d/salt-minion.conf
   [[ ${SALT_MINION_ENABLED,,} == true ]] || return 0
+
+  # SALT_MINION_ID is rendered unquoted into minion.yml (`id: ...`) and used to
+  # build filesystem paths (the minion keys directory and the preaccepted key
+  # filename). Restrict it to a YAML- and path-safe allow-list, and reject
+  # parent references, so both the config value and the paths stay boring.
+  if [[ ! "${SALT_MINION_ID}" =~ ^[A-Za-z0-9_.-]+$ || "${SALT_MINION_ID}" == *".."* ]]; then
+    log_error "Invalid SALT_MINION_ID '${SALT_MINION_ID}': only [A-Za-z0-9_.-] characters are allowed and '..' is not permitted."
+    return 1
+  fi
 
   log_info "Configuring salt-minion service ..."
 
@@ -1045,10 +1055,10 @@ function install_python_additional_packages() {
       return 1
     fi
 
-    salt-pip install --no-cache-dir -r "${PYTHON_PACKAGES_FILE}"
-    local RETURN_CODE=$?
     [[ -z "${PYTHON_PACKAGES}" ]] || log_warn "PYTHON_PACKAGES is set, but it will be ignored because PYTHON_PACKAGES_FILE is set."
-    return "${RETURN_CODE}"
+
+    salt-pip install --no-cache-dir -r "${PYTHON_PACKAGES_FILE}"
+    return $?
   fi
 
   if [[ -n "${PYTHON_PACKAGES}" ]]; then

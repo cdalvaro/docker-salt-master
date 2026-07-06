@@ -4,6 +4,15 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3008.2 Release Notes](https://docs.saltproject.io/en/3008/topics/releases/3008.2.html)
 for the list of changes in SaltStack.
 
+**3008.2_1**
+
+- Refactor GPG setup to use the `GNUPGHOME` environment variable as the single source of truth for the GnuPG homedir, and render it as `gpg_keydir` in the master configuration.
+- Remove support for the deprecated `SALT_API_SERVICE_ENABLED` variable. Use `SALT_API_ENABLED` instead.
+- Remove the unimplemented `SALT_MASTER_ROOT_USER` variable from the documentation.
+- Restrict the `salt-api` TLS private key permissions to `600`.
+- Validate `SALT_MINION_ID` to reject `/` and `..` and prevent path traversal.
+- Drop dead return-code handling in the additional Python packages installer.
+
 **3008.2**
 
 - Update `salt-master` to `3008.2`.

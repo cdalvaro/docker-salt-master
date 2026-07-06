@@ -134,3 +134,18 @@ log_level: {{SALT_LOG_LEVEL}}
 # One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'.
 # If using 'log_granular_levels' this must be set to the highest desired level.
 log_level_logfile: {{SALT_LEVEL_LOGFILE}}
+
+#####      GPG renderer settings     #####
+##########################################
+# NOTE: `gpg_keydir` is NOT a native salt-master configuration option. It does
+# not appear in the master configuration reference and is not validated by the
+# daemon: it is a free-form key that Salt loads into `__opts__` and that only
+# the GPG renderer (salt.renderers.gpg) reads, to locate the GnuPG homedir
+# (keyring) used to decrypt GPG-encrypted pillar data.
+#
+# The renderer passes this path to gpg via `--homedir`, so it takes precedence
+# over the GNUPGHOME environment variable. If left unset, the renderer defaults
+# to <config_dir>/gpgkeys (i.e. /etc/salt/gpgkeys).
+#
+# Ref: https://docs.saltproject.io/en/3008/ref/renderers/all/salt.renderers.gpg.html
+gpg_keydir: {{GNUPGHOME}}

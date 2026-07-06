@@ -1,0 +1,31 @@
+name: Version Guard
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - VERSION
+      - VERSION_STS
+      - VERSION_LTS
+      - Dockerfile
+      - .github/workflows/version-guard.yml
+      - .github/workflows/ci_tools.sh
+
+jobs:
+  image-revision:
+    name: IMAGE_REVISION reset
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check IMAGE_REVISION is reset when a VERSION file changes
+        run: |
+          source .github/workflows/ci_tools.sh
+          check_image_revision_reset \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}"

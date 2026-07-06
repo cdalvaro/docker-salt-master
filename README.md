@@ -35,7 +35,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2_1
 ```
 
 You can also pull the `latest` tag, which is built from the repository `HEAD`
@@ -57,7 +57,7 @@ These images are also available from:
 The current LTS (Long Term Support) Salt version is also available through the explicit version tag.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2_1
 ```
 
 There are also specific tags for LTS and STS versions:
@@ -71,13 +71,13 @@ There are also specific tags for LTS and STS versions:
 #### Available Tags
 
 - `latest`
-- `3008.2`, `lts`
+- `3008.2_1`, `lts`
 - `3007.14`, `sts`
 
 All versions have their SaltGUI counterparts:
 
 - `latest-gui`
-- `3008.2-gui`, `lts-gui`
+- `3008.2_1-gui`, `lts-gui`
 - `3007.14-gui`, `sts-gui`
 
 ### Build From Source
@@ -353,9 +353,9 @@ keeping the master private key off persistent storage, mount only the minion
 sub-directory:
 
 ```yml
-    volumes:
-      - ./config:/home/salt/data/config
-      - ./keys/minions:/home/salt/data/keys/minions
+volumes:
+  - ./config:/home/salt/data/config
+  - ./keys/minions:/home/salt/data/keys/minions
 ```
 
 ### Salt API
@@ -969,7 +969,7 @@ installation.
 | [`SALT_API_ENABLED`](https://docs.saltproject.io/en/latest/ref/cli/salt-api.html)                                                     | Enable `salt-api` service. Default: `False`.                                                                                                                                                                                                                                                                                                                          |
 | `SALT_API_USER`                                                                                                                       | Set username for `salt-api` service. Default: `salt_api`.                                                                                                                                                                                                                                                                                                             |
 | `SALT_API_USER_PASS_FILE`                                                                                                             | `SALT_API_USER` password file path. Use this variable to set the path of a file containing the password for the `SALT_API_USER`. Useful to load the password from secrets. Has priority over `SALT_API_USER_PASS`. _Unset_ by default.                                                                                                                                |
-| `SALT_API_USER_PASS`                                                                                                                  | `SALT_API_USER` password. Required if `SALT_API_SERVICE_ENBALED` is `True`, `SALT_API_USER` is not empty and `SALT_API_USER_PASS_FILE` is unset. _Unset_ by default.                                                                                                                                                                                                  |
+| `SALT_API_USER_PASS`                                                                                                                  | `SALT_API_USER` password. Required if `SALT_API_ENABLED` is `True`, `SALT_API_USER` is not empty and `SALT_API_USER_PASS_FILE` is unset. _Unset_ by default.                                                                                                                                                                                                          |
 | `SALT_API_CERT_CN`                                                                                                                    | Common name in the request. Default: `localhost`.                                                                                                                                                                                                                                                                                                                     |
 | `SALT_API_DISABLE_SSL`                                                                                                                | Disable SSL for the Cherrypy server. **Warning!** When `True`, your salt authentication credentials will be sent in the clear. Default: `False`.                                                                                                                                                                                                                      |
 | `SALT_MINION_ENABLED`                                                                                                                 | Enable `salt-minion` service. Default: `False`.                                                                                                                                                                                                                                                                                                                       |
@@ -980,7 +980,6 @@ installation.
 | `SALT_MASTER_SIGN_KEY_FILE`                                                                                                           | The path to the signing-key-pair {pem,pub} without suffixes. The pair will be copied into the pki directory if they don't exists previously. Useful to load the password from secrets. _Unset_ by default.                                                                                                                                                            |
 | [`SALT_MASTER_PUBKEY_SIGNATURE`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#master-pubkey-signature)         | The name of the file in the master's `pki` directory that holds the pre-calculated signature of the master's public-key. Default: `master_pubkey_signature`.                                                                                                                                                                                                          |
 | `SALT_MASTER_PUBKEY_SIGNATURE_FILE`                                                                                                   | The path of the salt-master public key file with the pre-calculated signature. It will be copied inside the `pki` directory if a file with name `SALT_MASTER_PUBKEY_SIGNATURE` doesn't exist. Useful to load the password from secrets. _Unset_ by default.                                                                                                           |
-| `SALT_MASTER_ROOT_USER`                                                                                                               | Forces `salt-master` to be run as `root` instead of `salt`. Default: `False`.                                                                                                                                                                                                                                                                                         |
 | `SALT_GPG_PRIVATE_KEY_FILE`                                                                                                           | The path to the GPG private key for GPG renderers. Useful to load the key from secrets. _Unset_ by default.                                                                                                                                                                                                                                                           |
 | `SALT_GPG_PUBLIC_KEY_FILE`                                                                                                            | The path to the GPG public key for GPG renderers. Useful to load the key from secrets. _Unset_ by default.                                                                                                                                                                                                                                                            |
 | [`SALT_REACTOR_WORKER_THREADS`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#reactor-worker-threads)           | The number of workers for the runner/wheel in the reactor. Default: `10`.                                                                                                                                                                                                                                                                                             |
