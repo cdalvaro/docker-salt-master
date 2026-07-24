@@ -35,7 +35,7 @@ jobs:
       created_on: ${{ steps.created_on.outputs.created_on }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
@@ -88,7 +88,7 @@ jobs:
     needs: metadata
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
