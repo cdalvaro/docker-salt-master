@@ -1000,7 +1000,13 @@ Muchas gracias:
 - A [los Contribuidores](https://github.com/cdalvaro/docker-salt-master/graphs/contributors) por vuestras aportaciones de código y vuestras sugerencias.
 - A [los Stargazers](https://github.com/cdalvaro/docker-salt-master/stargazers) por mostrar vuestro apoyo.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=cdalvaro/docker-salt-master&type=Date)](https://www.star-history.com/#cdalvaro/docker-salt-master&Date)
+<a href="https://www.star-history.com/?repos=cdalvaro%2Fdocker-salt-master&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=cdalvaro/docker-salt-master&type=date&theme=dark&legend=top-left&sealed_token=ncXR9Hj8Xj66N25hEeDcXBcgUiTB7lPaJIAaWCZrfXZOGn2uTvYfOdSLLUqOWUalorCe25R2aNgZqCJwCN9u0_UxPd_vxyqMz9yHSpTQ9rgrPmVDZcf_YlTktlUxgg06IrfOU0TCX7J0GcW6EvNUtRB_9Zsfnz6zNyIpKtizpqCyJIdW6kvB0u3UUabE" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=cdalvaro/docker-salt-master&type=date&legend=top-left&sealed_token=ncXR9Hj8Xj66N25hEeDcXBcgUiTB7lPaJIAaWCZrfXZOGn2uTvYfOdSLLUqOWUalorCe25R2aNgZqCJwCN9u0_UxPd_vxyqMz9yHSpTQ9rgrPmVDZcf_YlTktlUxgg06IrfOU0TCX7J0GcW6EvNUtRB_9Zsfnz6zNyIpKtizpqCyJIdW6kvB0u3UUabE" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=cdalvaro/docker-salt-master&type=date&legend=top-left&sealed_token=ncXR9Hj8Xj66N25hEeDcXBcgUiTB7lPaJIAaWCZrfXZOGn2uTvYfOdSLLUqOWUalorCe25R2aNgZqCJwCN9u0_UxPd_vxyqMz9yHSpTQ9rgrPmVDZcf_YlTktlUxgg06IrfOU0TCX7J0GcW6EvNUtRB_9Zsfnz6zNyIpKtizpqCyJIdW6kvB0u3UUabE" />
+ </picture>
+</a>
 
 ## 📖 Referencias
 
