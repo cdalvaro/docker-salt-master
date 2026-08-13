@@ -9,6 +9,9 @@ on:
       - VERSION_STS
       - VERSION_LTS
       - Dockerfile
+      - Dockerfile.gui
+      - entrypoint.sh
+      - assets/**
       - .github/workflows/version-guard.yml
       - .github/workflows/ci_tools.sh
 
@@ -23,9 +26,12 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Check IMAGE_REVISION is reset when a VERSION file changes
+      - name: Check image revision
         run: |
           source .github/workflows/ci_tools.sh
           check_image_revision_reset \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}"
+          check_image_revision_changed \
             "${{ github.event.pull_request.base.sha }}" \
             "${{ github.event.pull_request.head.sha }}"

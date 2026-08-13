@@ -129,3 +129,36 @@ function check_image_revision_reset() {
 
   echo "OK: IMAGE_REVISION is reset to an empty string."
 }
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  check_image_revision_changed
+#   DESCRIPTION:  Ensure IMAGE_REVISION changes whenever image-producing code
+#                 changes. Documentation, tests, and CI-only changes do not
+#                 require a new image revision.
+#     ARGUMENTS:
+#             1:  The base git ref/sha to diff against.
+#             2:  The head git ref/sha (default: HEAD).
+#----------------------------------------------------------------------------------------------------------------------
+function check_image_revision_changed() {
+  local BASE_REF="${1:?base git ref required}"
+  local HEAD_REF="${2:-HEAD}"
+
+  local changed_image_files
+  changed_image_files=$(git diff --name-only "${BASE_REF}...${HEAD_REF}" -- Dockerfile Dockerfile.gui entrypoint.sh assets)
+
+  if [[ -z "${changed_image_files}" ]]; then
+    echo "No image-producing files changed; IMAGE_REVISION change not required."
+    return 0
+  fi
+
+  local base_image_revision head_image_revision
+  base_image_revision=$(git show "${BASE_REF}:Dockerfile" | sed -n 's/^ENV IMAGE_REVISION="\(.*\)"/\1/p')
+  head_image_revision=$(git show "${HEAD_REF}:Dockerfile" | sed -n 's/^ENV IMAGE_REVISION="\(.*\)"/\1/p')
+
+  if [[ "${base_image_revision}" == "${head_image_revision}" ]]; then
+    echo "::error file=Dockerfile::Image-producing files changed but IMAGE_REVISION remains '${head_image_revision}'. Increment IMAGE_REVISION."
+    return 1
+  fi
+
+  echo "OK: IMAGE_REVISION changed from '${base_image_revision}' to '${head_image_revision}'."
+}
