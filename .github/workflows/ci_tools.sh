@@ -98,7 +98,7 @@ function export_salt_version() {
 #          NAME:  check_image_revision_reset
 #   DESCRIPTION:  Ensure IMAGE_REVISION is reset to an empty string whenever a
 #                 VERSION file is bumped. A Salt version bump starts a new image
-#                 at revision 0; the IMAGE_REVISION suffix (_1, _2, ...) is only
+#                 at revision 0; the IMAGE_REVISION suffix (_N) is only
 #                 for re-releases of the same Salt version.
 #     ARGUMENTS:
 #             1:  The base git ref/sha to diff against.
