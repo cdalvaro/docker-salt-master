@@ -35,7 +35,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2_2
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2_3
 ```
 
 You can also pull the `latest` tag, which is built from the repository `HEAD`
@@ -57,7 +57,7 @@ These images are also available from:
 The current LTS (Long Term Support) Salt version is also available through the explicit version tag.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2_2
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2_3
 ```
 
 There are also specific tags for LTS and STS versions:
@@ -71,13 +71,13 @@ There are also specific tags for LTS and STS versions:
 #### Available Tags
 
 - `latest`
-- `3008.2_2`, `lts`
+- `3008.2_3`, `lts`
 - `3007.14`, `sts`
 
 All versions have their SaltGUI counterparts:
 
 - `latest-gui`
-- `3008.2_2-gui`, `lts-gui`
+- `3008.2_3-gui`, `lts-gui`
 - `3007.14-gui`, `sts-gui`
 
 ### Build From Source
@@ -530,6 +530,191 @@ docker run --name salt_master --detach \
     --volume $(pwd)/config/:/home/salt/data/config/ \
     --volume $(pwd)/minion_config/:/home/salt/data/minion_config/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
+```
+
+### Salt SSH
+
+This image includes [`salt-ssh`](https://docs.saltproject.io/en/latest/topics/ssh/index.html), which allows you to run
+Salt commands and states on hosts over SSH, without installing `salt-minion` on them.
+Target hosts only need an SSH server and `python3`.
+
+#### Salt SSH Configuration
+
+`salt-ssh` reads the `salt-master` configuration, so the best way to configure it is to add an `ssh.conf` file
+inside your `config/` directory (see [Custom Configuration](#custom-configuration)):
+
+```yml
+# config/ssh.conf
+# Default settings inherited by all roster entries
+roster_defaults:
+  user: deploy
+  sudo: True
+
+# Number of seconds to wait for a response when establishing an SSH connection
+ssh_timeout: 30
+```
+
+Settings in this file take precedence over the defaults set by this image.
+All the available options are listed in the
+[master configuration reference](https://docs.saltproject.io/en/latest/ref/configuration/master.html#salt-ssh-configuration).
+
+> [!WARNING]
+> Overriding `roster_file` or `rosters` is discouraged.
+> This image expects the roster file at `/home/salt/data/roster` and additional roster files inside
+> `/home/salt/data/roster.d/`. If you change them, the container may not work as expected.
+
+#### Roster
+
+`salt-ssh` reads its targets from a [roster file](https://docs.saltproject.io/en/latest/topics/ssh/roster.html).
+This image looks for it at `/home/salt/data/roster`, so you have to mount your roster file there:
+
+```yml
+# roster
+web1:
+  host: 192.168.1.10
+  user: root
+
+db1:
+  host: db1.example.com
+  user: deploy
+  sudo: True
+```
+
+```sh
+docker run --name salt_master --detach \
+    --publish 4505:4505 --publish 4506:4506 \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
+    --volume $(pwd)/roster:/home/salt/data/roster \
+    ghcr.io/cdalvaro/docker-salt-master:latest
+```
+
+The roster file must be readable by the `salt` user inside the container (see [Host Mapping](#host-mapping)).
+
+#### SSH Keys
+
+The first time `salt-ssh` runs, it generates an RSA key pair at `keys/ssh/salt-ssh.rsa` and `keys/ssh/salt-ssh.rsa.pub`.
+Since it is stored inside the keys volume, the same key is reused after restarting or upgrading the container.
+
+To install the public key on a host, run `salt-ssh` with `--key-deploy`.
+It will ask for the host password once and add the key to the `authorized_keys` file of the roster user:
+
+```sh
+docker exec -it --user salt salt_master salt-ssh --key-deploy --askpass web1 test.ping
+```
+
+From then on, `salt-ssh` authenticates with the key:
+
+```sh
+docker exec --user salt salt_master salt-ssh '*' test.ping
+docker exec --user salt salt_master salt-ssh web1 state.apply
+```
+
+You can also distribute `keys/ssh/salt-ssh.rsa.pub` to your hosts by other means once it has been generated.
+
+`salt-ssh` logs are written to `logs/salt/ssh`.
+
+> [!IMPORTANT]
+> Always run `salt-ssh` as the `salt` user (`docker exec --user salt`).
+> `salt-ssh` does not drop privileges, so running it as `root` creates the key and cache files owned by `root`,
+> and neither later runs as `salt` nor `salt-api` will be able to use them.
+>
+> Note that `--user` is a `docker exec` option here. The `salt-ssh` `--user` option sets the SSH user instead.
+
+> [!NOTE]
+> The SSH client inside the container is configured with `StrictHostKeyChecking no` and
+> `UserKnownHostsFile /dev/null`, so host keys are not verified.
+
+#### Private Keys from Docker Secrets
+
+Instead of the generated key, you can set a different private key per host with the roster `priv` option.
+For example, to use a private key provided as a Docker secret:
+
+```yml
+# roster
+web1:
+  host: 192.168.1.10
+  user: root
+  priv: /run/secrets/salt-ssh-key
+```
+
+To use this key for all hosts, set `priv` inside `roster_defaults` in your `config/ssh.conf` file instead
+(see [Salt SSH Configuration](#salt-ssh-configuration)).
+
+```yml
+# compose.yml
+services:
+  salt-master:
+    image: ghcr.io/cdalvaro/docker-salt-master:latest
+    ports:
+      - "4505:4505"
+      - "4506:4506"
+    volumes:
+      - ./roots:/home/salt/data/srv
+      - ./keys:/home/salt/data/keys
+      - ./logs:/home/salt/data/logs
+      - ./roster:/home/salt/data/roster
+    environment:
+      PUID: 1000 # uid of the owner of ./secrets/salt-ssh-key
+      PGID: 1000
+    secrets:
+      - salt-ssh-key
+
+secrets:
+  salt-ssh-key:
+    file: ./secrets/salt-ssh-key
+```
+
+> [!IMPORTANT]
+> Docker Compose bind-mounts file-based secrets with the same owner and permissions they have on the host.
+> The `uid`, `gid` and `mode` options
+> [are ignored](https://docs.docker.com/reference/compose-file/services/#secrets) for this kind of secrets.
+>
+> `ssh` ignores private keys that are owned by the current user and accessible by group or others.
+> So the key file on the host must be owned by the user set in `PUID` and have `600` permissions:
+>
+> ```sh
+> chmod 600 secrets/salt-ssh-key
+> ```
+
+`--key-deploy` looks for the public key at `<priv>.pub`, so add the public key of this key pair to the
+`authorized_keys` file of your hosts beforehand.
+
+#### Using salt-ssh from Salt API
+
+Additional roster files can be placed inside a directory mounted at `/home/salt/data/roster.d/`:
+
+```sh
+--volume $(pwd)/roster.d/:/home/salt/data/roster.d/
+```
+
+Salt only uses this directory for [`salt-api`](#salt-api) requests: when a request uses the `ssh` client,
+the `roster_file` parameter selects a file by name from `roster.d/`. If `roster_file` is not set,
+the main roster file is used. The `salt-ssh` command line always uses the main roster file unless
+you pass `--roster-file`.
+
+To use it, add `ssh` to the enabled client interfaces in your salt-api configuration:
+
+```yml
+# config/salt-api.conf
+netapi_enable_clients:
+  - local
+  - ssh
+```
+
+For example, to run `test.ping` on every host defined in `roster.d/production`:
+
+```sh
+curl -sSk https://localhost:8000/run \
+    -H 'Accept: application/x-yaml' \
+    -d client=ssh \
+    -d tgt='*' \
+    -d fun=test.ping \
+    -d roster_file=production \
+    -d username=salt_api \
+    -d password=4wesome-Pass0rd \
+    -d eauth=pam
 ```
 
 ### Host Mapping
