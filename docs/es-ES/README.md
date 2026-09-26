@@ -511,7 +511,8 @@ docker run --name salt_master --detach \
 
 Esta imagen incluye [`salt-ssh`](https://docs.saltproject.io/en/latest/topics/ssh/index.html), que te permite ejecutar
 comandos y estados de Salt en hosts a través de SSH, sin necesidad de instalar `salt-minion` en ellos.
-Los hosts de destino solo necesitan un servidor SSH y `python3`.
+Los hosts de destino necesitan un servidor SSH y `python3`. Si usas `sudo: True`, también necesitan `sudo`
+con acceso sin contraseña (`NOPASSWD`) para el usuario SSH.
 
 #### Configuración de Salt SSH
 
@@ -571,7 +572,7 @@ docker run --name salt_master --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    --volume $(pwd)/salt-ssh/:/home/salt/data/salt-ssh/ \
+    --volume $(pwd)/salt-ssh/:/home/salt/data/salt-ssh/:ro \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
@@ -642,7 +643,7 @@ services:
       - ./roots:/home/salt/data/srv
       - ./keys:/home/salt/data/keys
       - ./logs:/home/salt/data/logs
-      - ./salt-ssh:/home/salt/data/salt-ssh
+      - ./salt-ssh:/home/salt/data/salt-ssh:ro
     environment:
       PUID: 1000 # uid del propietario de ./secrets/salt-ssh-key
       PGID: 1000
@@ -674,10 +675,15 @@ al archivo `authorized_keys` de tus hosts.
 Puedes colocar archivos roster adicionales dentro del directorio `roster.d/` del directorio de salt-ssh
 (`/home/salt/data/salt-ssh/roster.d/` por defecto).
 
-Salt solo usa este directorio en las peticiones a [`salt-api`](#salt-api): cuando una petición usa el cliente `ssh`,
-el parámetro `roster_file` selecciona por su nombre un archivo de `roster.d/`. Si no se indica `roster_file`,
-se usa el archivo roster principal. La línea de comandos de `salt-ssh` siempre usa el archivo roster principal,
-salvo que indiques `--roster-file`.
+En el uso habitual de [`salt-api`](#salt-api) con `client=ssh`, `roster_file=production` selecciona
+`roster.d/production`. Si no se indica `roster_file`, se usa el archivo roster principal. La línea de
+comandos de `salt-ssh` usa el roster principal salvo que indiques `--roster-file`.
+
+> [!WARNING]
+> En Salt 3008.2, `roster.d/` no es un límite de seguridad para `client=ssh`. Un usuario autenticado
+> de la API con permiso para usar este cliente puede indicar un `roster_file` fuera de ese directorio
+> si Salt tiene permiso para leerlo. Habilita el cliente `ssh` de la API solo para usuarios de confianza;
+> no uses los nombres de los rosters para restringir su acceso.
 
 Para usarlo, añade `ssh` a las interfaces de cliente habilitadas en tu configuración de salt-api:
 

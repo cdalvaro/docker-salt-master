@@ -536,7 +536,8 @@ docker run --name salt_master --detach \
 
 This image includes [`salt-ssh`](https://docs.saltproject.io/en/latest/topics/ssh/index.html), which allows you to run
 Salt commands and states on hosts over SSH, without installing `salt-minion` on them.
-Target hosts only need an SSH server and `python3`.
+Target hosts need an SSH server and `python3`. If you use `sudo: True`, they also need `sudo` with
+passwordless (`NOPASSWD`) access for the SSH user.
 
 #### Salt SSH Configuration
 
@@ -596,7 +597,7 @@ docker run --name salt_master --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    --volume $(pwd)/salt-ssh/:/home/salt/data/salt-ssh/ \
+    --volume $(pwd)/salt-ssh/:/home/salt/data/salt-ssh/:ro \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
@@ -666,7 +667,7 @@ services:
       - ./roots:/home/salt/data/srv
       - ./keys:/home/salt/data/keys
       - ./logs:/home/salt/data/logs
-      - ./salt-ssh:/home/salt/data/salt-ssh
+      - ./salt-ssh:/home/salt/data/salt-ssh:ro
     environment:
       PUID: 1000 # uid of the owner of ./secrets/salt-ssh-key
       PGID: 1000
@@ -698,10 +699,15 @@ secrets:
 Additional roster files can be placed inside the `roster.d/` directory of the salt-ssh directory
 (`/home/salt/data/salt-ssh/roster.d/` by default).
 
-Salt only uses this directory for [`salt-api`](#salt-api) requests: when a request uses the `ssh` client,
-the `roster_file` parameter selects a file by name from `roster.d/`. If `roster_file` is not set,
-the main roster file is used. The `salt-ssh` command line always uses the main roster file unless
-you pass `--roster-file`.
+In normal [`salt-api`](#salt-api) `client=ssh` use, `roster_file=production` selects `roster.d/production`.
+If `roster_file` is not set, the main roster file is used. The `salt-ssh` command line uses the main
+roster file unless you pass `--roster-file`.
+
+> [!WARNING]
+> In Salt 3008.2, `roster.d/` is not an access-control boundary for `client=ssh`. An authenticated
+> API user authorized to use this client can provide a `roster_file` path outside that directory if
+> the file is readable by Salt. Enable the `ssh` API client only for trusted users; do not rely on
+> roster filenames to restrict their access.
 
 To use it, add `ssh` to the enabled client interfaces in your salt-api configuration:
 

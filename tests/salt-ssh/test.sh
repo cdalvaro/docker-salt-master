@@ -203,8 +203,8 @@ check_equal "$(jq -rM '."salt-ssh-root"' <<<"${output}")" true "salt-ssh test.pi
 check_equal "$(cat "${KEYS_DIR}/ssh/salt-ssh.rsa.pub")" "${SALT_SSH_PUBKEY}" "salt-ssh key reused after restart"
 check_equal "$(docker-exec stat -c '%U %a' "${SALT_SSH_KEY}")" "salt 600" "salt-ssh private key owner and mode after restart"
 
-# Token authentication does not work with the ssh client in Salt 3008.2: salt-api looks up tokens
-# under <cachedir>/saltapi, but the master stores them under <cachedir>. Use eauth credentials instead.
+# The earlier X-Auth-Token request returned 401 in this test setup. Use eauth credentials here
+# without assuming that every token authentication flow fails with the ssh client.
 echo "==> Testing salt-api ssh client with roster from roster.d ..."
 output="$(curl -sSk "${SALTAPI_URL%/}/run" \
   -H "Accept: application/json" \
