@@ -40,7 +40,7 @@ fi
 # https://manpages.ubuntu.com/manpages/xenial/en/man8/useradd.8.html
 log_info "Creating ${SALT_USER} user ..."
 useradd --home-dir "${SALT_HOME}" --create-home \
-  --shell /bin/bash --user-group "${SALT_USER}" \
+  --shell "${SALT_SHELL}" --user-group "${SALT_USER}" \
   --groups shadow
 
 # Set PATH
@@ -54,7 +54,8 @@ install_pkgs \
   salt-common="${SALT_VERSION/rc/~rc}" \
   salt-master="${SALT_VERSION/rc/~rc}" \
   salt-minion="${SALT_VERSION/rc/~rc}" \
-  salt-api="${SALT_VERSION/rc/~rc}"
+  salt-api="${SALT_VERSION/rc/~rc}" \
+  salt-ssh="${SALT_VERSION/rc/~rc}"
 
 # Install python packages
 log_info "Installing python packages ..."

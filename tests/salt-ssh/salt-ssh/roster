@@ -1,0 +1,15 @@
+salt-ssh-root:
+  host: salt-ssh-target
+  user: root
+
+salt-ssh-user:
+  host: salt-ssh-target
+  user: saltssh
+
+salt-ssh-sudo:
+  host: salt-ssh-target
+  user: saltssh
+  sudo: True
+  # salt-ssh-user shares the default thin dir (/var/tmp/.saltssh_*_salt).
+  # Use a dedicated one so root-owned files do not break non-sudo runs.
+  thin_dir: /var/tmp/.saltssh_sudo_salt

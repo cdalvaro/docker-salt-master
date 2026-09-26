@@ -32,7 +32,7 @@ Para otros métodos de instalación de `salt-master`, por favor consulta la [gu�
 Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) y es el método recomendado para la instalación.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2_2
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2_3
 ```
 
 También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
@@ -54,7 +54,7 @@ Estas imágenes están también disponibles en:
 La versión LTS (Long Term Support) actual de Salt también está disponible mediante la etiqueta de versión explícita.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2_2
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2_3
 ```
 
 También existen etiquetas específicas para las versiones LTS y STS:
@@ -68,13 +68,13 @@ También existen etiquetas específicas para las versiones LTS y STS:
 #### Tags Disponibles
 
 - `latest`
-- `3008.2_2`, `lts`
+- `3008.2_3`, `lts`
 - `3007.14`, `sts`
 
 Todas las versiones tienen su compañera con SaltGUI:
 
 - `latest-gui`
-- `3008.2_2-gui`, `lts-gui`
+- `3008.2_3-gui`, `lts-gui`
 - `3007.14-gui`, `sts-gui`
 
 ### Construir Desde la Fuente
@@ -507,6 +507,201 @@ docker run --name salt_master --detach \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
+### Salt SSH
+
+Esta imagen incluye [`salt-ssh`](https://docs.saltproject.io/en/latest/topics/ssh/index.html), que te permite ejecutar
+comandos y estados de Salt en hosts a través de SSH, sin necesidad de instalar `salt-minion` en ellos.
+Los hosts de destino solo necesitan un servidor SSH y `python3`.
+
+#### Configuración de Salt SSH
+
+`salt-ssh` lee la configuración de `salt-master`, por lo que la mejor forma de configurarlo es añadir un archivo `ssh.conf`
+dentro de tu directorio `config/` (ver [Personalización](#personalización)):
+
+```yml
+# config/ssh.conf
+# Ajustes por defecto heredados por todas las entradas del roster
+roster_defaults:
+  user: deploy
+  sudo: True
+
+# Número de segundos que se espera una respuesta al establecer una conexión SSH
+ssh_timeout: 30
+```
+
+Los ajustes de este archivo tienen preferencia sobre los valores por defecto establecidos por esta imagen.
+Todas las opciones disponibles están listadas en la
+[referencia de configuración del master](https://docs.saltproject.io/en/latest/ref/configuration/master.html#salt-ssh-configuration).
+
+> [!WARNING]
+> Se desaconseja sobrescribir `roster_file` o `rosters`.
+> Esta imagen espera el archivo roster y los archivos roster adicionales dentro del directorio de salt-ssh
+> (ver [Roster](#roster)). Si los cambias, puede que el contenedor no funcione como se espera.
+> Para usar otro directorio, establece `SALT_SSH_DIR` en su lugar.
+
+#### Roster
+
+`salt-ssh` obtiene sus destinos de un [archivo roster](https://docs.saltproject.io/en/latest/topics/ssh/roster.html).
+Esta imagen lo busca dentro del directorio de salt-ssh, `/home/salt/data/salt-ssh/`, así que tienes que montar ahí
+un directorio con tu archivo `roster`:
+
+```sh
+# Contenido del directorio de salt-ssh
+salt-ssh
+├── roster
+└── roster.d          # Opcional, ver "Usar salt-ssh desde Salt API"
+    └── production
+```
+
+```yml
+# roster
+web1:
+  host: 192.168.1.10
+  user: root
+
+db1:
+  host: db1.example.com
+  user: deploy
+  sudo: True
+```
+
+```sh
+docker run --name salt_master --detach \
+    --publish 4505:4505 --publish 4506:4506 \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
+    --volume $(pwd)/salt-ssh/:/home/salt/data/salt-ssh/ \
+    ghcr.io/cdalvaro/docker-salt-master:latest
+```
+
+Puedes cambiar la ubicación del directorio de salt-ssh con la variable de entorno `SALT_SSH_DIR`.
+
+El usuario `salt` del contenedor debe tener permisos de lectura sobre los archivos roster (ver [Mapeo de Host](#mapeo-de-host)).
+
+#### Claves SSH
+
+La primera vez que se ejecuta `salt-ssh`, se genera un par de claves RSA en `keys/ssh/salt-ssh.rsa` y `keys/ssh/salt-ssh.rsa.pub`.
+Como se guarda dentro del volumen de claves, se reutiliza la misma clave al reiniciar o actualizar el contenedor.
+
+Para instalar la clave pública en un host, ejecuta `salt-ssh` con `--key-deploy`.
+Te pedirá una única vez la contraseña del host y añadirá la clave al archivo `authorized_keys` del usuario del roster:
+
+```sh
+docker exec -it --user salt salt_master salt-ssh --key-deploy --askpass web1 test.ping
+```
+
+A partir de ese momento, `salt-ssh` se autentica con la clave:
+
+```sh
+docker exec --user salt salt_master salt-ssh '*' test.ping
+docker exec --user salt salt_master salt-ssh web1 state.apply
+```
+
+Una vez generada, también puedes distribuir `keys/ssh/salt-ssh.rsa.pub` a tus hosts por otros medios.
+
+Los logs de `salt-ssh` se escriben en `logs/salt/ssh`.
+
+> [!IMPORTANT]
+> Ejecuta siempre `salt-ssh` como el usuario `salt` (`docker exec --user salt`).
+> `salt-ssh` no renuncia a sus privilegios, así que si lo ejecutas como `root`, la clave y los archivos de caché
+> pertenecerán a `root`, y ni las siguientes ejecuciones como `salt` ni `salt-api` podrán usarlos.
+>
+> Ten en cuenta que aquí `--user` es una opción de `docker exec`. La opción `--user` de `salt-ssh`, en cambio,
+> establece el usuario SSH.
+
+> [!NOTE]
+> El cliente SSH del contenedor está configurado con `StrictHostKeyChecking no` y
+> `UserKnownHostsFile /dev/null`, por lo que no se verifican las claves de los hosts.
+
+#### Claves Privadas desde _Secrets_ de Docker
+
+En lugar de la clave generada, puedes indicar una clave privada distinta para cada host con la opción `priv` del roster.
+Por ejemplo, para usar una clave privada proporcionada como _secret_ de Docker:
+
+```yml
+# roster
+web1:
+  host: 192.168.1.10
+  user: root
+  priv: /run/secrets/salt-ssh-key
+```
+
+Para usar esta clave en todos los hosts, indica `priv` dentro de `roster_defaults` en tu archivo `config/ssh.conf`
+(ver [Configuración de Salt SSH](#configuración-de-salt-ssh)).
+
+```yml
+# compose.yml
+services:
+  salt-master:
+    image: ghcr.io/cdalvaro/docker-salt-master:latest
+    ports:
+      - "4505:4505"
+      - "4506:4506"
+    volumes:
+      - ./roots:/home/salt/data/srv
+      - ./keys:/home/salt/data/keys
+      - ./logs:/home/salt/data/logs
+      - ./salt-ssh:/home/salt/data/salt-ssh
+    environment:
+      PUID: 1000 # uid del propietario de ./secrets/salt-ssh-key
+      PGID: 1000
+    secrets:
+      - salt-ssh-key
+
+secrets:
+  salt-ssh-key:
+    file: ./secrets/salt-ssh-key
+```
+
+> [!IMPORTANT]
+> Docker Compose monta los _secrets_ basados en archivos (_bind mount_) con el mismo propietario y los mismos permisos
+> que tienen en el host. Las opciones `uid`, `gid` y `mode`
+> [se ignoran](https://docs.docker.com/reference/compose-file/services/#secrets) para este tipo de _secrets_.
+>
+> `ssh` ignora las claves privadas que pertenecen al usuario actual y a las que pueden acceder el grupo u otros usuarios.
+> Por tanto, el archivo de la clave en el host debe pertenecer al usuario indicado en `PUID` y tener permisos `600`:
+>
+> ```sh
+> chmod 600 secrets/salt-ssh-key
+> ```
+
+`--key-deploy` busca la clave pública en `<priv>.pub`, así que añade antes la clave pública de este par de claves
+al archivo `authorized_keys` de tus hosts.
+
+#### Usar salt-ssh desde Salt API
+
+Puedes colocar archivos roster adicionales dentro del directorio `roster.d/` del directorio de salt-ssh
+(`/home/salt/data/salt-ssh/roster.d/` por defecto).
+
+Salt solo usa este directorio en las peticiones a [`salt-api`](#salt-api): cuando una petición usa el cliente `ssh`,
+el parámetro `roster_file` selecciona por su nombre un archivo de `roster.d/`. Si no se indica `roster_file`,
+se usa el archivo roster principal. La línea de comandos de `salt-ssh` siempre usa el archivo roster principal,
+salvo que indiques `--roster-file`.
+
+Para usarlo, añade `ssh` a las interfaces de cliente habilitadas en tu configuración de salt-api:
+
+```yml
+# config/salt-api.conf
+netapi_enable_clients:
+  - local
+  - ssh
+```
+
+Por ejemplo, para ejecutar `test.ping` en todos los hosts definidos en `roster.d/production`:
+
+```sh
+curl -sSk https://localhost:8000/run \
+    -H 'Accept: application/x-yaml' \
+    -d client=ssh \
+    -d tgt='*' \
+    -d fun=test.ping \
+    -d roster_file=production \
+    -d username=salt_api \
+    -d password=4wesome-Pass0rd \
+    -d eauth=pam
+```
+
 ### Mapeo de Host
 
 Por defecto, el contenedor está configurado para ejecutar `salt-master` como usuario y grupo `salt` con `uid` y `gid` `1000`. Desde el host los volúmenes de datos montados se mostrarán con propiedad del _usuario:grupo_ `1000:1000`. Esto tener efectos desfavorables si los ids no coinciden o si los permisos de los archivos montados son muy restrictivos. Especialmente el directorio de claves y sus contenidos.
@@ -927,6 +1122,7 @@ A continuación puedes encontrar una lista con las opciones disponibles que pued
 | [`SALT_WORKER_THREADS`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#worker-threads)                           | El número de hilos para recibir comandos y respuestas de los minions conectados. Por defecto: `5`.                                                                                                                                                                                                                                                                                                                                                                            |
 | [`SALT_BASE_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#file-roots)                                     | La ruta `base` en `file_roots` para buscar los directorios `salt` y `pillar`. Por defecto: `/home/salt/data/srv`.                                                                                                                                                                                                                                                                                                                                                             |
 | [`SALT_CONFS_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std-conf_master-default_include)               | `salt-master` cargará automáticamente los ficheros de configuración que encuentre en este directorio. Por defecto: `/home/salt/data/config`. Cuando se establece la variable a un valor diferente el valor por defecto, se intentará crear un enlace simbólico apuntando de la variable de entorno a `/home/salt/data/config`. Esto se hace para facilitar que los archivos de configuración puedan usarse en diferentes contenedores refiriéndose todos al mismo directorio. |
+| [`SALT_SSH_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std-conf_master-roster_file)                     | Directorio con el archivo roster de `salt-ssh` (`roster`) y los archivos roster adicionales que usa `salt-api` (`roster.d/`). Por defecto: `/home/salt/data/salt-ssh`.                                                                                                                                                                                                                                                                                                        |
 
 Cualquier parámetro no listado en la tabla anterior y disponible en el siguiente [enlace](https://docs.saltproject.io/en/latest/ref/configuration/examples.html#configuration-examples-master), puede establecerse creando el directorio `config` y añadiendo en él un archivo `.conf` con los parámetros deseados:
 

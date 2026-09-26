@@ -4,6 +4,11 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3008.2 Release Notes](https://docs.saltproject.io/en/3008/topics/releases/3008.2.html)
 for the list of changes in SaltStack.
 
+**3008.2_3**
+
+- Add support for `salt-ssh`.
+- Add `SALT_SSH_DIR` environment variable to set the directory with the `salt-ssh` roster file (`roster`) and the additional roster files (`roster.d/`). Default: `/home/salt/data/salt-ssh`.
+
 **3008.2_2**
 
 - Update SaltGUI to version `1.34.0`.

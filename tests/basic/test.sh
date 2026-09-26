@@ -20,6 +20,14 @@ echo "==> Starting docker-salt-master (${PLATFORM}) ..."
 start_container_and_wait || error "container started"
 ok "container started"
 
+echo "==> Checking salt-master configuration placeholders ..."
+docker-exec grep -n '{{' /etc/salt/master && error "unrendered placeholders in /etc/salt/master"
+ok "no unrendered placeholders in /etc/salt/master"
+
+echo "==> Checking salt-minion configuration placeholders ..."
+docker-exec grep -n '{{' /etc/salt/minion && error "unrendered placeholders in /etc/salt/minion"
+ok "no unrendered placeholders in /etc/salt/minion"
+
 # Check salt versions
 EXPECTED_VERSION="${SALT_VERSION}"
 
