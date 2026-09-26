@@ -101,6 +101,7 @@ function map_uidgid() {
       -not -path "${SALT_BASE_DIR}*" \
       -not -path "${SALT_LOGS_DIR}*" \
       -not -path "${SALT_FORMULAS_DIR}*" \
+      -not -path "${SALT_SSH_DIR}*" \
       -path "${SALT_DATA_DIR}/*" \
       \( ! -uid "${PUID}" -o ! -gid "${PGID}" \) \
       -exec chown -h "${SALT_USER}": {} +
@@ -623,7 +624,7 @@ function configure_salt_master() {
     SALT_LOG_LEVEL \
     SALT_LEVEL_LOGFILE \
     SALT_LOGS_DIR \
-    SALT_DATA_DIR \
+    SALT_SSH_DIR \
     SALT_BASE_DIR \
     SALT_CACHE_DIR \
     SALT_CONFS_DIR \
@@ -964,6 +965,13 @@ function initialize_datadir() {
     chown -R "${SALT_USER}:${SALT_USER}" "${SALT_FORMULAS_DIR}" || log_error "Unable to change '${SALT_FORMULAS_DIR}' ownership"
   else
     log_info "${SALT_FORMULAS_DIR} is mounted as a read-only volume. Ownership won't be changed."
+  fi
+
+  # Salt SSH directory
+  if [[ -w "${SALT_SSH_DIR}" ]]; then
+    chown -R "${SALT_USER}:${SALT_USER}" "${SALT_SSH_DIR}" || log_error "Unable to change '${SALT_SSH_DIR}' ownership"
+  else
+    log_info "${SALT_SSH_DIR} is mounted as a read-only volume. Ownership won't be changed."
   fi
 
   # Logs directory

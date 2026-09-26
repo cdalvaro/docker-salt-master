@@ -25,6 +25,7 @@ export SALTAPI_EAUTH=pam
 
 KEYS_DIR="${SCRIPT_PATH}/keys"
 SALT_SSH_KEY=/home/salt/data/keys/ssh/salt-ssh.rsa
+CUSTOM_SALT_SSH_DIR=/home/salt/data/custom-salt-ssh
 # Defined in roots/pillar/salt_ssh_test.sls
 EXPECTED_PILLAR_MESSAGE='Hello from docker-salt-master via salt-ssh'
 
@@ -83,8 +84,7 @@ echo "==> Starting docker-salt-master (${PLATFORM}) with salt-ssh roster ..."
 start_container_and_wait \
   --network "${SSH_NETWORK}" \
   --volume "${SCRIPT_PATH}/roots":/home/salt/data/srv:ro \
-  --volume "${SCRIPT_PATH}/roster":/home/salt/data/roster:ro \
-  --volume "${SCRIPT_PATH}/roster.d":/home/salt/data/roster.d:ro \
+  --volume "${SCRIPT_PATH}/salt-ssh":/home/salt/data/salt-ssh:ro \
   --volume "${KEYS_DIR}":/home/salt/data/keys ||
   error "container started"
 ok "container started"
@@ -99,9 +99,9 @@ check_equal "${CURRENT_VERSION%%-*}" "${SALT_VERSION%%-*}" "salt-ssh version"
 # Check salt-ssh configuration
 echo "==> Checking salt-ssh roster configuration ..."
 ROSTER_FILE="$(salt-run --out=json config.get roster_file | jq -rM . || error "salt-run config.get roster_file")"
-check_equal "${ROSTER_FILE}" "/home/salt/data/roster" "roster_file"
+check_equal "${ROSTER_FILE}" "/home/salt/data/salt-ssh/roster" "roster_file"
 ROSTERS="$(salt-run --out=json config.get rosters | jq -cM . || error "salt-run config.get rosters")"
-check_equal "${ROSTERS}" '["/home/salt/data/roster.d"]' "rosters"
+check_equal "${ROSTERS}" '["/home/salt/data/salt-ssh/roster.d"]' "rosters"
 
 # Test key deployment with password authentication
 echo "==> Deploying salt-ssh key to ${SSH_TARGET_NAME} (root) ..."
@@ -177,19 +177,25 @@ external_auth:
 EOF
 ok "salt-api config created"
 
-# Test salt-ssh key persistence and salt-api ssh client
-echo "==> Starting docker-salt-master (${PLATFORM}) with previous salt-ssh keys and salt-api ..."
+# Test custom SALT_SSH_DIR, salt-ssh key persistence and salt-api ssh client
+echo "==> Starting docker-salt-master (${PLATFORM}) with custom SALT_SSH_DIR, previous salt-ssh keys and salt-api ..."
 start_container_and_wait \
   --network "${SSH_NETWORK}" \
   --publish 8000:8000 \
   --env SALT_API_ENABLED=True \
   --env SALT_API_USER_PASS="${SALTAPI_PASS}" \
+  --env SALT_SSH_DIR="${CUSTOM_SALT_SSH_DIR}" \
   --volume "${SCRIPT_PATH}/roots":/home/salt/data/srv:ro \
-  --volume "${SCRIPT_PATH}/roster":/home/salt/data/roster:ro \
-  --volume "${SCRIPT_PATH}/roster.d":/home/salt/data/roster.d:ro \
+  --volume "${SCRIPT_PATH}/salt-ssh":"${CUSTOM_SALT_SSH_DIR}":ro \
   --volume "${KEYS_DIR}":/home/salt/data/keys ||
   error "container started"
 ok "container started"
+
+echo "==> Checking salt-ssh roster configuration with custom SALT_SSH_DIR ..."
+ROSTER_FILE="$(salt-run --out=json config.get roster_file | jq -rM . || error "salt-run config.get roster_file")"
+check_equal "${ROSTER_FILE}" "${CUSTOM_SALT_SSH_DIR}/roster" "roster_file with custom SALT_SSH_DIR"
+ROSTERS="$(salt-run --out=json config.get rosters | jq -cM . || error "salt-run config.get rosters")"
+check_equal "${ROSTERS}" "[\"${CUSTOM_SALT_SSH_DIR}/roster.d\"]" "rosters with custom SALT_SSH_DIR"
 
 echo "==> Testing salt-ssh test.ping with previous key (root) ..."
 output="$(salt-ssh --out=json salt-ssh-root test.ping || error "salt-ssh test.ping with previous key (root)")"

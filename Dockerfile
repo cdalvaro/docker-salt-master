@@ -28,7 +28,8 @@ ENV SALT_CONFS_DIR="${SALT_DATA_DIR}/config" \
   SALT_KEYS_DIR="${SALT_DATA_DIR}/keys" \
   SALT_BASE_DIR="${SALT_DATA_DIR}/srv" \
   SALT_LOGS_DIR="${SALT_DATA_DIR}/logs" \
-  SALT_FORMULAS_DIR="${SALT_DATA_DIR}/3pfs"
+  SALT_FORMULAS_DIR="${SALT_DATA_DIR}/3pfs" \
+  SALT_SSH_DIR="${SALT_DATA_DIR}/salt-ssh"
 
 RUN mkdir -p ${SALT_BUILD_DIR}
 WORKDIR ${SALT_BUILD_DIR}
@@ -67,7 +68,7 @@ RUN chmod +x /sbin/entrypoint.sh
 
 # Shared resources
 EXPOSE 4505 4506 8000
-RUN mkdir -p "${SALT_BASE_DIR}" "${SALT_FORMULAS_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" "${SALT_LOGS_DIR}"
+RUN mkdir -p "${SALT_BASE_DIR}" "${SALT_FORMULAS_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" "${SALT_LOGS_DIR}" "${SALT_SSH_DIR}"
 
 LABEL org.opencontainers.image.title="Dockerized Salt Master"
 LABEL org.opencontainers.image.description="salt-master ${SALT_VERSION} containerized"

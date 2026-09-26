@@ -60,9 +60,9 @@ master_use_pubkey_signature: {{SALT_MASTER_USE_PUBKEY_SIGNATURE}}
 # The log file of the salt-ssh command:
 ssh_log_file: {{SALT_LOGS_DIR}}/salt/ssh
 ssh_use_home_key: False
-roster_file: {{SALT_DATA_DIR}}/roster
+roster_file: {{SALT_SSH_DIR}}/roster
 rosters:
-  - {{SALT_DATA_DIR}}/roster.d
+  - {{SALT_SSH_DIR}}/roster.d
 
 
 #####      File Server settings      #####

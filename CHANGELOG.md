@@ -7,6 +7,7 @@ for the list of changes in SaltStack.
 **3008.2_3**
 
 - Add support for `salt-ssh`.
+- Add `SALT_SSH_DIR` environment variable to set the directory with the `salt-ssh` roster file (`roster`) and the additional roster files (`roster.d/`). Default: `/home/salt/data/salt-ssh`.
 
 **3008.2_2**
 

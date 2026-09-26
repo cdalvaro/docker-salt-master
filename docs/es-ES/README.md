@@ -535,13 +535,23 @@ Todas las opciones disponibles están listadas en la
 
 > [!WARNING]
 > Se desaconseja sobrescribir `roster_file` o `rosters`.
-> Esta imagen espera el archivo roster en `/home/salt/data/roster` y los archivos roster adicionales dentro de
-> `/home/salt/data/roster.d/`. Si los cambias, puede que el contenedor no funcione como se espera.
+> Esta imagen espera el archivo roster y los archivos roster adicionales dentro del directorio de salt-ssh
+> (ver [Roster](#roster)). Si los cambias, puede que el contenedor no funcione como se espera.
+> Para usar otro directorio, establece `SALT_SSH_DIR` en su lugar.
 
 #### Roster
 
 `salt-ssh` obtiene sus destinos de un [archivo roster](https://docs.saltproject.io/en/latest/topics/ssh/roster.html).
-Esta imagen lo busca en `/home/salt/data/roster`, así que tienes que montar ahí tu archivo roster:
+Esta imagen lo busca dentro del directorio de salt-ssh, `/home/salt/data/salt-ssh/`, así que tienes que montar ahí
+un directorio con tu archivo `roster`:
+
+```sh
+# Contenido del directorio de salt-ssh
+salt-ssh
+├── roster
+└── roster.d          # Opcional, ver "Usar salt-ssh desde Salt API"
+    └── production
+```
 
 ```yml
 # roster
@@ -561,11 +571,13 @@ docker run --name salt_master --detach \
     --volume $(pwd)/roots/:/home/salt/data/srv/ \
     --volume $(pwd)/keys/:/home/salt/data/keys/ \
     --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    --volume $(pwd)/roster:/home/salt/data/roster \
+    --volume $(pwd)/salt-ssh/:/home/salt/data/salt-ssh/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
-El usuario `salt` del contenedor debe tener permisos de lectura sobre el archivo roster (ver [Mapeo de Host](#mapeo-de-host)).
+Puedes cambiar la ubicación del directorio de salt-ssh con la variable de entorno `SALT_SSH_DIR`.
+
+El usuario `salt` del contenedor debe tener permisos de lectura sobre los archivos roster (ver [Mapeo de Host](#mapeo-de-host)).
 
 #### Claves SSH
 
@@ -630,7 +642,7 @@ services:
       - ./roots:/home/salt/data/srv
       - ./keys:/home/salt/data/keys
       - ./logs:/home/salt/data/logs
-      - ./roster:/home/salt/data/roster
+      - ./salt-ssh:/home/salt/data/salt-ssh
     environment:
       PUID: 1000 # uid del propietario de ./secrets/salt-ssh-key
       PGID: 1000
@@ -659,11 +671,8 @@ al archivo `authorized_keys` de tus hosts.
 
 #### Usar salt-ssh desde Salt API
 
-Puedes colocar archivos roster adicionales dentro de un directorio montado en `/home/salt/data/roster.d/`:
-
-```sh
---volume $(pwd)/roster.d/:/home/salt/data/roster.d/
-```
+Puedes colocar archivos roster adicionales dentro del directorio `roster.d/` del directorio de salt-ssh
+(`/home/salt/data/salt-ssh/roster.d/` por defecto).
 
 Salt solo usa este directorio en las peticiones a [`salt-api`](#salt-api): cuando una petición usa el cliente `ssh`,
 el parámetro `roster_file` selecciona por su nombre un archivo de `roster.d/`. Si no se indica `roster_file`,
@@ -1113,6 +1122,7 @@ A continuación puedes encontrar una lista con las opciones disponibles que pued
 | [`SALT_WORKER_THREADS`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#worker-threads)                           | El número de hilos para recibir comandos y respuestas de los minions conectados. Por defecto: `5`.                                                                                                                                                                                                                                                                                                                                                                            |
 | [`SALT_BASE_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#file-roots)                                     | La ruta `base` en `file_roots` para buscar los directorios `salt` y `pillar`. Por defecto: `/home/salt/data/srv`.                                                                                                                                                                                                                                                                                                                                                             |
 | [`SALT_CONFS_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std-conf_master-default_include)               | `salt-master` cargará automáticamente los ficheros de configuración que encuentre en este directorio. Por defecto: `/home/salt/data/config`. Cuando se establece la variable a un valor diferente el valor por defecto, se intentará crear un enlace simbólico apuntando de la variable de entorno a `/home/salt/data/config`. Esto se hace para facilitar que los archivos de configuración puedan usarse en diferentes contenedores refiriéndose todos al mismo directorio. |
+| [`SALT_SSH_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std-conf_master-roster_file)                     | Directorio con el archivo roster de `salt-ssh` (`roster`) y los archivos roster adicionales que usa `salt-api` (`roster.d/`). Por defecto: `/home/salt/data/salt-ssh`.                                                                                                                                                                                                                                                                                                        |
 
 Cualquier parámetro no listado en la tabla anterior y disponible en el siguiente [enlace](https://docs.saltproject.io/en/latest/ref/configuration/examples.html#configuration-examples-master), puede establecerse creando el directorio `config` y añadiendo en él un archivo `.conf` con los parámetros deseados:
 
