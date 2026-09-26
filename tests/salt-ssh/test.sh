@@ -131,7 +131,7 @@ check_equal "$(jq -rM '."salt-ssh-root"' <<<"${output}")" "${SSH_TARGET_NAME}" "
 
 # Test raw shell
 echo "==> Testing salt-ssh raw shell ..."
-output="$(salt-ssh --out=json --raw-shell salt-ssh-root 'uname -s' || error "salt-ssh raw shell")"
+output="$(salt-ssh --out=json --raw-shell salt-ssh-root uname -s || error "salt-ssh raw shell")"
 check_equal "$(jq -rM '."salt-ssh-root".stdout' <<<"${output}")" "Linux" "salt-ssh raw shell"
 
 # Test state.apply with pillar data
@@ -197,24 +197,18 @@ check_equal "$(jq -rM '."salt-ssh-root"' <<<"${output}")" true "salt-ssh test.pi
 check_equal "$(cat "${KEYS_DIR}/ssh/salt-ssh.rsa.pub")" "${SALT_SSH_PUBKEY}" "salt-ssh key reused after restart"
 check_equal "$(docker-exec stat -c '%U %a' "${SALT_SSH_KEY}")" "salt 600" "salt-ssh private key owner and mode after restart"
 
-echo "==> Getting salt-api token ..."
-output="$(curl -sSk "${SALTAPI_URL%/}/login" \
-  -H "Accept: application/json" \
-  -d username="${SALTAPI_USER}" \
-  -d password="${SALTAPI_PASS}" \
-  -d eauth="${SALTAPI_EAUTH}" || error "salt-api login")"
-SALTAPI_TOKEN="$(jq -rM '.return[0].token // empty' <<<"${output}")"
-[[ -n "${SALTAPI_TOKEN}" ]] || error "salt-api token"
-ok "salt-api token"
-
+# Token authentication does not work with the ssh client in Salt 3008.2: salt-api looks up tokens
+# under <cachedir>/saltapi, but the master stores them under <cachedir>. Use eauth credentials instead.
 echo "==> Testing salt-api ssh client with roster from roster.d ..."
-output="$(curl -sSk "${SALTAPI_URL}" \
+output="$(curl -sSk "${SALTAPI_URL%/}/run" \
   -H "Accept: application/json" \
-  -H "X-Auth-Token: ${SALTAPI_TOKEN}" \
   -d client=ssh \
   -d tgt=salt-ssh-api \
   -d fun=test.ping \
-  -d roster_file=api || error "salt-api ssh client")"
+  -d roster_file=api \
+  -d username="${SALTAPI_USER}" \
+  -d password="${SALTAPI_PASS}" \
+  -d eauth="${SALTAPI_EAUTH}" || error "salt-api ssh client")"
 echo "${output}"
 # The ssh client may return either the bare value or the full job return
 check_equal "$(jq -rM '.return[0]."salt-ssh-api" | if type == "object" then .return else . end' <<<"${output}")" \

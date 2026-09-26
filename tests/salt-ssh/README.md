@@ -17,4 +17,4 @@ Checks:
 
 - **Key persistence and salt-api ssh client** - Restarts the container reusing the previous keys directory, with `SALT_API_ENABLED=True` and the `ssh` netapi client enabled, and verifies that:
   - `test.ping` succeeds without deploying the key again, the public key is unchanged, and the private key is still owned by `salt` with mode `600`.
-  - A `client=ssh` request to salt-api with `roster_file=api` reaches `salt-ssh-api`, a target that is only defined in `roster.d/api`.
+  - A `client=ssh` request to salt-api's `/run` endpoint, with eauth credentials and `roster_file=api`, reaches `salt-ssh-api`, a target that is only defined in `roster.d/api`. Credentials are used instead of a token because token authentication does not work with the `ssh` client in Salt 3008.2.
