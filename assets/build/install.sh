@@ -54,7 +54,8 @@ install_pkgs \
   salt-common="${SALT_VERSION/rc/~rc}" \
   salt-master="${SALT_VERSION/rc/~rc}" \
   salt-minion="${SALT_VERSION/rc/~rc}" \
-  salt-api="${SALT_VERSION/rc/~rc}"
+  salt-api="${SALT_VERSION/rc/~rc}" \
+  salt-ssh="${SALT_VERSION/rc/~rc}"
 
 # Install python packages
 log_info "Installing python packages ..."

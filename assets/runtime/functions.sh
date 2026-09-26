@@ -623,6 +623,7 @@ function configure_salt_master() {
     SALT_LOG_LEVEL \
     SALT_LEVEL_LOGFILE \
     SALT_LOGS_DIR \
+    SALT_DATA_DIR \
     SALT_BASE_DIR \
     SALT_CACHE_DIR \
     SALT_CONFS_DIR \
