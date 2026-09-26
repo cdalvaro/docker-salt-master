@@ -40,7 +40,7 @@ fi
 # https://manpages.ubuntu.com/manpages/xenial/en/man8/useradd.8.html
 log_info "Creating ${SALT_USER} user ..."
 useradd --home-dir "${SALT_HOME}" --create-home \
-  --shell /bin/bash --user-group "${SALT_USER}" \
+  --shell "${SALT_SHELL}" --user-group "${SALT_USER}" \
   --groups shadow
 
 # Set PATH

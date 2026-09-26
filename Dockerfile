@@ -9,11 +9,16 @@ ENV SALT_VERSION=${SALT_VERSION}
 ENV IMAGE_REVISION="_3"
 ENV IMAGE_VERSION="${SALT_VERSION}${IMAGE_REVISION}"
 
+# SALT_USER, SALT_HOME and SALT_SHELL are also read by the Salt packages maintainer scripts during install.sh.
+# Do not rename or remove them: without SALT_HOME, the packages would move the salt user's home
+# to the onedir install directory (/opt/saltstack/salt).
+# https://docs.saltproject.io/en/latest/ref/configuration/nonroot.html
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
   SALT_ROOT_DIR="/etc/salt" \
   SALT_CACHE_DIR='/var/cache/salt' \
   SALT_USER="salt" \
-  SALT_HOME="/home/salt"
+  SALT_HOME="/home/salt" \
+  SALT_SHELL="/bin/bash"
 
 ENV SALT_BUILD_DIR="${SALT_DOCKER_DIR}/build" \
   SALT_RUNTIME_DIR="${SALT_DOCKER_DIR}/runtime" \

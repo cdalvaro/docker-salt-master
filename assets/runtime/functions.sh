@@ -923,7 +923,7 @@ function initialize_datadir() {
   [[ -d /srv ]] && [[ ! -L /srv ]] && rm -rf /srv
   ln -sfnv "${SALT_BASE_DIR}" /srv
   if [[ -w "${SALT_BASE_DIR}" ]]; then
-    chown -R "${SALT_USER}": "${SALT_BASE_DIR}" || log_error "Unable to change '${SALT_BASE_DIR}' ownership"
+    chown -R "${SALT_USER}:${SALT_USER}" "${SALT_BASE_DIR}" || log_error "Unable to change '${SALT_BASE_DIR}' ownership"
   else
     log_info "${SALT_BASE_DIR} is mounted as a read-only volume. Ownership won't be changed."
   fi
@@ -934,21 +934,21 @@ function initialize_datadir() {
   fi
 
   if [[ -w "${SALT_CONFS_DIR}" ]]; then
-    chown -R "${SALT_USER}": "${SALT_CONFS_DIR}" || log_error "Unable to change '${SALT_CONFS_DIR}' ownership"
+    chown -R "${SALT_USER}:${SALT_USER}" "${SALT_CONFS_DIR}" || log_error "Unable to change '${SALT_CONFS_DIR}' ownership"
   else
     log_info "${SALT_CONFS_DIR} is mounted as a read-only volume. Ownership won't be changed."
   fi
 
   # Set Salt root permissions
-  chown -R "${SALT_USER}": "${SALT_ROOT_DIR}"
+  chown -R "${SALT_USER}:${SALT_USER}" "${SALT_ROOT_DIR}"
 
   # Set Salt run permissions
   mkdir -p /var/run/salt
-  chown -R "${SALT_USER}": /var/run/salt
+  chown -R "${SALT_USER}:${SALT_USER}" /var/run/salt
 
   # Set cache permissions
-  mkdir -p /var/cache/salt/master
-  chown -R "${SALT_USER}": /var/cache/salt
+  mkdir -p "${SALT_CACHE_DIR}/master"
+  chown -R "${SALT_USER}:${SALT_USER}" "${SALT_CACHE_DIR}"
 
   # Keys directories
   if [[ ! -w "${SALT_KEYS_DIR}" ]]; then
@@ -961,7 +961,7 @@ function initialize_datadir() {
 
   # Salt formulas
   if [[ -w "${SALT_FORMULAS_DIR}" ]]; then
-    chown -R "${SALT_USER}": "${SALT_FORMULAS_DIR}" || log_error "Unable to change '${SALT_FORMULAS_DIR}' ownership"
+    chown -R "${SALT_USER}:${SALT_USER}" "${SALT_FORMULAS_DIR}" || log_error "Unable to change '${SALT_FORMULAS_DIR}' ownership"
   else
     log_info "${SALT_FORMULAS_DIR} is mounted as a read-only volume. Ownership won't be changed."
   fi
@@ -977,7 +977,7 @@ function initialize_datadir() {
   ln -sfnv "${SALT_LOGS_DIR}/salt" /var/log/salt
 
   chmod -R 0755 "${SALT_LOGS_DIR}"
-  chown -R "${SALT_USER}": "${SALT_LOGS_DIR}"
+  chown -R "${SALT_USER}:${SALT_USER}" "${SALT_LOGS_DIR}"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
