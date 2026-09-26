@@ -956,6 +956,9 @@ function initialize_datadir() {
     exit 1
   fi
 
+  # ssh-copy-id (used by salt-ssh --key-deploy) creates its temporary files under ~/.ssh
+  exec_as_salt mkdir -p -m 700 "${SALT_HOME}/.ssh"
+
   # Salt formulas
   if [[ -w "${SALT_FORMULAS_DIR}" ]]; then
     chown -R "${SALT_USER}": "${SALT_FORMULAS_DIR}" || log_error "Unable to change '${SALT_FORMULAS_DIR}' ownership"
