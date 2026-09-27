@@ -619,8 +619,8 @@ Los logs de `salt-ssh` se escriben en `logs/salt/ssh`.
 
 #### Claves de Host
 
-`salt-ssh` comprueba la clave de cada host: los hosts que aún no son conocidos no se aceptan automáticamente,
-y se rechazan las conexiones a hosts cuya clave ha cambiado.
+Cuando `salt-ssh` se conecta con su clave (lo habitual), comprueba la clave de cada host:
+los hosts que aún no son conocidos no se aceptan automáticamente, y se rechazan las conexiones a hosts cuya clave ha cambiado.
 Las claves de los hosts conocidos se guardan en `keys/ssh/known_hosts` (`/home/salt/data/keys/ssh/known_hosts`), junto a la clave de salt-ssh.
 
 Cuando un host todavía no está en `known_hosts`, `salt-ssh` falla con:
@@ -635,11 +635,21 @@ Para aceptar y guardar su clave, ejecuta `salt-ssh` una vez con `-i` (`--ignore-
 docker exec --user salt salt_master salt-ssh -i web1 test.ping
 ```
 
-También puedes añadir antes las claves de los hosts a `known_hosts`, después de comprobar sus huellas.
-Por ejemplo, con `ssh-keyscan`:
+Para no confiar en la primera conexión, añade antes las claves de los hosts a `known_hosts`.
+`ssh-keyscan` no puede verificar las claves que obtiene, así que escanea el mismo `host` que usa el roster en un archivo
+temporal (añade `-p` si escucha en otro puerto) y muestra sus huellas:
 
 ```sh
-ssh-keyscan web1.example.com >> keys/ssh/known_hosts
+ssh-keyscan 192.168.1.10 > web1.keys
+ssh-keygen -lf web1.keys
+```
+
+Compara estas huellas SHA256 con las del host, obtenidas por un canal de confianza
+(por ejemplo, ejecutando `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` en su consola),
+y añade las claves solo si coinciden:
+
+```sh
+cat web1.keys >> keys/ssh/known_hosts
 ```
 
 > [!WARNING]
@@ -648,6 +658,13 @@ ssh-keyscan web1.example.com >> keys/ssh/known_hosts
 >
 > `--key-deploy` acepta y guarda la clave de un host nuevo sin comprobarla,
 > porque `salt-ssh` desactiva la comprobación de las claves de host mientras copia la clave pública.
+>
+> Las entradas del roster que solo usan contraseña (`passwd` con `priv: null`) también son una excepción: `salt-ssh`
+> siempre se conecta a ellas con `StrictHostKeyChecking=no`, así que acepta y guarda la clave de los hosts que aún no
+> están en `known_hosts`, incluso sin `-i`.
+>
+> En estos casos, si ha cambiado la clave de un host que ya está en `known_hosts`, OpenSSH desactiva la autenticación
+> por contraseña, así que la contraseña no se envía.
 
 Para guardar `known_hosts` en otro sitio, por ejemplo junto a tus archivos roster para tenerlos bajo control de versiones,
 establece `UserKnownHostsFile` mediante `ssh_options` en tu archivo `config/ssh.conf`
@@ -663,8 +680,11 @@ ssh_options:
 Las entradas del roster que definen su propio `ssh_options` sustituyen esta lista, así que añade también `UserKnownHostsFile` en ellas.
 
 > [!IMPORTANT]
-> El usuario `salt` debe poder escribir en el directorio del nuevo archivo `known_hosts` para guardar las claves de hosts nuevos.
-> En el ejemplo anterior, el directorio de salt-ssh no debe montarse en solo lectura.
+> Solo hace falta poder escribir en `known_hosts` para añadir claves de hosts nuevos (con `-i`, `--key-deploy` o con
+> entradas del roster que solo usan contraseña). La comprobación de los hosts que ya están en `known_hosts` funciona con
+> un archivo de solo lectura. Así que, si `known_hosts` ya contiene todos tus hosts, verificados de antemano, el
+> directorio de salt-ssh del ejemplo anterior puede seguir montado en solo lectura. Si no, el usuario `salt` debe
+> poder escribir en él.
 
 #### Claves Privadas desde _Secrets_ de Docker
 

@@ -643,8 +643,8 @@ You can also distribute `keys/ssh/salt-ssh.rsa.pub` to your hosts by other means
 
 #### Host Keys
 
-`salt-ssh` checks the host key of every target: hosts that are not known yet are not accepted automatically,
-and connections to hosts whose key has changed are refused.
+When `salt-ssh` connects with its key (the default), it checks the host key of every target:
+hosts that are not known yet are not accepted automatically, and connections to hosts whose key has changed are refused.
 Known host keys are stored in `keys/ssh/known_hosts` (`/home/salt/data/keys/ssh/known_hosts`), next to the salt-ssh key.
 
 When a host is not in `known_hosts` yet, `salt-ssh` fails with:
@@ -659,11 +659,21 @@ To accept and store its host key, run `salt-ssh` once with `-i` (`--ignore-host-
 docker exec --user salt salt_master salt-ssh -i web1 test.ping
 ```
 
-Alternatively, add the host keys to `known_hosts` beforehand, after checking their fingerprints.
-For example, with `ssh-keyscan`:
+To avoid trusting the first connection, add the host keys to `known_hosts` beforehand.
+`ssh-keyscan` cannot verify the keys it gets, so scan the same `host` used in the roster into a temporary file
+(add `-p` if it listens on a different port) and show their fingerprints:
 
 ```sh
-ssh-keyscan web1.example.com >> keys/ssh/known_hosts
+ssh-keyscan 192.168.1.10 > web1.keys
+ssh-keygen -lf web1.keys
+```
+
+Compare these SHA256 fingerprints with the ones of the host, obtained through a trusted channel
+(for example, by running `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` on its console),
+and add the keys only if they match:
+
+```sh
+cat web1.keys >> keys/ssh/known_hosts
 ```
 
 > [!WARNING]
@@ -672,6 +682,13 @@ ssh-keyscan web1.example.com >> keys/ssh/known_hosts
 >
 > `--key-deploy` accepts and stores the host key of a new host without checking it,
 > because `salt-ssh` disables host key checking while it copies the public key.
+>
+> Roster entries that only use a password (`passwd` with `priv: null`) are an exception too: `salt-ssh` always
+> connects to them with `StrictHostKeyChecking=no`, so it accepts and stores the key of hosts that are not in
+> `known_hosts` yet, even without `-i`.
+>
+> In these cases, if the key of a host that is already in `known_hosts` has changed, OpenSSH disables password
+> authentication, so the password is not sent.
 
 To keep `known_hosts` somewhere else, for example next to your roster files to keep them under version control,
 set `UserKnownHostsFile` through `ssh_options` in your `config/ssh.conf` file
@@ -687,8 +704,10 @@ ssh_options:
 Roster entries with their own `ssh_options` replace this list, so add `UserKnownHostsFile` to them as well.
 
 > [!IMPORTANT]
-> The directory of the new `known_hosts` file must be writable by the `salt` user so that new host keys can be stored.
-> In the example above, the salt-ssh directory must not be mounted read-only.
+> Write access to `known_hosts` is only needed to add new host keys (with `-i`, `--key-deploy`, or password-only
+> roster entries). Checking the hosts that are already in `known_hosts` works on a read-only file.
+> So, if `known_hosts` already contains all your hosts, verified beforehand, the salt-ssh directory of the example
+> above can stay mounted read-only. Otherwise, it must be writable by the `salt` user.
 
 #### Private Keys from Docker Secrets
 

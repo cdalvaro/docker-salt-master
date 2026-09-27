@@ -12,14 +12,18 @@ Checks:
   - `test.ping` succeeds with key authentication only.
   - `grains.get host` returns the target hostname (commands run on the target, not on the master).
   - Raw shell mode (`--raw-shell salt-ssh-root uname -s`) returns `Linux`.
-  - Host keys are checked: `salt-ssh-new-host` (the same target, reached through a network alias that is not in `known_hosts`) is rejected, and `salt-ssh -i` accepts it and stores its host key in `known_hosts`.
+  - Host keys are checked (the extra roster entries reach the same target through network aliases):
+    - `salt-ssh-new-host`, which is not in `known_hosts`, is rejected: `salt-ssh` fails with `The host key needs to be accepted`. `salt-ssh -i` accepts it and stores its host key in `known_hosts`.
+    - `salt-ssh-password`, a password-only entry (`priv: null`) whose host is not in `known_hosts`, is accepted without `-i` and its host key is stored (documented exception).
+    - `salt-ssh-changed`, whose host is pinned to a different host key, is rejected: `salt-ssh` fails with `Host key verification failed`.
+    - `salt-ssh-changed-password`, a password-only entry for the same host, fails without sending the password: OpenSSH reports `Password authentication is disabled`.
   - `state.apply salt_ssh_test` succeeds and writes the pillar value to `/tmp/salt-ssh-test.txt` on the target.
   - `--key-deploy --passwd` succeeds for the non-root `saltssh` user, and `cmd.run whoami` returns `saltssh` without sudo and `root` with `sudo: True`.
   - The salt-ssh log file (`logs/salt/ssh`) is created.
 
 - **Custom `SALT_SSH_DIR`, `ssh_options`, key persistence and salt-api ssh client** - Restarts the container with `SALT_SSH_DIR` set to a custom path (where the `salt-ssh` directory is mounted read-only), a `config/ssh.conf` that sets `UserKnownHostsFile` through `ssh_options` to `/tmp/known_hosts`, reusing the previous keys directory, with `SALT_API_ENABLED=True` and the `ssh` netapi client enabled, and verifies that:
   - `roster_file` and `rosters` point to the `roster` and `roster.d` inside the custom `SALT_SSH_DIR`.
-  - The target is rejected even though it is in the default `keys/ssh/known_hosts`, because salt-ssh uses the file set through `ssh_options`.
+  - The target is rejected (`salt-ssh` fails with `The host key needs to be accepted`) even though it is in the default `keys/ssh/known_hosts`, because salt-ssh uses the file set through `ssh_options`.
   - `salt-ssh -i` `test.ping` succeeds without deploying the key again, the public key is unchanged, the private key is still owned by `salt` with mode `600`, and the target host key is stored in `/tmp/known_hosts`.
   - A `client=ssh` request to salt-api's `/run` endpoint, with eauth credentials and `roster_file=api`, reaches `salt-ssh-api`, a target that is only defined in `roster.d/api`.
 

@@ -7,6 +7,23 @@ salt-ssh-new-host:
   host: salt-ssh-new-host
   user: root
 
+# Password-only entry (priv: null): salt-ssh connects with StrictHostKeyChecking=no.
+# Reached through a network alias that is not in known_hosts.
+salt-ssh-password:
+  host: salt-ssh-password-host
+  user: root
+  priv: null
+
+# Reached through a network alias that the test pins to a different host key (changed host key)
+salt-ssh-changed:
+  host: salt-ssh-changed-host
+  user: root
+
+salt-ssh-changed-password:
+  host: salt-ssh-changed-host
+  user: root
+  priv: null
+
 salt-ssh-user:
   host: salt-ssh-target
   user: saltssh

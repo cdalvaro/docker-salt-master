@@ -33,6 +33,12 @@ DEFAULT_KNOWN_HOSTS=/home/salt/data/keys/ssh/known_hosts
 SSH_OPTIONS_KNOWN_HOSTS=/tmp/known_hosts
 # Network alias of the target that is never added to known_hosts beforehand
 SSH_NEW_HOST=salt-ssh-new-host
+# Network alias of the target used by the password-only roster entry (not in known_hosts beforehand)
+SSH_PASSWORD_HOST=salt-ssh-password-host
+# Network alias of the target that is pinned to a different host key (changed host key)
+SSH_CHANGED_HOST=salt-ssh-changed-host
+# Message returned by salt-ssh when a host is not in known_hosts
+UNKNOWN_HOST_ERROR="The host key needs to be accepted"
 # Defined in roots/pillar/salt_ssh_test.sls
 EXPECTED_PILLAR_MESSAGE='Hello from docker-salt-master via salt-ssh'
 # Python version (MAJOR.MINOR) of the target used to test ssh_ext_alternatives
@@ -72,6 +78,31 @@ function salt-ssh() {
 #----------------------------------------------------------------------------------------------------------------------
 function target-exec() {
   docker exec "${SSH_TARGET_NAME}" "$@"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  check_salt_ssh_fails
+#   DESCRIPTION:  Check that salt-ssh fails and that its output contains the expected message.
+#     ARGUMENTS:
+#                 $1 -> The expected message.
+#                 $2 -> The message to show.
+#                 $@ -> Arguments for salt-ssh.
+#----------------------------------------------------------------------------------------------------------------------
+function check_salt_ssh_fails() {
+  local expected="$1"
+  local message="$2"
+  shift 2
+
+  local output=
+  # After a "Permission denied" error, salt-ssh asks whether to deploy its key: answer "n"
+  if output="$(printf 'n\n' | docker exec --interactive --user salt "${CONTAINER_NAME}" salt-ssh --out=json "$@" 2>&1)"; then
+    echo "${output}"
+    error "${message} (salt-ssh succeeded)"
+  fi
+  echo "${output}"
+
+  grep -qF -- "${expected}" <<<"${output}" || error "${message} (expected output to contain: '${expected}')"
+  ok "${message}"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -115,7 +146,8 @@ ok "salt-ssh target image built"
 echo "==> Starting salt-ssh target ..."
 docker network create "${SSH_NETWORK}" >/dev/null || error "docker network created"
 docker run --detach --name "${SSH_TARGET_NAME}" --hostname "${SSH_TARGET_NAME}" \
-  --network "${SSH_NETWORK}" --network-alias "${SSH_NEW_HOST}" --platform "${PLATFORM}" \
+  --network "${SSH_NETWORK}" --platform "${PLATFORM}" \
+  --network-alias "${SSH_NEW_HOST}" --network-alias "${SSH_PASSWORD_HOST}" --network-alias "${SSH_CHANGED_HOST}" \
   "${SSH_TARGET_IMAGE}" >/dev/null || error "salt-ssh target started"
 printf 'root:%s\nsaltssh:%s\n' "${SSH_TARGET_PASSWORD}" "${SSH_TARGET_PASSWORD}" |
   docker exec --interactive "${SSH_TARGET_NAME}" chpasswd || error "salt-ssh target passwords set"
@@ -186,10 +218,8 @@ check_equal "$(jq -rM '."salt-ssh-root".stdout' <<<"${output}")" "Linux" "salt-s
 
 # Test host key checking
 echo "==> Testing salt-ssh rejects hosts not in known_hosts ..."
-output="$(salt-ssh --out=json "${SSH_NEW_HOST}" test.ping 2>&1 || true)"
-echo "${output}"
-grep -qi "host key" <<<"${output}" || error "salt-ssh rejects ${SSH_NEW_HOST} (not in known_hosts)"
-ok "salt-ssh rejects ${SSH_NEW_HOST} (not in known_hosts)"
+check_salt_ssh_fails "${UNKNOWN_HOST_ERROR}" "salt-ssh rejects ${SSH_NEW_HOST} (not in known_hosts)" \
+  "${SSH_NEW_HOST}" test.ping
 
 echo "==> Testing salt-ssh -i accepts and stores new host keys ..."
 output="$(salt-ssh --out=json -i "${SSH_NEW_HOST}" test.ping || error "salt-ssh -i ${SSH_NEW_HOST} test.ping")"
@@ -197,6 +227,35 @@ check_equal "$(jq -rM --arg id "${SSH_NEW_HOST}" '.[$id]' <<<"${output}")" true 
 docker-exec-as-salt ssh-keygen -F "${SSH_NEW_HOST}" -f "${KNOWN_HOSTS_FILE}" >/dev/null ||
   error "${SSH_NEW_HOST} host key stored in ${KNOWN_HOSTS_FILE}"
 ok "${SSH_NEW_HOST} host key stored in ${KNOWN_HOSTS_FILE}"
+
+# Documented exception: password-only roster entries (priv: null) connect with StrictHostKeyChecking=no,
+# so they accept and store the host key of hosts that are not in known_hosts yet, without -i.
+echo "==> Testing password-only roster entries accept hosts not in known_hosts ..."
+output="$(salt-ssh --out=json --passwd "${SSH_TARGET_PASSWORD}" salt-ssh-password test.ping ||
+  error "salt-ssh salt-ssh-password test.ping")"
+check_equal "$(jq -rM '."salt-ssh-password"' <<<"${output}")" true "password-only roster entry accepts ${SSH_PASSWORD_HOST}"
+docker-exec-as-salt ssh-keygen -F "${SSH_PASSWORD_HOST}" -f "${KNOWN_HOSTS_FILE}" >/dev/null ||
+  error "${SSH_PASSWORD_HOST} host key stored in ${KNOWN_HOSTS_FILE}"
+ok "${SSH_PASSWORD_HOST} host key stored in ${KNOWN_HOSTS_FILE}"
+
+# Pin a different key for SSH_CHANGED_HOST, so the target looks like a host whose key has changed
+echo "==> Pinning a different host key for ${SSH_CHANGED_HOST} ..."
+# shellcheck disable=SC2016
+docker-exec-as-salt bash -c 'ssh-keygen -q -t ed25519 -N "" -f /tmp/changed_host_key &&
+  echo "$1 $(cut -d " " -f 1,2 /tmp/changed_host_key.pub)" >>"$2"' _ "${SSH_CHANGED_HOST}" "${KNOWN_HOSTS_FILE}" ||
+  error "different host key pinned for ${SSH_CHANGED_HOST}"
+ok "different host key pinned for ${SSH_CHANGED_HOST}"
+
+echo "==> Testing salt-ssh rejects hosts whose key has changed ..."
+check_salt_ssh_fails "Host key verification failed" "salt-ssh rejects ${SSH_CHANGED_HOST} (host key changed)" \
+  salt-ssh-changed test.ping
+
+# Password-only roster entries connect with StrictHostKeyChecking=no, but OpenSSH disables password
+# authentication when the host key has changed, so the password is not sent.
+echo "==> Testing password-only roster entries do not send the password when the host key has changed ..."
+check_salt_ssh_fails "Password authentication is disabled" \
+  "password-only roster entry does not send the password to ${SSH_CHANGED_HOST} (host key changed)" \
+  --passwd "${SSH_TARGET_PASSWORD}" salt-ssh-changed-password test.ping
 
 # Test state.apply with pillar data
 echo "==> Testing salt-ssh state.apply with pillar data ..."
@@ -272,10 +331,8 @@ check_equal "${ROSTERS}" "[\"${CUSTOM_SALT_SSH_DIR}/roster.d\"]" "rosters with c
 # The default known_hosts file (in the keys volume) already has the target from the first container,
 # so the target is only rejected if salt-ssh uses the known_hosts file set through ssh_options.
 echo "==> Testing salt-ssh uses UserKnownHostsFile from ssh_options ..."
-output="$(salt-ssh --out=json salt-ssh-root test.ping 2>&1 || true)"
-echo "${output}"
-grep -qi "host key" <<<"${output}" || error "salt-ssh uses UserKnownHostsFile from ssh_options"
-ok "salt-ssh uses UserKnownHostsFile from ssh_options"
+check_salt_ssh_fails "${UNKNOWN_HOST_ERROR}" "salt-ssh uses UserKnownHostsFile from ssh_options" \
+  salt-ssh-root test.ping
 
 echo "==> Testing salt-ssh test.ping with previous key (root) ..."
 output="$(salt-ssh --out=json -i salt-ssh-root test.ping || error "salt-ssh test.ping with previous key (root)")"
