@@ -534,53 +534,15 @@ docker run --name salt_master --detach \
 
 ### Salt SSH
 
-This image includes [`salt-ssh`](https://docs.saltproject.io/en/latest/topics/ssh/index.html), which allows you to run
-Salt commands and states on hosts over SSH, without installing `salt-minion` on them.
-Target hosts need an SSH server and `python3`. If you use `sudo: True`, they also need `sudo` with
-passwordless (`NOPASSWD`) access for the SSH user.
+This image includes [`salt-ssh`](https://docs.saltproject.io/en/latest/topics/ssh/index.html), to run Salt commands
+and states on hosts over SSH, without installing `salt-minion` on them. Target hosts only need an SSH server and
+`python3` (and passwordless `sudo` if you use `sudo: True`).
 
-#### Salt SSH Configuration
-
-`salt-ssh` reads the `salt-master` configuration, so the best way to configure it is to add an `ssh.conf` file
-inside your `config/` directory (see [Custom Configuration](#custom-configuration)):
+Add your hosts to a [roster file](https://docs.saltproject.io/en/latest/topics/ssh/roster.html) named `roster`,
+inside a `salt-ssh/` directory:
 
 ```yml
-# config/ssh.conf
-# Default settings inherited by all roster entries
-roster_defaults:
-  user: deploy
-  sudo: True
-
-# Number of seconds to wait for a response when establishing an SSH connection
-ssh_timeout: 30
-```
-
-Settings in this file take precedence over the defaults set by this image.
-All the available options are listed in the
-[master configuration reference](https://docs.saltproject.io/en/latest/ref/configuration/master.html#salt-ssh-configuration).
-
-> [!WARNING]
-> Overriding `roster_file` or `rosters` is discouraged.
-> This image expects the roster file and the additional roster files inside the salt-ssh directory
-> (see [Roster](#roster)). If you change them, the container may not work as expected.
-> To use a different directory, set `SALT_SSH_DIR` instead.
-
-#### Roster
-
-`salt-ssh` reads its targets from a [roster file](https://docs.saltproject.io/en/latest/topics/ssh/roster.html).
-This image looks for it inside the salt-ssh directory, `/home/salt/data/salt-ssh/`, so you have to mount a directory
-with your `roster` file there:
-
-```sh
-# salt-ssh directory content
-salt-ssh
-├── roster
-└── roster.d          # Optional, see "Using salt-ssh from Salt API"
-    └── production
-```
-
-```yml
-# roster
+# salt-ssh/roster
 web1:
   host: 192.168.1.10
   user: root
@@ -590,6 +552,8 @@ db1:
   user: deploy
   sudo: True
 ```
+
+Mount this directory into `/home/salt/data/salt-ssh/` (you can change this path with `SALT_SSH_DIR`):
 
 ```sh
 docker run --name salt_master --detach \
@@ -601,98 +565,67 @@ docker run --name salt_master --detach \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
-You can change the location of the salt-ssh directory with the `SALT_SSH_DIR` environment variable.
-
-The roster files must be readable by the `salt` user inside the container (see [Host Mapping](#host-mapping)).
-
-#### SSH Keys
-
-The first time `salt-ssh` runs, it generates an RSA key pair at `keys/ssh/salt-ssh.rsa` and `keys/ssh/salt-ssh.rsa.pub`.
-Since it is stored inside the keys volume, the same key is reused after restarting or upgrading the container.
-
-> [!NOTE]
-> If you don't mount the whole keys volume (see [Working with Secrets](#working-with-secrets)),
-> mount `keys/ssh/` as well. Otherwise, the salt-ssh key and the known host keys (see [Host Keys](#host-keys))
-> are lost when the container is recreated.
-
-To install the public key on a new host, run `salt-ssh` with `--key-deploy`.
-It will ask for the host password once and add the key to the `authorized_keys` file of the roster user.
-`-i` accepts the host key of the new host (see [Host Keys](#host-keys)):
+The first time, deploy the `salt-ssh` key to each host. It asks for the host password once, and `-i` accepts the
+host key (see [Host Keys](#host-keys)):
 
 ```sh
 docker exec -it --user salt salt_master salt-ssh -i --key-deploy --askpass web1 test.ping
 ```
 
-From then on, `salt-ssh` authenticates with the key:
+From then on, `salt-ssh` authenticates with its key:
 
 ```sh
 docker exec --user salt salt_master salt-ssh '*' test.ping
 docker exec --user salt salt_master salt-ssh web1 state.apply
 ```
 
-You can also distribute `keys/ssh/salt-ssh.rsa.pub` to your hosts by other means once it has been generated.
+> [!IMPORTANT]
+> Always run `salt-ssh` as the `salt` user (`docker exec --user salt`), so the files it creates are owned by `salt`.
+> Its key (`salt-ssh.rsa`) and the known host keys (`known_hosts`) are stored in `keys/ssh/`:
+> keep this directory in a volume to reuse them when the container is recreated.
 
 `salt-ssh` logs are written to `logs/salt/ssh`.
 
-> [!IMPORTANT]
-> Always run `salt-ssh` as the `salt` user (`docker exec --user salt`).
-> `salt-ssh` does not drop privileges, so running it as `root` creates the key and cache files owned by `root`,
-> and neither later runs as `salt` nor `salt-api` will be able to use them.
->
-> Note that `--user` is a `docker exec` option here. The `salt-ssh` `--user` option sets the SSH user instead.
+#### Salt SSH Configuration
+
+`salt-ssh` reads the `salt-master` configuration, so you can configure it with an `ssh.conf` file inside your `config/`
+directory (see [Custom Configuration](#custom-configuration)). For example, to set default values for all the hosts:
+
+```yml
+# config/ssh.conf
+roster_defaults:
+  user: deploy
+  sudo: True
+```
+
+All the options are listed in the
+[master configuration reference](https://docs.saltproject.io/en/latest/ref/configuration/master.html#salt-ssh-configuration).
+Don't override `roster_file` or `rosters`: set `SALT_SSH_DIR` to change their location instead.
 
 #### Host Keys
 
-When `salt-ssh` connects with its key (the default), it checks the host key of every target:
-hosts that are not known yet are not accepted automatically, and connections to hosts whose key has changed are refused.
-Known host keys are stored in `keys/ssh/known_hosts` (`/home/salt/data/keys/ssh/known_hosts`), next to the salt-ssh key.
-
-When a host is not in `known_hosts` yet, `salt-ssh` fails with:
-
-```text
-The host key needs to be accepted, to auto accept run salt-ssh with the -i flag
-```
-
-To accept and store its host key, run `salt-ssh` once with `-i` (`--ignore-host-keys`):
+`salt-ssh` checks the host keys of the targets against `keys/ssh/known_hosts`, so the first connection to a host fails
+with `The host key needs to be accepted`. Run `salt-ssh` once with `-i` (`--ignore-host-keys`) to accept and store it:
 
 ```sh
 docker exec --user salt salt_master salt-ssh -i web1 test.ping
 ```
 
-To avoid trusting the first connection, add the host keys to `known_hosts` beforehand.
-`ssh-keyscan` cannot verify the keys it gets, so scan the same `host` used in the roster into a temporary file
-(add `-p` if it listens on a different port) and show their fingerprints:
+To verify the host key instead of trusting the first connection, add it to `known_hosts` beforehand: scan the `host`
+of the roster, and compare its fingerprints with the ones of the host, obtained through a trusted channel:
 
 ```sh
 ssh-keyscan 192.168.1.10 > web1.keys
-ssh-keygen -lf web1.keys
-```
-
-Compare these SHA256 fingerprints with the ones of the host, obtained through a trusted channel
-(for example, by running `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` on its console),
-and add the keys only if they match:
-
-```sh
+ssh-keygen -lf web1.keys                # Add the keys only if these fingerprints match
 cat web1.keys >> keys/ssh/known_hosts
 ```
 
 > [!WARNING]
-> `-i` disables host key checking for that run, so it also accepts a host key that has changed.
-> Use it only to connect to a host for the first time.
->
-> `--key-deploy` accepts and stores the host key of a new host without checking it,
-> because `salt-ssh` disables host key checking while it copies the public key.
->
-> Roster entries that only use a password (`passwd` with `priv: null`) are an exception too: `salt-ssh` always
-> connects to them with `StrictHostKeyChecking=no`, so it accepts and stores the key of hosts that are not in
-> `known_hosts` yet, even without `-i`.
->
-> In these cases, if the key of a host that is already in `known_hosts` has changed, OpenSSH disables password
-> authentication, so the password is not sent.
+> `-i`, `--key-deploy` and roster entries that only use a password (`priv: null`) accept new host keys without
+> checking them, and `-i` also accepts keys that have changed. Use `-i` only for the first connection to a host.
 
-To keep `known_hosts` somewhere else, for example next to your roster files to keep them under version control,
-set `UserKnownHostsFile` through `ssh_options` in your `config/ssh.conf` file
-(see [Salt SSH Configuration](#salt-ssh-configuration)):
+To store `known_hosts` somewhere else, set `UserKnownHostsFile` in `ssh_options` (roster entries with their own
+`ssh_options` replace this list). The file only needs to be writable to add new host keys:
 
 ```yml
 # config/ssh.conf
@@ -700,47 +633,24 @@ ssh_options:
   - UserKnownHostsFile=/home/salt/data/salt-ssh/known_hosts
 ```
 
-`salt-ssh` passes `ssh_options` to `ssh` as command line options, so they take precedence over the default of this image.
-Roster entries with their own `ssh_options` replace this list, so add `UserKnownHostsFile` to them as well.
-
-> [!IMPORTANT]
-> Write access to `known_hosts` is only needed to add new host keys (with `-i`, `--key-deploy`, or password-only
-> roster entries). Checking the hosts that are already in `known_hosts` works on a read-only file.
-> So, if `known_hosts` already contains all your hosts, verified beforehand, the salt-ssh directory of the example
-> above can stay mounted read-only. Otherwise, it must be writable by the `salt` user.
-
 #### Private Keys from Docker Secrets
 
-Instead of the generated key, you can set a different private key per host with the roster `priv` option.
-For example, to use a private key provided as a Docker secret:
+Instead of the generated key, you can set the private key of a host with the `priv` option of the roster
+(or of `roster_defaults`, for all the hosts). For example, with a Docker secret:
 
 ```yml
-# roster
+# salt-ssh/roster
 web1:
   host: 192.168.1.10
   user: root
   priv: /run/secrets/salt-ssh-key
 ```
 
-To use this key for all hosts, set `priv` inside `roster_defaults` in your `config/ssh.conf` file instead
-(see [Salt SSH Configuration](#salt-ssh-configuration)).
-
 ```yml
 # compose.yml
 services:
   salt-master:
     image: ghcr.io/cdalvaro/docker-salt-master:latest
-    ports:
-      - "4505:4505"
-      - "4506:4506"
-    volumes:
-      - ./roots:/home/salt/data/srv
-      - ./keys:/home/salt/data/keys
-      - ./logs:/home/salt/data/logs
-      - ./salt-ssh:/home/salt/data/salt-ssh:ro
-    environment:
-      PUID: 1000 # uid of the owner of ./secrets/salt-ssh-key
-      PGID: 1000
     secrets:
       - salt-ssh-key
 
@@ -749,37 +659,12 @@ secrets:
     file: ./secrets/salt-ssh-key
 ```
 
-> [!IMPORTANT]
-> Docker Compose bind-mounts file-based secrets with the same owner and permissions they have on the host.
-> The `uid`, `gid` and `mode` options
-> [are ignored](https://docs.docker.com/reference/compose-file/services/#secrets) for this kind of secrets.
->
-> `ssh` ignores private keys that are owned by the current user and accessible by group or others.
-> So the key file on the host must be owned by the user set in `PUID` and have `600` permissions:
->
-> ```sh
-> chmod 600 secrets/salt-ssh-key
-> ```
-
-`--key-deploy` looks for the public key at `<priv>.pub`, so add the public key of this key pair to the
-`authorized_keys` file of your hosts beforehand.
+Docker Compose mounts the key with the same owner and permissions it has on the host, so it must be owned by the user
+set in `PUID` and have `600` permissions. Add its public key to the `authorized_keys` file of your hosts beforehand.
 
 #### Using salt-ssh from Salt API
 
-Additional roster files can be placed inside the `roster.d/` directory of the salt-ssh directory
-(`/home/salt/data/salt-ssh/roster.d/` by default).
-
-In normal [`salt-api`](#salt-api) `client=ssh` use, `roster_file=production` selects `roster.d/production`.
-If `roster_file` is not set, the main roster file is used. The `salt-ssh` command line uses the main
-roster file unless you pass `--roster-file`.
-
-> [!WARNING]
-> In Salt 3008.2, `roster.d/` is not an access-control boundary for `client=ssh`. An authenticated
-> API user authorized to use this client can provide a `roster_file` path outside that directory if
-> the file is readable by Salt. Enable the `ssh` API client only for trusted users; do not rely on
-> roster filenames to restrict their access.
-
-To use it, add `ssh` to the enabled client interfaces in your salt-api configuration:
+To run `salt-ssh` through [`salt-api`](#salt-api), enable its `ssh` client:
 
 ```yml
 # config/salt-api.conf
@@ -788,7 +673,8 @@ netapi_enable_clients:
   - ssh
 ```
 
-For example, to run `test.ping` on every host defined in `roster.d/production`:
+Requests use the main roster, or a roster of `salt-ssh/roster.d/` set with `roster_file`.
+For example, to run `test.ping` on every host of `roster.d/production`:
 
 ```sh
 curl -sSk https://localhost:8000/run \
@@ -802,83 +688,42 @@ curl -sSk https://localhost:8000/run \
     -d eauth=pam
 ```
 
-The hosts must already be in `known_hosts`. Accept new hosts first with `salt-ssh -i` (see [Host Keys](#host-keys)).
+The hosts must already be in `known_hosts`.
+
+> [!WARNING]
+> `roster.d/` does not restrict the rosters that an API user can use. Enable the `ssh` client only for trusted users.
 
 #### Targets with Other Python Versions
 
-`salt-ssh` sends a Salt bundle (the _thin_) with the Python modules of `salt-master` to the targets,
-and some of them may not work with older Python versions. For these targets, you can use
-[`ssh_ext_alternatives`](https://docs.saltproject.io/en/latest/topics/ssh/ssh_ext_alternatives.html)
-to send these modules installed for their Python version instead.
+`salt-ssh` sends the Python modules of `salt-master` to the targets, and some of them may not work with older Python
+versions. For these targets, set `SALT_SSH_PYTHON_VERSIONS` with their Python versions (e.g. `3.9`, or `3.9.20` for
+an exact version). When the container starts, it installs them with [`uv`](https://docs.astral.sh/uv/) at
+`/opt/salt-ssh/python<MAJOR.MINOR>`, with the Python modules pinned by the lock files of its Salt version.
 
-Set `SALT_SSH_PYTHON_VERSIONS` with a space-separated list of Python versions (`MAJOR.MINOR`).
-You can also set a patch version (`MAJOR.MINOR.PATCH`) to install that exact version
-(list the available ones with `docker exec salt_master uv python list --all-versions`).
-When the container starts, it installs each version with [`uv`](https://docs.astral.sh/uv/) at
-`/opt/salt-ssh/python<MAJOR.MINOR>`, along with the Python modules that `salt-ssh` sends to the targets,
-pinned with the lock files of the Salt version of `salt-master`. Salt itself is not installed again: `salt-ssh` sends
-the Salt of `salt-master`. The path does not include the patch version (e.g. `3.9.20` is installed at
-`/opt/salt-ssh/python3.9`), because `salt-ssh` only matches the major and minor versions of the targets,
-so each `MAJOR.MINOR` can only be set once.
-
-You can only set the Python versions supported by the Salt version of this image (the ones with a lock file in
-`/opt/salt-ssh/locks`), except the Python version of `salt-master`, whose targets use the default thin.
-All the versions are checked before installing any of them.
-
-```sh
-docker run --name salt_master --detach \
-    --publish 4505:4505 --publish 4506:4506 \
-    --env SALT_SSH_PYTHON_VERSIONS="3.9" \
-    --volume $(pwd)/roots/:/home/salt/data/srv/ \
-    --volume $(pwd)/keys/:/home/salt/data/keys/ \
-    --volume $(pwd)/logs/:/home/salt/data/logs/ \
-    --volume $(pwd)/config/:/home/salt/data/config/ \
-    --volume $(pwd)/salt-ssh/:/home/salt/data/salt-ssh/:ro \
-    ghcr.io/cdalvaro/docker-salt-master:latest
-```
-
-Then, add an entry to `ssh_ext_alternatives` in your `config/ssh.conf` file
-(see [Salt SSH Configuration](#salt-ssh-configuration)):
+Then, add an [`ssh_ext_alternatives`](https://docs.saltproject.io/en/latest/topics/ssh/ssh_ext_alternatives.html)
+entry to your `config/ssh.conf` file:
 
 ```yml
 # config/ssh.conf
 ssh_ext_alternatives:
   python3.9: # Namespace, it can be anything
     py-version: [3, 9]
-    path: /opt/salt-ssh/salt
+    path: /opt/salt-ssh/salt # The Salt of salt-master
     auto_detect: True
     py_bin: /opt/salt-ssh/python3.9/bin/python-isolated
 ```
 
-`/opt/salt-ssh/salt` is the Salt package of `salt-master`, so the targets run its same Salt version.
+Keep in mind that:
 
-> [!IMPORTANT]
-> Set `py_bin` to `bin/python-isolated`, not to `bin/python`. `salt-ssh` runs `py_bin` from the directory of the
-> `salt-master` Python modules, so `bin/python` would find those modules instead of the ones installed for this version.
-> `bin/python-isolated` runs Python in isolated mode (`-I`), which leaves the current directory out of `sys.path`.
-
-`salt-ssh` only uses the alternative on targets whose Python version (major and minor) is its `py-version`.
-Other targets use the default thin.
-The thin is cached, so run `salt-ssh` with `--regen-thin` (`-t`) after changing `ssh_ext_alternatives`.
-
-> [!WARNING]
-> `ssh_ext_alternatives` supports several entries, one for each Python version, but a bug in Salt 3008.2 makes
-> `salt-ssh` fail with `AttributeError: 'str' object has no attribute 'append'` when it has more than one.
-> So, although `SALT_SSH_PYTHON_VERSIONS` can install several versions, you can only use one of them in
-> `ssh_ext_alternatives` at a time.
-
-When `salt-ssh` generates the thin, it logs `Could not auto detect file location for module ...` errors for
-`singledispatch`, `singledispatch_helpers`, `ssl_match_hostname` and `backports_abc`. `auto_detect` always looks for
-these legacy modules, but they are not needed with Python 3, so you can ignore these errors.
-
-> [!IMPORTANT]
-> Some of these Python modules include compiled code, built for the architecture and the C library of the
-> `salt-master` container. Use `ssh_ext_alternatives` with targets that have the same architecture and a compatible
-> C library (glibc).
-
-> [!NOTE]
-> Python versions are installed when a new container starts, so it needs access to the Internet.
-> When the container restarts, the environments installed for the same versions are reused.
+- You can only set the Python versions supported by the Salt version of this image (the ones in `/opt/salt-ssh/locks`),
+  except the Python version of `salt-master`.
+- `py_bin` must be `bin/python-isolated`, not `bin/python`, so it doesn't load the Python modules of `salt-master`.
+- Run `salt-ssh` with `--regen-thin` (`-t`) after changing `ssh_ext_alternatives`.
+- Because of a bug in Salt 3008.2, `ssh_ext_alternatives` can only have one entry.
+- The targets must have the same architecture and a compatible C library (glibc) as the `salt-master` container.
+- The container needs access to the Internet the first time it starts, to install the Python versions.
+- You can ignore the `Could not auto detect file location for module ...` errors about legacy modules, like
+  `singledispatch` or `ssl_match_hostname`.
 
 ### Host Mapping
 

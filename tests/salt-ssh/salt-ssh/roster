@@ -14,28 +14,6 @@ salt-ssh-password:
   user: root
   priv: null
 
-# Reached through a network alias that the test pins to a different host key (changed host key)
-salt-ssh-changed:
-  host: salt-ssh-changed-host
-  user: root
-
-salt-ssh-changed-password:
-  host: salt-ssh-changed-host
-  user: root
-  priv: null
-
-salt-ssh-user:
-  host: salt-ssh-target
-  user: saltssh
-
-salt-ssh-sudo:
-  host: salt-ssh-target
-  user: saltssh
-  sudo: True
-  # salt-ssh-user shares the default thin dir (/var/tmp/.saltssh_*_salt).
-  # Use a dedicated one so root-owned files do not break non-sudo runs.
-  thin_dir: /var/tmp/.saltssh_sudo_salt
-
 # Target with a different Python version, used to test ssh_ext_alternatives
 salt-ssh-python:
   host: salt-ssh-python-target

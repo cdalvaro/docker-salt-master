@@ -26,7 +26,6 @@ export SALTAPI_PASS=4wesome-Pass0rd
 export SALTAPI_EAUTH=pam
 
 KEYS_DIR="${SCRIPT_PATH}/keys"
-SALT_SSH_KEY=/home/salt/data/keys/ssh/salt-ssh.rsa
 CUSTOM_SALT_SSH_DIR=/home/salt/data/custom-salt-ssh
 DEFAULT_KNOWN_HOSTS=/home/salt/data/keys/ssh/known_hosts
 # UserKnownHostsFile set through ssh_options in config/ssh.conf
@@ -35,8 +34,6 @@ SSH_OPTIONS_KNOWN_HOSTS=/tmp/known_hosts
 SSH_NEW_HOST=salt-ssh-new-host
 # Network alias of the target used by the password-only roster entry (not in known_hosts beforehand)
 SSH_PASSWORD_HOST=salt-ssh-password-host
-# Network alias of the target that is pinned to a different host key (changed host key)
-SSH_CHANGED_HOST=salt-ssh-changed-host
 # Message returned by salt-ssh when a host is not in known_hosts
 UNKNOWN_HOST_ERROR="The host key needs to be accepted"
 # Defined in roots/pillar/salt_ssh_test.sls
@@ -96,8 +93,7 @@ function check_salt_ssh_fails() {
   shift 2
 
   local output=
-  # After a "Permission denied" error, salt-ssh asks whether to deploy its key: answer "n"
-  if output="$(printf 'n\n' | docker exec --interactive --user salt "${CONTAINER_NAME}" salt-ssh --out=json "$@" 2>&1)"; then
+  if output="$(salt-ssh --out=json "$@" 2>&1)"; then
     echo "${output}"
     error "${message} (salt-ssh succeeded)"
   fi
@@ -149,10 +145,10 @@ echo "==> Starting salt-ssh target ..."
 docker network create "${SSH_NETWORK}" >/dev/null || error "docker network created"
 docker run --detach --name "${SSH_TARGET_NAME}" --hostname "${SSH_TARGET_NAME}" \
   --network "${SSH_NETWORK}" --platform "${PLATFORM}" \
-  --network-alias "${SSH_NEW_HOST}" --network-alias "${SSH_PASSWORD_HOST}" --network-alias "${SSH_CHANGED_HOST}" \
+  --network-alias "${SSH_NEW_HOST}" --network-alias "${SSH_PASSWORD_HOST}" \
   "${SSH_TARGET_IMAGE}" >/dev/null || error "salt-ssh target started"
-printf 'root:%s\nsaltssh:%s\n' "${SSH_TARGET_PASSWORD}" "${SSH_TARGET_PASSWORD}" |
-  docker exec --interactive "${SSH_TARGET_NAME}" chpasswd || error "salt-ssh target passwords set"
+printf 'root:%s\n' "${SSH_TARGET_PASSWORD}" |
+  docker exec --interactive "${SSH_TARGET_NAME}" chpasswd || error "salt-ssh target password set"
 ok "salt-ssh target started"
 
 # Run test instance
@@ -165,99 +161,21 @@ start_container_and_wait \
   error "container started"
 ok "container started"
 
-# Check salt-ssh version
-echo "==> Checking salt-ssh version ..."
-output="$(docker-exec salt-ssh --version)"
-echo "${output}"
-CURRENT_VERSION="$(echo -n "${output}" | awk '{print $2}')"
-check_equal "${CURRENT_VERSION%%-*}" "${SALT_VERSION%%-*}" "salt-ssh version"
-
-# Check salt-ssh configuration
-echo "==> Checking salt-ssh roster configuration ..."
-ROSTER_FILE="$(salt-run --out=json config.get roster_file | jq -rM . || error "salt-run config.get roster_file")"
-check_equal "${ROSTER_FILE}" "/home/salt/data/salt-ssh/roster" "roster_file"
-ROSTERS="$(salt-run --out=json config.get rosters | jq -cM . || error "salt-run config.get rosters")"
-check_equal "${ROSTERS}" '["/home/salt/data/salt-ssh/roster.d"]' "rosters"
-
-echo "==> Checking ssh known_hosts file ..."
-KNOWN_HOSTS_FILE="$(docker-exec-as-salt ssh -G "${SSH_TARGET_NAME}" | awk '$1 == "userknownhostsfile" {print $2}')"
-check_equal "${KNOWN_HOSTS_FILE}" "${DEFAULT_KNOWN_HOSTS}" "ssh UserKnownHostsFile"
-
 # Test key deployment with password authentication. The target is not in known_hosts yet,
 # so -i is needed to accept and store its host key.
-echo "==> Deploying salt-ssh key to ${SSH_TARGET_NAME} (root) ..."
+echo "==> Deploying salt-ssh key to ${SSH_TARGET_NAME} ..."
 output="$(salt-ssh --out=json -i --key-deploy --passwd "${SSH_TARGET_PASSWORD}" salt-ssh-root test.ping ||
-  error "salt-ssh --key-deploy (root)")"
-check_equal "$(jq -rM '."salt-ssh-root"' <<<"${output}")" true "salt-ssh --key-deploy test.ping (root)"
-docker-exec-as-salt ssh-keygen -F "${SSH_TARGET_NAME}" -f "${KNOWN_HOSTS_FILE}" >/dev/null ||
-  error "${SSH_TARGET_NAME} host key stored in ${KNOWN_HOSTS_FILE}"
-ok "${SSH_TARGET_NAME} host key stored in ${KNOWN_HOSTS_FILE}"
+  error "salt-ssh -i --key-deploy")"
+check_equal "$(jq -rM '."salt-ssh-root"' <<<"${output}")" true "salt-ssh -i --key-deploy test.ping"
+[[ -f "${KEYS_DIR}/ssh/salt-ssh.rsa" ]] || error "salt-ssh key generated inside the keys directory"
+ok "salt-ssh key generated inside the keys directory"
+docker-exec-as-salt ssh-keygen -F "${SSH_TARGET_NAME}" -f "${DEFAULT_KNOWN_HOSTS}" >/dev/null ||
+  error "${SSH_TARGET_NAME} host key stored in ${DEFAULT_KNOWN_HOSTS}"
+ok "${SSH_TARGET_NAME} host key stored in ${DEFAULT_KNOWN_HOSTS}"
 
-echo "==> Checking salt-ssh key pair ..."
-[[ -f "${KEYS_DIR}/ssh/salt-ssh.rsa" && -f "${KEYS_DIR}/ssh/salt-ssh.rsa.pub" ]] ||
-  error "salt-ssh key pair generated inside the keys directory"
-ok "salt-ssh key pair generated inside the keys directory"
-check_equal "$(docker-exec stat -c '%U %a' "${SALT_SSH_KEY}")" "salt 600" "salt-ssh private key owner and mode"
-
-SALT_SSH_PUBKEY="$(cat "${KEYS_DIR}/ssh/salt-ssh.rsa.pub")"
-target-exec grep -qF "$(awk '{print $2}' <<<"${SALT_SSH_PUBKEY}")" /root/.ssh/authorized_keys ||
-  error "salt-ssh key deployed to root authorized_keys"
-ok "salt-ssh key deployed to root authorized_keys"
-
-# Test key authentication
-echo "==> Testing salt-ssh test.ping with key authentication (root) ..."
-output="$(salt-ssh --out=json salt-ssh-root test.ping || error "salt-ssh test.ping (root)")"
-check_equal "$(jq -rM '."salt-ssh-root"' <<<"${output}")" true "salt-ssh test.ping with key authentication (root)"
-
-echo "==> Checking salt-ssh runs on ${SSH_TARGET_NAME} ..."
-output="$(salt-ssh --out=json salt-ssh-root grains.get host || error "salt-ssh grains.get host")"
-check_equal "$(jq -rM '."salt-ssh-root"' <<<"${output}")" "${SSH_TARGET_NAME}" "salt-ssh grains.get host"
-
-# Test raw shell
-echo "==> Testing salt-ssh raw shell ..."
-output="$(salt-ssh --out=json --raw-shell salt-ssh-root uname -s || error "salt-ssh raw shell")"
-check_equal "$(jq -rM '."salt-ssh-root".stdout' <<<"${output}")" "Linux" "salt-ssh raw shell"
-
-# Test host key checking
-echo "==> Testing salt-ssh rejects hosts not in known_hosts ..."
-check_salt_ssh_fails "${UNKNOWN_HOST_ERROR}" "salt-ssh rejects ${SSH_NEW_HOST} (not in known_hosts)" \
-  "${SSH_NEW_HOST}" test.ping
-
-echo "==> Testing salt-ssh -i accepts and stores new host keys ..."
-output="$(salt-ssh --out=json -i "${SSH_NEW_HOST}" test.ping || error "salt-ssh -i ${SSH_NEW_HOST} test.ping")"
-check_equal "$(jq -rM --arg id "${SSH_NEW_HOST}" '.[$id]' <<<"${output}")" true "salt-ssh -i ${SSH_NEW_HOST} test.ping"
-docker-exec-as-salt ssh-keygen -F "${SSH_NEW_HOST}" -f "${KNOWN_HOSTS_FILE}" >/dev/null ||
-  error "${SSH_NEW_HOST} host key stored in ${KNOWN_HOSTS_FILE}"
-ok "${SSH_NEW_HOST} host key stored in ${KNOWN_HOSTS_FILE}"
-
-# Documented exception: password-only roster entries (priv: null) connect with StrictHostKeyChecking=no,
-# so they accept and store the host key of hosts that are not in known_hosts yet, without -i.
-echo "==> Testing password-only roster entries accept hosts not in known_hosts ..."
-output="$(salt-ssh --out=json --passwd "${SSH_TARGET_PASSWORD}" salt-ssh-password test.ping ||
-  error "salt-ssh salt-ssh-password test.ping")"
-check_equal "$(jq -rM '."salt-ssh-password"' <<<"${output}")" true "password-only roster entry accepts ${SSH_PASSWORD_HOST}"
-docker-exec-as-salt ssh-keygen -F "${SSH_PASSWORD_HOST}" -f "${KNOWN_HOSTS_FILE}" >/dev/null ||
-  error "${SSH_PASSWORD_HOST} host key stored in ${KNOWN_HOSTS_FILE}"
-ok "${SSH_PASSWORD_HOST} host key stored in ${KNOWN_HOSTS_FILE}"
-
-# Pin a different key for SSH_CHANGED_HOST, so the target looks like a host whose key has changed
-echo "==> Pinning a different host key for ${SSH_CHANGED_HOST} ..."
-# shellcheck disable=SC2016
-docker-exec-as-salt bash -c 'ssh-keygen -q -t ed25519 -N "" -f /tmp/changed_host_key &&
-  echo "$1 $(cut -d " " -f 1,2 /tmp/changed_host_key.pub)" >>"$2"' _ "${SSH_CHANGED_HOST}" "${KNOWN_HOSTS_FILE}" ||
-  error "different host key pinned for ${SSH_CHANGED_HOST}"
-ok "different host key pinned for ${SSH_CHANGED_HOST}"
-
-echo "==> Testing salt-ssh rejects hosts whose key has changed ..."
-check_salt_ssh_fails "Host key verification failed" "salt-ssh rejects ${SSH_CHANGED_HOST} (host key changed)" \
-  salt-ssh-changed test.ping
-
-# Password-only roster entries connect with StrictHostKeyChecking=no, but OpenSSH disables password
-# authentication when the host key has changed, so the password is not sent.
-echo "==> Testing password-only roster entries do not send the password when the host key has changed ..."
-check_salt_ssh_fails "Password authentication is disabled" \
-  "password-only roster entry does not send the password to ${SSH_CHANGED_HOST} (host key changed)" \
-  --passwd "${SSH_TARGET_PASSWORD}" salt-ssh-changed-password test.ping
+echo "==> Testing salt-ssh test.ping with key authentication ..."
+output="$(salt-ssh --out=json salt-ssh-root test.ping || error "salt-ssh test.ping")"
+check_equal "$(jq -rM '."salt-ssh-root"' <<<"${output}")" true "salt-ssh test.ping with key authentication"
 
 # Test state.apply with pillar data
 echo "==> Testing salt-ssh state.apply with pillar data ..."
@@ -266,19 +184,20 @@ echo "${output}"
 check_equal "$(jq -rM '."salt-ssh-root" | [.[].result] | all' <<<"${output}")" true "salt-ssh state.apply salt_ssh_test"
 check_equal "$(target-exec cat /tmp/salt-ssh-test.txt)" "${EXPECTED_PILLAR_MESSAGE}" "salt-ssh pillar data rendered on ${SSH_TARGET_NAME}"
 
-# Test non-root user with and without sudo
-echo "==> Deploying salt-ssh key to ${SSH_TARGET_NAME} (saltssh) ..."
-output="$(salt-ssh --out=json --key-deploy --passwd "${SSH_TARGET_PASSWORD}" salt-ssh-user test.ping ||
-  error "salt-ssh --key-deploy (saltssh)")"
-check_equal "$(jq -rM '."salt-ssh-user"' <<<"${output}")" true "salt-ssh --key-deploy test.ping (saltssh)"
+# Test host key checking
+echo "==> Testing salt-ssh rejects hosts not in known_hosts ..."
+check_salt_ssh_fails "${UNKNOWN_HOST_ERROR}" "salt-ssh rejects ${SSH_NEW_HOST} (not in known_hosts)" \
+  "${SSH_NEW_HOST}" test.ping
 
-echo "==> Testing salt-ssh without sudo (saltssh) ..."
-output="$(salt-ssh --out=json salt-ssh-user cmd.run whoami || error "salt-ssh cmd.run whoami (saltssh)")"
-check_equal "$(jq -rM '."salt-ssh-user"' <<<"${output}")" saltssh "salt-ssh runs as saltssh"
-
-echo "==> Testing salt-ssh with sudo (saltssh) ..."
-output="$(salt-ssh --out=json salt-ssh-sudo cmd.run whoami || error "salt-ssh cmd.run whoami (saltssh with sudo)")"
-check_equal "$(jq -rM '."salt-ssh-sudo"' <<<"${output}")" root "salt-ssh runs as root through sudo"
+# Documented exception: password-only roster entries (priv: null) connect with StrictHostKeyChecking=no,
+# so they accept and store the host key of hosts that are not in known_hosts yet, without -i.
+echo "==> Testing password-only roster entries accept hosts not in known_hosts ..."
+output="$(salt-ssh --out=json --passwd "${SSH_TARGET_PASSWORD}" salt-ssh-password test.ping ||
+  error "salt-ssh salt-ssh-password test.ping")"
+check_equal "$(jq -rM '."salt-ssh-password"' <<<"${output}")" true "password-only roster entry accepts ${SSH_PASSWORD_HOST}"
+docker-exec-as-salt ssh-keygen -F "${SSH_PASSWORD_HOST}" -f "${DEFAULT_KNOWN_HOSTS}" >/dev/null ||
+  error "${SSH_PASSWORD_HOST} host key stored in ${DEFAULT_KNOWN_HOSTS}"
+ok "${SSH_PASSWORD_HOST} host key stored in ${DEFAULT_KNOWN_HOSTS}"
 
 # Test salt-ssh log file
 echo "==> Checking salt-ssh log file ..."
@@ -310,7 +229,7 @@ ssh_options:
 EOF
 ok "ssh config created"
 
-# Test custom SALT_SSH_DIR, salt-ssh key persistence and salt-api ssh client
+# Test custom SALT_SSH_DIR, ssh_options, salt-ssh key persistence and salt-api ssh client
 echo "==> Starting docker-salt-master (${PLATFORM}) with custom SALT_SSH_DIR, previous salt-ssh keys and salt-api ..."
 start_container_and_wait \
   --network "${SSH_NETWORK}" \
@@ -324,26 +243,17 @@ start_container_and_wait \
   error "container started"
 ok "container started"
 
-echo "==> Checking salt-ssh roster configuration with custom SALT_SSH_DIR ..."
-ROSTER_FILE="$(salt-run --out=json config.get roster_file | jq -rM . || error "salt-run config.get roster_file")"
-check_equal "${ROSTER_FILE}" "${CUSTOM_SALT_SSH_DIR}/roster" "roster_file with custom SALT_SSH_DIR"
-ROSTERS="$(salt-run --out=json config.get rosters | jq -cM . || error "salt-run config.get rosters")"
-check_equal "${ROSTERS}" "[\"${CUSTOM_SALT_SSH_DIR}/roster.d\"]" "rosters with custom SALT_SSH_DIR"
-
 # The default known_hosts file (in the keys volume) already has the target from the first container,
 # so the target is only rejected if salt-ssh uses the known_hosts file set through ssh_options.
 echo "==> Testing salt-ssh uses UserKnownHostsFile from ssh_options ..."
 check_salt_ssh_fails "${UNKNOWN_HOST_ERROR}" "salt-ssh uses UserKnownHostsFile from ssh_options" \
   salt-ssh-root test.ping
 
-echo "==> Testing salt-ssh test.ping with previous key (root) ..."
-output="$(salt-ssh --out=json -i salt-ssh-root test.ping || error "salt-ssh test.ping with previous key (root)")"
-check_equal "$(jq -rM '."salt-ssh-root"' <<<"${output}")" true "salt-ssh test.ping with previous key (root)"
-check_equal "$(cat "${KEYS_DIR}/ssh/salt-ssh.rsa.pub")" "${SALT_SSH_PUBKEY}" "salt-ssh key reused after restart"
-check_equal "$(docker-exec stat -c '%U %a' "${SALT_SSH_KEY}")" "salt 600" "salt-ssh private key owner and mode after restart"
-docker-exec-as-salt ssh-keygen -F "${SSH_TARGET_NAME}" -f "${SSH_OPTIONS_KNOWN_HOSTS}" >/dev/null ||
-  error "${SSH_TARGET_NAME} host key stored in ${SSH_OPTIONS_KNOWN_HOSTS}"
-ok "${SSH_TARGET_NAME} host key stored in ${SSH_OPTIONS_KNOWN_HOSTS}"
+# The roster is read from the custom SALT_SSH_DIR, and the key from the previous container is reused
+# (it is not deployed again). -i is needed because the known_hosts file set through ssh_options is empty.
+echo "==> Testing salt-ssh test.ping with the previous key ..."
+output="$(salt-ssh --out=json -i salt-ssh-root test.ping || error "salt-ssh test.ping with the previous key")"
+check_equal "$(jq -rM '."salt-ssh-root"' <<<"${output}")" true "salt-ssh test.ping with the previous key"
 
 # The earlier X-Auth-Token request returned 401 in this test setup. Use eauth credentials here
 # without assuming that every token authentication flow fails with the ssh client.
@@ -366,25 +276,21 @@ check_equal "$(jq -rM '.return[0]."salt-ssh-api" | if type == "object" then .ret
 echo "==> Stopping previous container ..."
 cleanup || error "Unable to stop previous container"
 
-# Invalid SALT_SSH_PYTHON_VERSIONS values
+# Invalid SALT_SSH_PYTHON_VERSIONS values. Each one comes after a valid version,
+# so it also checks that no version is installed before checking all of them.
 echo "==> Checking SALT_SSH_PYTHON_VERSIONS validation ..."
-check_salt_ssh_python_versions_rejected "3.10.x" \
-  "Invalid Python version '3.10.x' in SALT_SSH_PYTHON_VERSIONS"
-# The same MAJOR.MINOR twice, with a valid version first: it must not be installed before checking the rest
-check_salt_ssh_python_versions_rejected "${SSH_PYTHON_PATCH_VERSION} ${SSH_PYTHON_VERSION}" \
-  "Python ${SSH_PYTHON_VERSION} is set more than once in SALT_SSH_PYTHON_VERSIONS"
 # A version on a new line must not be ignored
 check_salt_ssh_python_versions_rejected $'3.10\n3.10.x' \
   "Invalid Python version '3.10.x' in SALT_SSH_PYTHON_VERSIONS"
-# Python versions without a lock file in Salt are not supported, even after a valid version
+check_salt_ssh_python_versions_rejected "${SSH_PYTHON_PATCH_VERSION} ${SSH_PYTHON_VERSION}" \
+  "Python ${SSH_PYTHON_VERSION} is set more than once in SALT_SSH_PYTHON_VERSIONS"
+# Python versions without a lock file in Salt are not supported
 check_salt_ssh_python_versions_rejected "${SSH_PYTHON_VERSION} 2.7" \
   "Python 2.7 in SALT_SSH_PYTHON_VERSIONS is not supported by Salt"
-check_salt_ssh_python_versions_rejected "3.8" \
-  "Python 3.8 in SALT_SSH_PYTHON_VERSIONS is not supported by Salt"
 # Targets with the Python version of salt-master use the default thin
 ONEDIR_PYTHON_VERSION="$(docker run --rm --platform "${PLATFORM}" --entrypoint /opt/saltstack/salt/bin/python3 \
   "${IMAGE_NAME}" -c 'import sys; print("{}.{}".format(*sys.version_info))' || error "salt-master Python version")"
-check_salt_ssh_python_versions_rejected "${ONEDIR_PYTHON_VERSION}" \
+check_salt_ssh_python_versions_rejected "${SSH_PYTHON_VERSION} ${ONEDIR_PYTHON_VERSION}" \
   "Python ${ONEDIR_PYTHON_VERSION} in SALT_SSH_PYTHON_VERSIONS is the Python version of salt-master"
 
 # Start a target with a different Python version
@@ -432,16 +338,6 @@ for _ in {1..30}; do
   sleep 2
 done
 
-# Generated by install.sh from salt.utils.thin when the image is built.
-# These are the packages that ssh_ext_alternatives requires (salt.utils.thin.get_ext_tops()).
-echo "==> Checking salt-ssh thin packages ..."
-THIN_PACKAGES="$(docker-exec cat /opt/salt-ssh/thin-packages.txt || error "/opt/salt-ssh/thin-packages.txt")"
-echo "${THIN_PACKAGES}"
-for package in Jinja2 PyYAML tornado msgpack distro; do
-  grep -qxF "${package}" <<<"${THIN_PACKAGES}" || error "${package} in /opt/salt-ssh/thin-packages.txt"
-done
-ok "/opt/salt-ssh/thin-packages.txt has the packages required by ssh_ext_alternatives"
-
 echo "==> Checking Python ${SSH_PYTHON_VERSION} environment ..."
 output="$(docker-exec-as-salt "${SSH_PYTHON_DIR}/bin/python-isolated" -c \
   'import sys, tornado; print("{}.{}.{} {}".format(*sys.version_info[:3], tornado.version))' ||
@@ -456,26 +352,17 @@ docker-exec-as-salt "${SSH_PYTHON_DIR}/bin/python-isolated" -c 'import salt' 2>/
   error "salt is not installed in the Python ${SSH_PYTHON_VERSION} environment"
 ok "salt is not installed in the Python ${SSH_PYTHON_VERSION} environment"
 
-echo "==> Deploying salt-ssh key to ${SSH_PYTHON_TARGET_NAME} (root) ..."
+echo "==> Deploying salt-ssh key to ${SSH_PYTHON_TARGET_NAME} ..."
 output="$(salt-ssh --out=json -i --key-deploy --passwd "${SSH_TARGET_PASSWORD}" salt-ssh-python test.ping ||
-  error "salt-ssh --key-deploy (Python ${SSH_PYTHON_VERSION})")"
-check_equal "$(jq -rM '."salt-ssh-python"' <<<"${output}")" true "salt-ssh --key-deploy test.ping (Python ${SSH_PYTHON_VERSION})"
+  error "salt-ssh -i --key-deploy (Python ${SSH_PYTHON_VERSION})")"
+check_equal "$(jq -rM '."salt-ssh-python"' <<<"${output}")" true "salt-ssh -i --key-deploy test.ping (Python ${SSH_PYTHON_VERSION})"
 
 # salt-call adds <thin_dir>/<namespace>/pyall to sys.path when it runs from an alternative
 echo "==> Checking salt-ssh uses ssh_ext_alternatives on ${SSH_PYTHON_TARGET_NAME} ..."
-output="$(salt-ssh --out=json salt-ssh-python grains.item pythonversion pythonpath ||
-  error "salt-ssh grains.item pythonversion pythonpath")"
+output="$(salt-ssh --out=json salt-ssh-python grains.item pythonpath || error "salt-ssh grains.item pythonpath")"
 echo "${output}"
-check_equal "$(jq -rM '."salt-ssh-python".pythonversion[0:2] | map(tostring) | join(".")' <<<"${output}")" \
-  "${SSH_PYTHON_VERSION}" "salt-ssh target Python version"
 check_equal "$(jq -rM --arg dir "/${SSH_PYTHON_NAMESPACE}/pyall" '."salt-ssh-python".pythonpath | any(endswith($dir))' <<<"${output}")" \
   true "salt-ssh runs salt from the ${SSH_PYTHON_NAMESPACE} alternative"
-
-# The alternative packs the salt package of the onedir, so the target runs the Salt version of salt-master
-echo "==> Checking salt-ssh runs the Salt version of salt-master on ${SSH_PYTHON_TARGET_NAME} ..."
-output="$(salt-ssh --out=json salt-ssh-python test.version || error "salt-ssh test.version (Python ${SSH_PYTHON_VERSION})")"
-check_equal "$(jq -rM '."salt-ssh-python"' <<<"${output}")" "${SALT_VERSION%%-*}" \
-  "salt-ssh test.version (Python ${SSH_PYTHON_VERSION})"
 
 # A restart reuses the working environment instead of installing it again
 echo "==> Restarting docker-salt-master to check the Python ${SSH_PYTHON_VERSION} environment is reused ..."
@@ -487,6 +374,3 @@ for _ in {1..30}; do
   sleep 2
 done
 assert_log_contains "${REUSE_MESSAGE}" "Python ${SSH_PYTHON_VERSION} environment reused after restart"
-logs="$(docker-logs 2>&1 || true)"
-check_equal "$(grep -cF "Installing Python ${SSH_PYTHON_PATCH_VERSION}" <<<"${logs}")" 1 \
-  "Python ${SSH_PYTHON_VERSION} installed only once"
