@@ -47,6 +47,8 @@ SSH_PYTHON_VERSION=3.10
 # to check that it is honored
 SSH_PYTHON_PATCH_VERSION=3.10.20
 SSH_PYTHON_DIR="/opt/salt-ssh/python${SSH_PYTHON_VERSION}"
+# salt package of the onedir, packed by ssh_ext_alternatives
+SSH_PYTHON_SALT_PATH=/opt/salt-ssh/salt
 SSH_PYTHON_NAMESPACE="python${SSH_PYTHON_VERSION}"
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -371,6 +373,19 @@ check_salt_ssh_python_versions_rejected "3.10.x" \
 # The same MAJOR.MINOR twice, with a valid version first: it must not be installed before checking the rest
 check_salt_ssh_python_versions_rejected "${SSH_PYTHON_PATCH_VERSION} ${SSH_PYTHON_VERSION}" \
   "Python ${SSH_PYTHON_VERSION} is set more than once in SALT_SSH_PYTHON_VERSIONS"
+# A version on a new line must not be ignored
+check_salt_ssh_python_versions_rejected $'3.10\n3.10.x' \
+  "Invalid Python version '3.10.x' in SALT_SSH_PYTHON_VERSIONS"
+# Python versions without a lock file in Salt are not supported, even after a valid version
+check_salt_ssh_python_versions_rejected "${SSH_PYTHON_VERSION} 2.7" \
+  "Python 2.7 in SALT_SSH_PYTHON_VERSIONS is not supported by Salt"
+check_salt_ssh_python_versions_rejected "3.8" \
+  "Python 3.8 in SALT_SSH_PYTHON_VERSIONS is not supported by Salt"
+# Targets with the Python version of salt-master use the default thin
+ONEDIR_PYTHON_VERSION="$(docker run --rm --platform "${PLATFORM}" --entrypoint /opt/saltstack/salt/bin/python3 \
+  "${IMAGE_NAME}" -c 'import sys; print("{}.{}".format(*sys.version_info))' || error "salt-master Python version")"
+check_salt_ssh_python_versions_rejected "${ONEDIR_PYTHON_VERSION}" \
+  "Python ${ONEDIR_PYTHON_VERSION} in SALT_SSH_PYTHON_VERSIONS is the Python version of salt-master"
 
 # Start a target with a different Python version
 echo "==> Building salt-ssh Python ${SSH_PYTHON_VERSION} target image (${PLATFORM}) ..."
@@ -394,7 +409,7 @@ cat >"${SCRIPT_PATH}/config/ssh.conf" <<EOF
 ssh_ext_alternatives:
   ${SSH_PYTHON_NAMESPACE}:
     py-version: [${SSH_PYTHON_VERSION/./, }]
-    path: ${SSH_PYTHON_DIR}/lib/python${SSH_PYTHON_VERSION}/site-packages/salt
+    path: ${SSH_PYTHON_SALT_PATH}
     auto_detect: True
     py_bin: ${SSH_PYTHON_DIR}/bin/python-isolated
 EOF
@@ -429,9 +444,17 @@ ok "/opt/salt-ssh/thin-packages.txt has the packages required by ssh_ext_alterna
 
 echo "==> Checking Python ${SSH_PYTHON_VERSION} environment ..."
 output="$(docker-exec-as-salt "${SSH_PYTHON_DIR}/bin/python-isolated" -c \
-  'import sys, salt.version; print("{}.{}.{} {}".format(*sys.version_info[:3], salt.version.__version__))' ||
+  'import sys, tornado; print("{}.{}.{} {}".format(*sys.version_info[:3], tornado.version))' ||
   error "Python ${SSH_PYTHON_VERSION} environment")"
-check_equal "${output}" "${SSH_PYTHON_PATCH_VERSION} ${SALT_VERSION%%-*}" "Python ${SSH_PYTHON_VERSION} environment with salt"
+LOCKED_TORNADO_VERSION="$(docker-exec grep -oP '^tornado==\K\S+' "/opt/salt-ssh/locks/${SSH_PYTHON_VERSION}.lock" ||
+  error "tornado in the Python ${SSH_PYTHON_VERSION} lock file of Salt")"
+check_equal "${output}" "${SSH_PYTHON_PATCH_VERSION} ${LOCKED_TORNADO_VERSION}" \
+  "Python ${SSH_PYTHON_VERSION} environment with the packages pinned by the lock file of Salt"
+
+# The onedir is the only Salt installation: the environment only has the packages of the thin
+docker-exec-as-salt "${SSH_PYTHON_DIR}/bin/python-isolated" -c 'import salt' 2>/dev/null &&
+  error "salt is not installed in the Python ${SSH_PYTHON_VERSION} environment"
+ok "salt is not installed in the Python ${SSH_PYTHON_VERSION} environment"
 
 echo "==> Deploying salt-ssh key to ${SSH_PYTHON_TARGET_NAME} (root) ..."
 output="$(salt-ssh --out=json -i --key-deploy --passwd "${SSH_TARGET_PASSWORD}" salt-ssh-python test.ping ||
@@ -447,3 +470,23 @@ check_equal "$(jq -rM '."salt-ssh-python".pythonversion[0:2] | map(tostring) | j
   "${SSH_PYTHON_VERSION}" "salt-ssh target Python version"
 check_equal "$(jq -rM --arg dir "/${SSH_PYTHON_NAMESPACE}/pyall" '."salt-ssh-python".pythonpath | any(endswith($dir))' <<<"${output}")" \
   true "salt-ssh runs salt from the ${SSH_PYTHON_NAMESPACE} alternative"
+
+# The alternative packs the salt package of the onedir, so the target runs the Salt version of salt-master
+echo "==> Checking salt-ssh runs the Salt version of salt-master on ${SSH_PYTHON_TARGET_NAME} ..."
+output="$(salt-ssh --out=json salt-ssh-python test.version || error "salt-ssh test.version (Python ${SSH_PYTHON_VERSION})")"
+check_equal "$(jq -rM '."salt-ssh-python"' <<<"${output}")" "${SALT_VERSION%%-*}" \
+  "salt-ssh test.version (Python ${SSH_PYTHON_VERSION})"
+
+# A restart reuses the working environment instead of installing it again
+echo "==> Restarting docker-salt-master to check the Python ${SSH_PYTHON_VERSION} environment is reused ..."
+docker restart "${CONTAINER_NAME}" >/dev/null || error "container restarted"
+REUSE_MESSAGE="Using the existing Python ${SSH_PYTHON_PATCH_VERSION} environment"
+for _ in {1..30}; do
+  logs="$(docker-logs 2>&1 || true)"
+  grep -qF "${REUSE_MESSAGE}" <<<"${logs}" && break
+  sleep 2
+done
+assert_log_contains "${REUSE_MESSAGE}" "Python ${SSH_PYTHON_VERSION} environment reused after restart"
+logs="$(docker-logs 2>&1 || true)"
+check_equal "$(grep -cF "Installing Python ${SSH_PYTHON_PATCH_VERSION}" <<<"${logs}")" 1 \
+  "Python ${SSH_PYTHON_VERSION} installed only once"

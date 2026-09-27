@@ -786,16 +786,21 @@ Los hosts deben estar ya en `known_hosts`. Acepta antes los hosts nuevos con `sa
 `salt-ssh` envía a los destinos un paquete de Salt (el _thin_) con los módulos de Python de `salt-master`,
 y puede que algunos no funcionen con versiones antiguas de Python. Para estos destinos, puedes usar
 [`ssh_ext_alternatives`](https://docs.saltproject.io/en/latest/topics/ssh/ssh_ext_alternatives.html)
-para enviar en su lugar Salt y sus módulos instalados para su versión de Python.
+para enviar en su lugar esos módulos instalados para su versión de Python.
 
 Establece `SALT_SSH_PYTHON_VERSIONS` con una lista de versiones de Python (`MAJOR.MINOR`) separadas por espacios.
 También puedes indicar una versión patch (`MAJOR.MINOR.PATCH`) para instalar esa versión exacta
 (puedes ver las disponibles con `docker exec salt_master uv python list --all-versions`).
 Al arrancar, el contenedor instala cada versión con [`uv`](https://docs.astral.sh/uv/) en
-`/opt/salt-ssh/python<MAJOR.MINOR>`, junto con la versión de Salt de `salt-master` y los módulos de Python que `salt-ssh`
-envía a los destinos. La ruta no incluye la versión patch (p. ej. `3.9.20` se instala en `/opt/salt-ssh/python3.9`),
-porque `salt-ssh` solo compara las versiones mayor y menor de los destinos, así que cada `MAJOR.MINOR` solo se puede
-indicar una vez.
+`/opt/salt-ssh/python<MAJOR.MINOR>`, junto con los módulos de Python que `salt-ssh` envía a los destinos,
+con las versiones fijadas por los archivos lock de la versión de Salt de `salt-master`. Salt no se vuelve a instalar:
+`salt-ssh` envía el Salt de `salt-master`. La ruta no incluye la versión patch (p. ej. `3.9.20` se instala en
+`/opt/salt-ssh/python3.9`), porque `salt-ssh` solo compara las versiones mayor y menor de los destinos, así que cada
+`MAJOR.MINOR` solo se puede indicar una vez.
+
+Solo puedes indicar versiones de Python soportadas por la versión de Salt de esta imagen (las que tienen un archivo lock
+en `/opt/salt-ssh/locks`), salvo la versión de Python de `salt-master`, cuyos destinos usan el thin por defecto.
+Todas las versiones se comprueban antes de instalar ninguna.
 
 ```sh
 docker run --name salt_master --detach \
@@ -817,10 +822,12 @@ Después, añade una entrada a `ssh_ext_alternatives` en tu archivo `config/ssh.
 ssh_ext_alternatives:
   python3.9: # Espacio de nombres, puede ser cualquiera
     py-version: [3, 9]
-    path: /opt/salt-ssh/python3.9/lib/python3.9/site-packages/salt
+    path: /opt/salt-ssh/salt
     auto_detect: True
     py_bin: /opt/salt-ssh/python3.9/bin/python-isolated
 ```
+
+`/opt/salt-ssh/salt` es el paquete de Salt de `salt-master`, así que los destinos ejecutan su misma versión de Salt.
 
 > [!IMPORTANT]
 > Apunta `py_bin` a `bin/python-isolated`, no a `bin/python`. `salt-ssh` ejecuta `py_bin` desde el directorio de los
@@ -841,9 +848,14 @@ Al generar el thin, `salt-ssh` registra errores `Could not auto detect file loca
 `singledispatch`, `singledispatch_helpers`, `ssl_match_hostname` y `backports_abc`. `auto_detect` siempre busca
 estos módulos antiguos, pero no son necesarios con Python 3, así que puedes ignorar estos errores.
 
+> [!IMPORTANT]
+> Algunos de estos módulos de Python incluyen código compilado para la arquitectura y la biblioteca de C del contenedor
+> de `salt-master`. Usa `ssh_ext_alternatives` con destinos que tengan la misma arquitectura y una biblioteca de C
+> compatible (glibc).
+
 > [!NOTE]
-> Las versiones de Python se instalan cada vez que arranca el contenedor, así que necesita acceso a Internet.
-> Solo puedes usar versiones de Python soportadas por la versión de Salt de esta imagen.
+> Las versiones de Python se instalan al arrancar un contenedor nuevo, así que necesita acceso a Internet.
+> Cuando el contenedor se reinicia, se reutilizan los entornos instalados para las mismas versiones.
 
 ### Mapeo de Host
 

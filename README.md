@@ -809,16 +809,21 @@ The hosts must already be in `known_hosts`. Accept new hosts first with `salt-ss
 `salt-ssh` sends a Salt bundle (the _thin_) with the Python modules of `salt-master` to the targets,
 and some of them may not work with older Python versions. For these targets, you can use
 [`ssh_ext_alternatives`](https://docs.saltproject.io/en/latest/topics/ssh/ssh_ext_alternatives.html)
-to send Salt and its modules installed for their Python version instead.
+to send these modules installed for their Python version instead.
 
 Set `SALT_SSH_PYTHON_VERSIONS` with a space-separated list of Python versions (`MAJOR.MINOR`).
 You can also set a patch version (`MAJOR.MINOR.PATCH`) to install that exact version
 (list the available ones with `docker exec salt_master uv python list --all-versions`).
 When the container starts, it installs each version with [`uv`](https://docs.astral.sh/uv/) at
-`/opt/salt-ssh/python<MAJOR.MINOR>`, along with the Salt version of `salt-master` and the Python modules that `salt-ssh`
-sends to the targets. The path does not include the patch version (e.g. `3.9.20` is installed at
+`/opt/salt-ssh/python<MAJOR.MINOR>`, along with the Python modules that `salt-ssh` sends to the targets,
+pinned with the lock files of the Salt version of `salt-master`. Salt itself is not installed again: `salt-ssh` sends
+the Salt of `salt-master`. The path does not include the patch version (e.g. `3.9.20` is installed at
 `/opt/salt-ssh/python3.9`), because `salt-ssh` only matches the major and minor versions of the targets,
 so each `MAJOR.MINOR` can only be set once.
+
+You can only set the Python versions supported by the Salt version of this image (the ones with a lock file in
+`/opt/salt-ssh/locks`), except the Python version of `salt-master`, whose targets use the default thin.
+All the versions are checked before installing any of them.
 
 ```sh
 docker run --name salt_master --detach \
@@ -840,10 +845,12 @@ Then, add an entry to `ssh_ext_alternatives` in your `config/ssh.conf` file
 ssh_ext_alternatives:
   python3.9: # Namespace, it can be anything
     py-version: [3, 9]
-    path: /opt/salt-ssh/python3.9/lib/python3.9/site-packages/salt
+    path: /opt/salt-ssh/salt
     auto_detect: True
     py_bin: /opt/salt-ssh/python3.9/bin/python-isolated
 ```
+
+`/opt/salt-ssh/salt` is the Salt package of `salt-master`, so the targets run its same Salt version.
 
 > [!IMPORTANT]
 > Set `py_bin` to `bin/python-isolated`, not to `bin/python`. `salt-ssh` runs `py_bin` from the directory of the
@@ -864,9 +871,14 @@ When `salt-ssh` generates the thin, it logs `Could not auto detect file location
 `singledispatch`, `singledispatch_helpers`, `ssl_match_hostname` and `backports_abc`. `auto_detect` always looks for
 these legacy modules, but they are not needed with Python 3, so you can ignore these errors.
 
+> [!IMPORTANT]
+> Some of these Python modules include compiled code, built for the architecture and the C library of the
+> `salt-master` container. Use `ssh_ext_alternatives` with targets that have the same architecture and a compatible
+> C library (glibc).
+
 > [!NOTE]
-> Python versions are installed every time the container starts, so it needs access to the Internet.
-> You can only use Python versions supported by the Salt version of this image.
+> Python versions are installed when a new container starts, so it needs access to the Internet.
+> When the container restarts, the environments installed for the same versions are reused.
 
 ### Host Mapping
 

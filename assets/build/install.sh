@@ -67,6 +67,15 @@ log_info "Getting the Python packages of the salt-ssh thin ..."
 mkdir -p "${SALT_SSH_PYTHON_DIR}"
 /opt/saltstack/salt/bin/python3 "${SALT_BUILD_DIR}/salt-ssh-thin-packages.py" | tee "${SALT_SSH_PYTHON_DIR}/thin-packages.txt"
 
+# Lock files of this Salt version, used to pin those packages.
+# They also set the Python versions that can be used in SALT_SSH_PYTHON_VERSIONS.
+log_info "Getting the Python lock files of Salt ${SALT_VERSION} ..."
+/opt/saltstack/salt/bin/python3 "${SALT_BUILD_DIR}/salt-ssh-locks.py" "${SALT_VERSION}" "${SALT_SSH_PYTHON_DIR}/locks"
+
+# ssh_ext_alternatives packs the salt package of the onedir, which is the only Salt installation of the image
+ln -s "$(/opt/saltstack/salt/bin/python3 -c 'import os, salt; print(os.path.dirname(salt.__file__))')" \
+  "${SALT_SSH_PYTHON_DIR}/salt"
+
 # Configure ssh
 # Host keys are checked (OpenSSH default). {{SALT_KEYS_DIR}} is rendered when the container starts.
 log_info "Configuring ssh ..."
