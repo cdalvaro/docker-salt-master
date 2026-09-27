@@ -350,6 +350,7 @@ function check_equal() {
   local expected="$2"
   local message="$3"
 
+  local output=
   output=$(
     cat <<EOF
 ${message}
