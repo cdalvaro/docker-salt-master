@@ -585,11 +585,17 @@ El usuario `salt` del contenedor debe tener permisos de lectura sobre los archiv
 La primera vez que se ejecuta `salt-ssh`, se genera un par de claves RSA en `keys/ssh/salt-ssh.rsa` y `keys/ssh/salt-ssh.rsa.pub`.
 Como se guarda dentro del volumen de claves, se reutiliza la misma clave al reiniciar o actualizar el contenedor.
 
-Para instalar la clave pública en un host, ejecuta `salt-ssh` con `--key-deploy`.
-Te pedirá una única vez la contraseña del host y añadirá la clave al archivo `authorized_keys` del usuario del roster:
+> [!NOTE]
+> Si no montas el volumen de claves completo (ver [Trabajando con _Secrets_](#trabajando-con-secrets)),
+> monta también `keys/ssh/`. Si no, la clave de salt-ssh y las claves de los hosts conocidos (ver [Claves de Host](#claves-de-host))
+> se pierden al recrear el contenedor.
+
+Para instalar la clave pública en un host nuevo, ejecuta `salt-ssh` con `--key-deploy`.
+Te pedirá una única vez la contraseña del host y añadirá la clave al archivo `authorized_keys` del usuario del roster.
+`-i` acepta la clave del host nuevo (ver [Claves de Host](#claves-de-host)):
 
 ```sh
-docker exec -it --user salt salt_master salt-ssh --key-deploy --askpass web1 test.ping
+docker exec -it --user salt salt_master salt-ssh -i --key-deploy --askpass web1 test.ping
 ```
 
 A partir de ese momento, `salt-ssh` se autentica con la clave:
@@ -611,9 +617,54 @@ Los logs de `salt-ssh` se escriben en `logs/salt/ssh`.
 > Ten en cuenta que aquí `--user` es una opción de `docker exec`. La opción `--user` de `salt-ssh`, en cambio,
 > establece el usuario SSH.
 
-> [!NOTE]
-> El cliente SSH del contenedor está configurado con `StrictHostKeyChecking no` y
-> `UserKnownHostsFile /dev/null`, por lo que no se verifican las claves de los hosts.
+#### Claves de Host
+
+`salt-ssh` comprueba la clave de cada host: los hosts que aún no son conocidos no se aceptan automáticamente,
+y se rechazan las conexiones a hosts cuya clave ha cambiado.
+Las claves de los hosts conocidos se guardan en `keys/ssh/known_hosts` (`/home/salt/data/keys/ssh/known_hosts`), junto a la clave de salt-ssh.
+
+Cuando un host todavía no está en `known_hosts`, `salt-ssh` falla con:
+
+```text
+The host key needs to be accepted, to auto accept run salt-ssh with the -i flag
+```
+
+Para aceptar y guardar su clave, ejecuta `salt-ssh` una vez con `-i` (`--ignore-host-keys`):
+
+```sh
+docker exec --user salt salt_master salt-ssh -i web1 test.ping
+```
+
+También puedes añadir antes las claves de los hosts a `known_hosts`, después de comprobar sus huellas.
+Por ejemplo, con `ssh-keyscan`:
+
+```sh
+ssh-keyscan web1.example.com >> keys/ssh/known_hosts
+```
+
+> [!WARNING]
+> `-i` desactiva la comprobación de las claves de host en esa ejecución, así que también acepta una clave que ha cambiado.
+> Úsalo solo para conectar con un host por primera vez.
+>
+> `--key-deploy` acepta y guarda la clave de un host nuevo sin comprobarla,
+> porque `salt-ssh` desactiva la comprobación de las claves de host mientras copia la clave pública.
+
+Para guardar `known_hosts` en otro sitio, por ejemplo junto a tus archivos roster para tenerlos bajo control de versiones,
+establece `UserKnownHostsFile` mediante `ssh_options` en tu archivo `config/ssh.conf`
+(ver [Configuración de Salt SSH](#configuración-de-salt-ssh)):
+
+```yml
+# config/ssh.conf
+ssh_options:
+  - UserKnownHostsFile=/home/salt/data/salt-ssh/known_hosts
+```
+
+`salt-ssh` pasa `ssh_options` a `ssh` como opciones de línea de comandos, así que tienen preferencia sobre el valor por defecto de esta imagen.
+Las entradas del roster que definen su propio `ssh_options` sustituyen esta lista, así que añade también `UserKnownHostsFile` en ellas.
+
+> [!IMPORTANT]
+> El usuario `salt` debe poder escribir en el directorio del nuevo archivo `known_hosts` para guardar las claves de hosts nuevos.
+> En el ejemplo anterior, el directorio de salt-ssh no debe montarse en solo lectura.
 
 #### Claves Privadas desde _Secrets_ de Docker
 
@@ -707,6 +758,8 @@ curl -sSk https://localhost:8000/run \
     -d password=4wesome-Pass0rd \
     -d eauth=pam
 ```
+
+Los hosts deben estar ya en `known_hosts`. Acepta antes los hosts nuevos con `salt-ssh -i` (ver [Claves de Host](#claves-de-host)).
 
 ### Mapeo de Host
 

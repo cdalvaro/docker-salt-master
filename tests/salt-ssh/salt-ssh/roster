@@ -2,6 +2,11 @@ salt-ssh-root:
   host: salt-ssh-target
   user: root
 
+# Same target as salt-ssh-root, reached through a network alias that is not in known_hosts
+salt-ssh-new-host:
+  host: salt-ssh-new-host
+  user: root
+
 salt-ssh-user:
   host: salt-ssh-target
   user: saltssh

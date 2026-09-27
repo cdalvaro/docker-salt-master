@@ -610,11 +610,17 @@ The roster files must be readable by the `salt` user inside the container (see [
 The first time `salt-ssh` runs, it generates an RSA key pair at `keys/ssh/salt-ssh.rsa` and `keys/ssh/salt-ssh.rsa.pub`.
 Since it is stored inside the keys volume, the same key is reused after restarting or upgrading the container.
 
-To install the public key on a host, run `salt-ssh` with `--key-deploy`.
-It will ask for the host password once and add the key to the `authorized_keys` file of the roster user:
+> [!NOTE]
+> If you don't mount the whole keys volume (see [Working with Secrets](#working-with-secrets)),
+> mount `keys/ssh/` as well. Otherwise, the salt-ssh key and the known host keys (see [Host Keys](#host-keys))
+> are lost when the container is recreated.
+
+To install the public key on a new host, run `salt-ssh` with `--key-deploy`.
+It will ask for the host password once and add the key to the `authorized_keys` file of the roster user.
+`-i` accepts the host key of the new host (see [Host Keys](#host-keys)):
 
 ```sh
-docker exec -it --user salt salt_master salt-ssh --key-deploy --askpass web1 test.ping
+docker exec -it --user salt salt_master salt-ssh -i --key-deploy --askpass web1 test.ping
 ```
 
 From then on, `salt-ssh` authenticates with the key:
@@ -635,9 +641,54 @@ You can also distribute `keys/ssh/salt-ssh.rsa.pub` to your hosts by other means
 >
 > Note that `--user` is a `docker exec` option here. The `salt-ssh` `--user` option sets the SSH user instead.
 
-> [!NOTE]
-> The SSH client inside the container is configured with `StrictHostKeyChecking no` and
-> `UserKnownHostsFile /dev/null`, so host keys are not verified.
+#### Host Keys
+
+`salt-ssh` checks the host key of every target: hosts that are not known yet are not accepted automatically,
+and connections to hosts whose key has changed are refused.
+Known host keys are stored in `keys/ssh/known_hosts` (`/home/salt/data/keys/ssh/known_hosts`), next to the salt-ssh key.
+
+When a host is not in `known_hosts` yet, `salt-ssh` fails with:
+
+```text
+The host key needs to be accepted, to auto accept run salt-ssh with the -i flag
+```
+
+To accept and store its host key, run `salt-ssh` once with `-i` (`--ignore-host-keys`):
+
+```sh
+docker exec --user salt salt_master salt-ssh -i web1 test.ping
+```
+
+Alternatively, add the host keys to `known_hosts` beforehand, after checking their fingerprints.
+For example, with `ssh-keyscan`:
+
+```sh
+ssh-keyscan web1.example.com >> keys/ssh/known_hosts
+```
+
+> [!WARNING]
+> `-i` disables host key checking for that run, so it also accepts a host key that has changed.
+> Use it only to connect to a host for the first time.
+>
+> `--key-deploy` accepts and stores the host key of a new host without checking it,
+> because `salt-ssh` disables host key checking while it copies the public key.
+
+To keep `known_hosts` somewhere else, for example next to your roster files to keep them under version control,
+set `UserKnownHostsFile` through `ssh_options` in your `config/ssh.conf` file
+(see [Salt SSH Configuration](#salt-ssh-configuration)):
+
+```yml
+# config/ssh.conf
+ssh_options:
+  - UserKnownHostsFile=/home/salt/data/salt-ssh/known_hosts
+```
+
+`salt-ssh` passes `ssh_options` to `ssh` as command line options, so they take precedence over the default of this image.
+Roster entries with their own `ssh_options` replace this list, so add `UserKnownHostsFile` to them as well.
+
+> [!IMPORTANT]
+> The directory of the new `known_hosts` file must be writable by the `salt` user so that new host keys can be stored.
+> In the example above, the salt-ssh directory must not be mounted read-only.
 
 #### Private Keys from Docker Secrets
 
@@ -731,6 +782,8 @@ curl -sSk https://localhost:8000/run \
     -d password=4wesome-Pass0rd \
     -d eauth=pam
 ```
+
+The hosts must already be in `known_hosts`. Accept new hosts first with `salt-ssh -i` (see [Host Keys](#host-keys)).
 
 ### Host Mapping
 

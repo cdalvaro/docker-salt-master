@@ -63,10 +63,10 @@ salt-pip install pygit2==1.19.2
 salt-pip install python-ldap
 
 # Configure ssh
+# Host keys are checked (OpenSSH default). {{SALT_KEYS_DIR}} is rendered when the container starts.
 log_info "Configuring ssh ..."
-sed -i -e "s|^[# ]*StrictHostKeyChecking.*$|    StrictHostKeyChecking no|" /etc/ssh/ssh_config
 {
-  echo "    UserKnownHostsFile /dev/null"
+  echo "    UserKnownHostsFile {{SALT_KEYS_DIR}}/ssh/known_hosts"
   echo "    LogLevel ERROR"
   echo "#   IdentityFile salt_ssh_key"
 } >>/etc/ssh/ssh_config

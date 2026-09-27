@@ -8,6 +8,7 @@ for the list of changes in SaltStack.
 
 - Add support for `salt-ssh`.
 - Add `SALT_SSH_DIR` environment variable to set the directory with the `salt-ssh` roster file (`roster`) and the additional roster files (`roster.d/`). Default: `/home/salt/data/salt-ssh`.
+- Check SSH host keys: the SSH client no longer sets `StrictHostKeyChecking no`, and known host keys are stored in `${SALT_KEYS_DIR}/ssh/known_hosts` (next to the `salt-ssh` key) instead of `/dev/null`. `UserKnownHostsFile` can be overridden with `ssh_options` in the master configuration.
 
 **3008.2_2**
 

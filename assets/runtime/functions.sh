@@ -583,7 +583,8 @@ function _setup_gpgkeys() {
 function setup_salt_keys() {
   log_info "Setting up salt keys ..."
 
-  mkdir -p "${SALT_KEYS_DIR}/minions"
+  # ssh: salt-ssh key and known_hosts (ssh does not create missing directories for known_hosts)
+  mkdir -p "${SALT_KEYS_DIR}/minions" "${SALT_KEYS_DIR}/ssh"
   find "${SALT_KEYS_DIR}" -type d -exec chown "${SALT_USER}": {} \;
 
   setup_master_keys
@@ -639,6 +640,18 @@ function configure_salt_master() {
     SALT_MASTER_SIGN_KEY_NAME \
     SALT_MASTER_PUBKEY_SIGNATURE \
     SALT_MASTER_USE_PUBKEY_SIGNATURE
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  configure_salt_ssh
+#   DESCRIPTION:  Configure the SSH client used by salt-ssh.
+#----------------------------------------------------------------------------------------------------------------------
+function configure_salt_ssh() {
+  log_info "Configuring salt-ssh ..."
+
+  # Known host keys are stored next to the salt-ssh key (pki_dir/ssh).
+  # It can be overridden with ssh_options in the master configuration.
+  update_template /etc/ssh/ssh_config SALT_KEYS_DIR
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -1092,6 +1105,7 @@ function initialize_system() {
   configure_logrotate
   configure_timezone
   configure_salt_master
+  configure_salt_ssh
   setup_salt_keys
   configure_salt_api
   configure_salt_minion
