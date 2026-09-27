@@ -761,6 +761,70 @@ curl -sSk https://localhost:8000/run \
 
 Los hosts deben estar ya en `known_hosts`. Acepta antes los hosts nuevos con `salt-ssh -i` (ver [Claves de Host](#claves-de-host)).
 
+#### Destinos con Otras Versiones de Python
+
+`salt-ssh` envía a los destinos un paquete de Salt (el _thin_) con los módulos de Python de `salt-master`,
+y puede que algunos no funcionen con versiones antiguas de Python. Para estos destinos, puedes usar
+[`ssh_ext_alternatives`](https://docs.saltproject.io/en/latest/topics/ssh/ssh_ext_alternatives.html)
+para enviar en su lugar Salt y sus módulos instalados para su versión de Python.
+
+Establece `SALT_SSH_PYTHON_VERSIONS` con una lista de versiones de Python (`MAJOR.MINOR`) separadas por espacios.
+También puedes indicar una versión patch (`MAJOR.MINOR.PATCH`) para instalar esa versión exacta
+(puedes ver las disponibles con `docker exec salt_master uv python list --all-versions`).
+Al arrancar, el contenedor instala cada versión con [`uv`](https://docs.astral.sh/uv/) en
+`/opt/salt-ssh/python<MAJOR.MINOR>`, junto con la versión de Salt de `salt-master` y los módulos de Python que `salt-ssh`
+envía a los destinos. La ruta no incluye la versión patch (p. ej. `3.9.20` se instala en `/opt/salt-ssh/python3.9`),
+porque `salt-ssh` solo compara las versiones mayor y menor de los destinos, así que cada `MAJOR.MINOR` solo se puede
+indicar una vez.
+
+```sh
+docker run --name salt_master --detach \
+    --publish 4505:4505 --publish 4506:4506 \
+    --env SALT_SSH_PYTHON_VERSIONS="3.9" \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
+    --volume $(pwd)/config/:/home/salt/data/config/ \
+    --volume $(pwd)/salt-ssh/:/home/salt/data/salt-ssh/:ro \
+    ghcr.io/cdalvaro/docker-salt-master:latest
+```
+
+Después, añade una entrada a `ssh_ext_alternatives` en tu archivo `config/ssh.conf`
+(ver [Configuración de Salt SSH](#configuración-de-salt-ssh)):
+
+```yml
+# config/ssh.conf
+ssh_ext_alternatives:
+  python3.9: # Espacio de nombres, puede ser cualquiera
+    py-version: [3, 9]
+    path: /opt/salt-ssh/python3.9/lib/python3.9/site-packages/salt
+    auto_detect: True
+    py_bin: /opt/salt-ssh/python3.9/bin/python-isolated
+```
+
+> [!IMPORTANT]
+> Apunta `py_bin` a `bin/python-isolated`, no a `bin/python`. `salt-ssh` ejecuta `py_bin` desde el directorio de los
+> módulos de Python de `salt-master`, así que `bin/python` encontraría esos módulos en lugar de los instalados para esta versión.
+> `bin/python-isolated` ejecuta Python en modo aislado (`-I`), que deja el directorio actual fuera de `sys.path`.
+
+`salt-ssh` solo usa la alternativa en los destinos cuya versión de Python (mayor y menor) es su `py-version`.
+El resto de destinos usan el thin por defecto.
+El thin se guarda en caché, así que ejecuta `salt-ssh` con `--regen-thin` (`-t`) después de cambiar `ssh_ext_alternatives`.
+
+> [!WARNING]
+> `ssh_ext_alternatives` admite varias entradas, una por cada versión de Python, pero un bug de Salt 3008.2 hace que
+> `salt-ssh` falle con `AttributeError: 'str' object has no attribute 'append'` cuando tiene más de una.
+> Así que, aunque `SALT_SSH_PYTHON_VERSIONS` puede instalar varias versiones, solo puedes usar una de ellas en
+> `ssh_ext_alternatives` a la vez.
+
+Al generar el thin, `salt-ssh` registra errores `Could not auto detect file location for module ...` para
+`singledispatch`, `singledispatch_helpers`, `ssl_match_hostname` y `backports_abc`. `auto_detect` siempre busca
+estos módulos antiguos, pero no son necesarios con Python 3, así que puedes ignorar estos errores.
+
+> [!NOTE]
+> Las versiones de Python se instalan cada vez que arranca el contenedor, así que necesita acceso a Internet.
+> Solo puedes usar versiones de Python soportadas por la versión de Salt de esta imagen.
+
 ### Mapeo de Host
 
 Por defecto, el contenedor está configurado para ejecutar `salt-master` como usuario y grupo `salt` con `uid` y `gid` `1000`. Desde el host los volúmenes de datos montados se mostrarán con propiedad del _usuario:grupo_ `1000:1000`. Esto tener efectos desfavorables si los ids no coinciden o si los permisos de los archivos montados son muy restrictivos. Especialmente el directorio de claves y sus contenidos.
@@ -1182,6 +1246,7 @@ A continuación puedes encontrar una lista con las opciones disponibles que pued
 | [`SALT_BASE_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#file-roots)                                     | La ruta `base` en `file_roots` para buscar los directorios `salt` y `pillar`. Por defecto: `/home/salt/data/srv`.                                                                                                                                                                                                                                                                                                                                                             |
 | [`SALT_CONFS_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std-conf_master-default_include)               | `salt-master` cargará automáticamente los ficheros de configuración que encuentre en este directorio. Por defecto: `/home/salt/data/config`. Cuando se establece la variable a un valor diferente el valor por defecto, se intentará crear un enlace simbólico apuntando de la variable de entorno a `/home/salt/data/config`. Esto se hace para facilitar que los archivos de configuración puedan usarse en diferentes contenedores refiriéndose todos al mismo directorio. |
 | [`SALT_SSH_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std-conf_master-roster_file)                     | Directorio con el archivo roster de `salt-ssh` (`roster`) y los archivos roster adicionales que usa `salt-api` (`roster.d/`). Por defecto: `/home/salt/data/salt-ssh`.                                                                                                                                                                                                                                                                                                        |
+| `SALT_SSH_PYTHON_VERSIONS`                                                                                                            | Lista de versiones de Python (`MAJOR.MINOR` o `MAJOR.MINOR.PATCH`) separadas por espacios que se instalan con `uv` para `ssh_ext_alternatives` de `salt-ssh`. Ver [Destinos con Otras Versiones de Python](#destinos-con-otras-versiones-de-python). Por defecto: _No establecida_.                                                                                                                                                                                           |
 
 Cualquier parámetro no listado en la tabla anterior y disponible en el siguiente [enlace](https://docs.saltproject.io/en/latest/ref/configuration/examples.html#configuration-examples-master), puede establecerse creando el directorio `config` y añadiendo en él un archivo `.conf` con los parámetros deseados:
 

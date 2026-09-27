@@ -1,6 +1,6 @@
 # Salt SSH Tests
 
-The tests run against an ephemeral SSH target container built from `target/Dockerfile` (Ubuntu with `openssh-server`, `python3` and a `saltssh` user with passwordless sudo). The target and the salt-master share a dedicated Docker network, so the target is reachable by its container name.
+The tests run against ephemeral SSH target containers: one built from `target/Dockerfile` (Ubuntu with `openssh-server`, `python3` and a `saltssh` user with passwordless sudo), and another one built from `target-python/Dockerfile` for the `ssh_ext_alternatives` checks. The targets and the salt-master share a dedicated Docker network, so the targets are reachable by their container names.
 
 Checks:
 
@@ -22,3 +22,10 @@ Checks:
   - The target is rejected even though it is in the default `keys/ssh/known_hosts`, because salt-ssh uses the file set through `ssh_options`.
   - `salt-ssh -i` `test.ping` succeeds without deploying the key again, the public key is unchanged, the private key is still owned by `salt` with mode `600`, and the target host key is stored in `/tmp/known_hosts`.
   - A `client=ssh` request to salt-api's `/run` endpoint, with eauth credentials and `roster_file=api`, reaches `salt-ssh-api`, a target that is only defined in `roster.d/api`.
+
+- **`ssh_ext_alternatives` with `SALT_SSH_PYTHON_VERSIONS`** - Runs only the installation of `SALT_SSH_PYTHON_VERSIONS` in new containers to check its validation. Then, starts a second target built from `target-python/Dockerfile` (`python:3.10-slim` with `openssh-server`), and restarts the container with `SALT_SSH_PYTHON_VERSIONS=3.10.20` (a patch version that is not the latest 3.10) and a `config/ssh.conf` with an `ssh_ext_alternatives` entry for Python 3.10 (`auto_detect` with `/opt/salt-ssh/python3.10/bin/python-isolated` as `py_bin`), and verifies that:
+  - `SALT_SSH_PYTHON_VERSIONS` with an invalid version (`3.10.x`) or with the same `MAJOR.MINOR` twice (`3.10.20 3.10`) is rejected before installing any Python version.
+  - `/opt/salt-ssh/thin-packages.txt`, generated when the image is built, has the packages required by `ssh_ext_alternatives` (`Jinja2`, `PyYAML`, `tornado`, `msgpack` and `distro`).
+  - `/opt/salt-ssh/python3.10/bin/python-isolated` (without the patch version in the path) runs Python 3.10.20 as the `salt` user and imports the Salt version of `salt-master`.
+  - `-i --key-deploy --passwd` `test.ping` succeeds on the Python 3.10 target (`salt-ssh-python`).
+  - `grains.item pythonversion pythonpath` returns Python 3.10, and a `pythonpath` with the `python3.10/pyall` directory of the thin, so salt runs from the alternative instead of the default thin.

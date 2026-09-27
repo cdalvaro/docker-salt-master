@@ -1,3 +1,5 @@
+FROM ghcr.io/astral-sh/uv:0.12.19 AS uv
+
 FROM public.ecr.aws/docker/library/ubuntu:resolute-20260610
 
 ARG SALT_VERSION
@@ -31,6 +33,11 @@ ENV SALT_CONFS_DIR="${SALT_DATA_DIR}/config" \
   SALT_FORMULAS_DIR="${SALT_DATA_DIR}/3pfs" \
   SALT_SSH_DIR="${SALT_DATA_DIR}/salt-ssh"
 
+# Python versions for salt-ssh ssh_ext_alternatives (SALT_SSH_PYTHON_VERSIONS).
+# Python is installed outside /root, so the salt user can run it.
+ENV SALT_SSH_PYTHON_DIR="/opt/salt-ssh" \
+  UV_PYTHON_INSTALL_DIR="/opt/uv/python"
+
 RUN mkdir -p ${SALT_BUILD_DIR}
 WORKDIR ${SALT_BUILD_DIR}
 
@@ -55,6 +62,8 @@ RUN chmod -R +x ${SALT_RUNTIME_DIR}
 
 COPY assets/sbin/* /usr/local/sbin/
 RUN chmod +x /usr/local/sbin/*
+
+COPY --from=uv /uv /usr/local/bin/uv
 
 COPY assets/supervisor/supervisord.conf /etc/supervisor/supervisord.conf
 

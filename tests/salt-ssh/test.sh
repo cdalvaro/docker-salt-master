@@ -17,6 +17,8 @@ export SSH_NETWORK=salt-ssh-test
 export SSH_TARGET_NAME=salt-ssh-target
 export SSH_TARGET_IMAGE=salt-ssh-target:test
 export SSH_TARGET_PASSWORD=S4lt-SSH-t3st
+export SSH_PYTHON_TARGET_NAME=salt-ssh-python-target
+export SSH_PYTHON_TARGET_IMAGE=salt-ssh-python-target:test
 
 export SALTAPI_URL="https://localhost:8000/"
 export SALTAPI_USER=salt_api
@@ -33,16 +35,23 @@ SSH_OPTIONS_KNOWN_HOSTS=/tmp/known_hosts
 SSH_NEW_HOST=salt-ssh-new-host
 # Defined in roots/pillar/salt_ssh_test.sls
 EXPECTED_PILLAR_MESSAGE='Hello from docker-salt-master via salt-ssh'
+# Python version (MAJOR.MINOR) of the target used to test ssh_ext_alternatives
+SSH_PYTHON_VERSION=3.10
+# Python version installed through SALT_SSH_PYTHON_VERSIONS: a patch version that is not the latest 3.10,
+# to check that it is honored
+SSH_PYTHON_PATCH_VERSION=3.10.20
+SSH_PYTHON_DIR="/opt/salt-ssh/python${SSH_PYTHON_VERSION}"
+SSH_PYTHON_NAMESPACE="python${SSH_PYTHON_VERSION}"
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  cleanup_salt_ssh
-#   DESCRIPTION:  Run common cleanup tasks and remove the salt-ssh target container, image and network.
+#   DESCRIPTION:  Run common cleanup tasks and remove the salt-ssh target containers, images and network.
 #----------------------------------------------------------------------------------------------------------------------
 function cleanup_salt_ssh() {
   cleanup
-  echo "  - Removing salt-ssh target ..."
-  docker container rm --force "${SSH_TARGET_NAME}" >/dev/null 2>&1 || true
-  docker image rm --force "${SSH_TARGET_IMAGE}" >/dev/null 2>&1 || true
+  echo "  - Removing salt-ssh targets ..."
+  docker container rm --force "${SSH_TARGET_NAME}" "${SSH_PYTHON_TARGET_NAME}" >/dev/null 2>&1 || true
+  docker image rm --force "${SSH_TARGET_IMAGE}" "${SSH_PYTHON_TARGET_IMAGE}" >/dev/null 2>&1 || true
   docker network rm "${SSH_NETWORK}" >/dev/null 2>&1 || true
 }
 trap cleanup_salt_ssh EXIT
@@ -63,6 +72,33 @@ function salt-ssh() {
 #----------------------------------------------------------------------------------------------------------------------
 function target-exec() {
   docker exec "${SSH_TARGET_NAME}" "$@"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  check_salt_ssh_python_versions_rejected
+#   DESCRIPTION:  Check that the given SALT_SSH_PYTHON_VERSIONS is rejected before installing any Python version.
+#                 Only the installation is run, in a new container, so services are not started.
+#     ARGUMENTS:
+#                 $1 -> The value of SALT_SSH_PYTHON_VERSIONS.
+#                 $2 -> The expected error message.
+#----------------------------------------------------------------------------------------------------------------------
+function check_salt_ssh_python_versions_rejected() {
+  local python_versions="$1"
+  local expected_error="$2"
+  local message="SALT_SSH_PYTHON_VERSIONS='${python_versions}' is rejected before installing any Python version"
+
+  local output=
+  # shellcheck disable=SC2016
+  output="$(docker run --rm --platform "${PLATFORM}" --env SALT_SSH_PYTHON_VERSIONS="${python_versions}" \
+    --entrypoint /bin/bash "${IMAGE_NAME}" \
+    -c 'source "${SALT_RUNTIME_DIR}/functions.sh" && install_salt_ssh_python_versions' 2>&1)" &&
+    error "${message}"
+  echo "${output}"
+
+  if ! grep -qF "${expected_error}" <<<"${output}" || grep -qF "Installing Python" <<<"${output}"; then
+    error "${message}"
+  fi
+  ok "${message}"
 }
 
 # Start from scratch so the salt-ssh key generation and host key checking are actually tested
@@ -266,3 +302,91 @@ echo "${output}"
 # The ssh client may return either the bare value or the full job return
 check_equal "$(jq -rM '.return[0]."salt-ssh-api" | if type == "object" then .return else . end' <<<"${output}")" \
   true "salt-api ssh client test.ping using roster.d/api"
+
+# Stop container
+echo "==> Stopping previous container ..."
+cleanup || error "Unable to stop previous container"
+
+# Invalid SALT_SSH_PYTHON_VERSIONS values
+echo "==> Checking SALT_SSH_PYTHON_VERSIONS validation ..."
+check_salt_ssh_python_versions_rejected "3.10.x" \
+  "Invalid Python version '3.10.x' in SALT_SSH_PYTHON_VERSIONS"
+# The same MAJOR.MINOR twice, with a valid version first: it must not be installed before checking the rest
+check_salt_ssh_python_versions_rejected "${SSH_PYTHON_PATCH_VERSION} ${SSH_PYTHON_VERSION}" \
+  "Python ${SSH_PYTHON_VERSION} is set more than once in SALT_SSH_PYTHON_VERSIONS"
+
+# Start a target with a different Python version
+echo "==> Building salt-ssh Python ${SSH_PYTHON_VERSION} target image (${PLATFORM}) ..."
+docker build --platform "${PLATFORM}" --build-arg PYTHON_VERSION="${SSH_PYTHON_VERSION}" \
+  --tag "${SSH_PYTHON_TARGET_IMAGE}" "${SCRIPT_PATH}/target-python" ||
+  error "salt-ssh Python ${SSH_PYTHON_VERSION} target image built"
+ok "salt-ssh Python ${SSH_PYTHON_VERSION} target image built"
+
+echo "==> Starting salt-ssh Python ${SSH_PYTHON_VERSION} target ..."
+docker run --detach --name "${SSH_PYTHON_TARGET_NAME}" --hostname "${SSH_PYTHON_TARGET_NAME}" \
+  --network "${SSH_NETWORK}" --platform "${PLATFORM}" \
+  "${SSH_PYTHON_TARGET_IMAGE}" >/dev/null || error "salt-ssh Python ${SSH_PYTHON_VERSION} target started"
+printf 'root:%s\n' "${SSH_TARGET_PASSWORD}" |
+  docker exec --interactive "${SSH_PYTHON_TARGET_NAME}" chpasswd ||
+  error "salt-ssh Python ${SSH_PYTHON_VERSION} target password set"
+ok "salt-ssh Python ${SSH_PYTHON_VERSION} target started"
+
+# Use the Python version installed through SALT_SSH_PYTHON_VERSIONS with ssh_ext_alternatives
+echo "==> Creating ssh configuration file with ssh_ext_alternatives ..."
+cat >"${SCRIPT_PATH}/config/ssh.conf" <<EOF
+ssh_ext_alternatives:
+  ${SSH_PYTHON_NAMESPACE}:
+    py-version: [${SSH_PYTHON_VERSION/./, }]
+    path: ${SSH_PYTHON_DIR}/lib/python${SSH_PYTHON_VERSION}/site-packages/salt
+    auto_detect: True
+    py_bin: ${SSH_PYTHON_DIR}/bin/python-isolated
+EOF
+ok "ssh config created"
+
+echo "==> Starting docker-salt-master (${PLATFORM}) with SALT_SSH_PYTHON_VERSIONS=${SSH_PYTHON_PATCH_VERSION} ..."
+start_container_and_wait \
+  --network "${SSH_NETWORK}" \
+  --env SALT_SSH_PYTHON_VERSIONS="${SSH_PYTHON_PATCH_VERSION}" \
+  --volume "${SCRIPT_PATH}/roots":/home/salt/data/srv:ro \
+  --volume "${SCRIPT_PATH}/salt-ssh":/home/salt/data/salt-ssh:ro \
+  --volume "${KEYS_DIR}":/home/salt/data/keys ||
+  error "container started"
+ok "container started"
+
+# Python versions are installed before salt-master starts, and it may take longer than BOOTUP_WAIT_SECONDS
+echo "==> Waiting for Python ${SSH_PYTHON_PATCH_VERSION} to be installed ..."
+for _ in {1..30}; do
+  docker-exec test -x "${SSH_PYTHON_DIR}/bin/python-isolated" && break
+  sleep 2
+done
+
+# Generated by install.sh from salt.utils.thin when the image is built.
+# These are the packages that ssh_ext_alternatives requires (salt.utils.thin.get_ext_tops()).
+echo "==> Checking salt-ssh thin packages ..."
+THIN_PACKAGES="$(docker-exec cat /opt/salt-ssh/thin-packages.txt || error "/opt/salt-ssh/thin-packages.txt")"
+echo "${THIN_PACKAGES}"
+for package in Jinja2 PyYAML tornado msgpack distro; do
+  grep -qxF "${package}" <<<"${THIN_PACKAGES}" || error "${package} in /opt/salt-ssh/thin-packages.txt"
+done
+ok "/opt/salt-ssh/thin-packages.txt has the packages required by ssh_ext_alternatives"
+
+echo "==> Checking Python ${SSH_PYTHON_VERSION} environment ..."
+output="$(docker-exec-as-salt "${SSH_PYTHON_DIR}/bin/python-isolated" -c \
+  'import sys, salt.version; print("{}.{}.{} {}".format(*sys.version_info[:3], salt.version.__version__))' ||
+  error "Python ${SSH_PYTHON_VERSION} environment")"
+check_equal "${output}" "${SSH_PYTHON_PATCH_VERSION} ${SALT_VERSION%%-*}" "Python ${SSH_PYTHON_VERSION} environment with salt"
+
+echo "==> Deploying salt-ssh key to ${SSH_PYTHON_TARGET_NAME} (root) ..."
+output="$(salt-ssh --out=json -i --key-deploy --passwd "${SSH_TARGET_PASSWORD}" salt-ssh-python test.ping ||
+  error "salt-ssh --key-deploy (Python ${SSH_PYTHON_VERSION})")"
+check_equal "$(jq -rM '."salt-ssh-python"' <<<"${output}")" true "salt-ssh --key-deploy test.ping (Python ${SSH_PYTHON_VERSION})"
+
+# salt-call adds <thin_dir>/<namespace>/pyall to sys.path when it runs from an alternative
+echo "==> Checking salt-ssh uses ssh_ext_alternatives on ${SSH_PYTHON_TARGET_NAME} ..."
+output="$(salt-ssh --out=json salt-ssh-python grains.item pythonversion pythonpath ||
+  error "salt-ssh grains.item pythonversion pythonpath")"
+echo "${output}"
+check_equal "$(jq -rM '."salt-ssh-python".pythonversion[0:2] | map(tostring) | join(".")' <<<"${output}")" \
+  "${SSH_PYTHON_VERSION}" "salt-ssh target Python version"
+check_equal "$(jq -rM --arg dir "/${SSH_PYTHON_NAMESPACE}/pyall" '."salt-ssh-python".pythonpath | any(endswith($dir))' <<<"${output}")" \
+  true "salt-ssh runs salt from the ${SSH_PYTHON_NAMESPACE} alternative"

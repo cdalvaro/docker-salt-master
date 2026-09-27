@@ -18,3 +18,8 @@ salt-ssh-sudo:
   # salt-ssh-user shares the default thin dir (/var/tmp/.saltssh_*_salt).
   # Use a dedicated one so root-owned files do not break non-sudo runs.
   thin_dir: /var/tmp/.saltssh_sudo_salt
+
+# Target with a different Python version, used to test ssh_ext_alternatives
+salt-ssh-python:
+  host: salt-ssh-python-target
+  user: root

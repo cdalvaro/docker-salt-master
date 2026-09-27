@@ -9,6 +9,8 @@ for the list of changes in SaltStack.
 - Add support for `salt-ssh`.
 - Add `SALT_SSH_DIR` environment variable to set the directory with the `salt-ssh` roster file (`roster`) and the additional roster files (`roster.d/`). Default: `/home/salt/data/salt-ssh`.
 - Check SSH host keys: the SSH client no longer sets `StrictHostKeyChecking no`, and known host keys are stored in `${SALT_KEYS_DIR}/ssh/known_hosts` (next to the `salt-ssh` key) instead of `/dev/null`. `UserKnownHostsFile` can be overridden with `ssh_options` in the master configuration.
+- Add `uv` `0.12.19`.
+- Add `SALT_SSH_PYTHON_VERSIONS` environment variable to install Python versions with `uv` for `salt-ssh` `ssh_ext_alternatives`. Versions can be set as `MAJOR.MINOR` or `MAJOR.MINOR.PATCH`, and each one is installed at `/opt/salt-ssh/python<MAJOR.MINOR>` with the Salt version of `salt-master`. Use its `bin/python-isolated` as `py_bin`.
 
 **3008.2_2**
 

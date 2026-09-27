@@ -62,6 +62,11 @@ log_info "Installing python packages ..."
 salt-pip install pygit2==1.19.2
 salt-pip install python-ldap
 
+# Python packages that salt-ssh packs into the thin, installed for SALT_SSH_PYTHON_VERSIONS
+log_info "Getting the Python packages of the salt-ssh thin ..."
+mkdir -p "${SALT_SSH_PYTHON_DIR}"
+/opt/saltstack/salt/bin/python3 "${SALT_BUILD_DIR}/salt-ssh-thin-packages.py" | tee "${SALT_SSH_PYTHON_DIR}/thin-packages.txt"
+
 # Configure ssh
 # Host keys are checked (OpenSSH default). {{SALT_KEYS_DIR}} is rendered when the container starts.
 log_info "Configuring ssh ..."
