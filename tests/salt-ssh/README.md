@@ -9,6 +9,7 @@ Checks:
   - `test.ping` succeeds with key authentication only.
   - `state.apply` writes a pillar value to a file on the target.
   - A host that is not in `known_hosts` is rejected (`The host key needs to be accepted`), except for password-only roster entries (`priv: null`), which accept and store its host key (documented exception).
+  - A host whose key in `known_hosts` has changed is rejected (`Host key verification failed`).
   - The salt-ssh log file (`logs/salt/ssh`) is created.
 
 - **Custom `SALT_SSH_DIR`, `ssh_options` and salt-api** - Restarts the container with a custom `SALT_SSH_DIR`, the previous keys directory, `UserKnownHostsFile` set through `ssh_options`, and salt-api with the `ssh` client enabled, and verifies that:

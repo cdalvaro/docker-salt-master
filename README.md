@@ -566,11 +566,15 @@ docker run --name salt_master --detach \
 ```
 
 The first time, deploy the `salt-ssh` key to each host. It asks for the host password once, and `-i` accepts the
-host key (see [Host Keys](#host-keys)):
+host key:
 
 ```sh
 docker exec -it --user salt salt_master salt-ssh -i --key-deploy --askpass web1 test.ping
 ```
+
+This trusts the host key of this first connection without verifying it. To avoid that, add the verified host keys to
+`known_hosts` beforehand (see [Host Keys](#host-keys)) and run this command without `-i`, or add
+`keys/ssh/salt-ssh.rsa.pub` to your hosts by other means.
 
 From then on, `salt-ssh` authenticates with its key:
 
@@ -625,13 +629,16 @@ cat web1.keys >> keys/ssh/known_hosts
 > checking them, and `-i` also accepts keys that have changed. Use `-i` only for the first connection to a host.
 
 To store `known_hosts` somewhere else, set `UserKnownHostsFile` in `ssh_options` (roster entries with their own
-`ssh_options` replace this list). The file only needs to be writable to add new host keys:
+`ssh_options` replace this list). For example, next to your roster:
 
 ```yml
 # config/ssh.conf
 ssh_options:
   - UserKnownHostsFile=/home/salt/data/salt-ssh/known_hosts
 ```
+
+The `salt-ssh/` directory is mounted read-only, so add the verified host keys to this file beforehand:
+`salt-ssh -i` can only store new host keys in a writable file, like the default one in `keys/ssh/`.
 
 #### Private Keys from Docker Secrets
 
@@ -699,6 +706,13 @@ The hosts must already be in `known_hosts`.
 versions. For these targets, set `SALT_SSH_PYTHON_VERSIONS` with their Python versions (e.g. `3.9`, or `3.9.20` for
 an exact version). When the container starts, it installs them with [`uv`](https://docs.astral.sh/uv/) at
 `/opt/salt-ssh/python<MAJOR.MINOR>`, with the Python modules pinned by the lock files of its Salt version.
+
+Add these options to the `docker run` command above, to set the Python versions and to mount your `config/` directory:
+
+```sh
+    --env SALT_SSH_PYTHON_VERSIONS="3.9" \
+    --volume $(pwd)/config/:/home/salt/data/config/ \
+```
 
 Then, add an [`ssh_ext_alternatives`](https://docs.saltproject.io/en/latest/topics/ssh/ssh_ext_alternatives.html)
 entry to your `config/ssh.conf` file:

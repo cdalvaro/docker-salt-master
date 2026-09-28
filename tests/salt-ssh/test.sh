@@ -189,6 +189,15 @@ echo "==> Testing salt-ssh rejects hosts not in known_hosts ..."
 check_salt_ssh_fails "${UNKNOWN_HOST_ERROR}" "salt-ssh rejects ${SSH_NEW_HOST} (not in known_hosts)" \
   "${SSH_NEW_HOST}" test.ping
 
+# Pin a different host key for SSH_NEW_HOST, so it looks like a known host whose key has changed
+echo "==> Testing salt-ssh rejects hosts whose key has changed ..."
+# shellcheck disable=SC2016
+docker-exec-as-salt bash -c 'ssh-keygen -q -t ed25519 -N "" -f /tmp/changed_host_key &&
+  echo "$1 $(cut -d " " -f 1,2 /tmp/changed_host_key.pub)" >>"$2"' _ "${SSH_NEW_HOST}" "${DEFAULT_KNOWN_HOSTS}" ||
+  error "different host key pinned for ${SSH_NEW_HOST}"
+check_salt_ssh_fails "Host key verification failed" "salt-ssh rejects ${SSH_NEW_HOST} (host key changed)" \
+  "${SSH_NEW_HOST}" test.ping
+
 # Documented exception: password-only roster entries (priv: null) connect with StrictHostKeyChecking=no,
 # so they accept and store the host key of hosts that are not in known_hosts yet, without -i.
 echo "==> Testing password-only roster entries accept hosts not in known_hosts ..."

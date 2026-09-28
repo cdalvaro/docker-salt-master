@@ -541,11 +541,15 @@ docker run --name salt_master --detach \
 ```
 
 La primera vez, despliega la clave de `salt-ssh` en cada host. Te pedirá una vez la contraseña del host, y `-i` acepta
-la clave del host (ver [Claves de Host](#claves-de-host)):
+la clave del host:
 
 ```sh
 docker exec -it --user salt salt_master salt-ssh -i --key-deploy --askpass web1 test.ping
 ```
+
+Esto confía en la clave del host de esta primera conexión sin verificarla. Para evitarlo, añade antes las claves
+verificadas de los hosts a `known_hosts` (ver [Claves de Host](#claves-de-host)) y ejecuta este comando sin `-i`, o
+añade `keys/ssh/salt-ssh.rsa.pub` a tus hosts por otros medios.
 
 A partir de ese momento, `salt-ssh` se autentica con su clave:
 
@@ -602,14 +606,17 @@ cat web1.keys >> keys/ssh/known_hosts
 > sin comprobarlas, y `-i` también acepta claves que han cambiado. Usa `-i` solo para la primera conexión con un host.
 
 Para guardar `known_hosts` en otro sitio, establece `UserKnownHostsFile` en `ssh_options` (las entradas del roster con
-su propio `ssh_options` sustituyen esta lista). Solo hace falta poder escribir en el archivo para añadir claves de hosts
-nuevos:
+su propio `ssh_options` sustituyen esta lista). Por ejemplo, junto a tu roster:
 
 ```yml
 # config/ssh.conf
 ssh_options:
   - UserKnownHostsFile=/home/salt/data/salt-ssh/known_hosts
 ```
+
+El directorio `salt-ssh/` se monta en solo lectura, así que añade antes a este archivo las claves verificadas de los
+hosts: `salt-ssh -i` solo puede guardar claves de hosts nuevos en un archivo escribible, como el que se usa por defecto
+en `keys/ssh/`.
 
 #### Claves Privadas desde _Secrets_ de Docker
 
@@ -679,6 +686,14 @@ Los hosts deben estar ya en `known_hosts`.
 antiguas de Python. Para estos destinos, establece `SALT_SSH_PYTHON_VERSIONS` con sus versiones de Python (p. ej.
 `3.9`, o `3.9.20` para una versión exacta). Al arrancar, el contenedor las instala con [`uv`](https://docs.astral.sh/uv/)
 en `/opt/salt-ssh/python<MAJOR.MINOR>`, con los módulos de Python fijados por los archivos lock de su versión de Salt.
+
+Añade estas opciones al comando `docker run` anterior, para indicar las versiones de Python y montar tu directorio
+`config/`:
+
+```sh
+    --env SALT_SSH_PYTHON_VERSIONS="3.9" \
+    --volume $(pwd)/config/:/home/salt/data/config/ \
+```
 
 Después, añade una entrada a
 [`ssh_ext_alternatives`](https://docs.saltproject.io/en/latest/topics/ssh/ssh_ext_alternatives.html)
