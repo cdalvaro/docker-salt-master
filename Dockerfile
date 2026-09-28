@@ -57,11 +57,13 @@ RUN apt-get update \
 COPY assets/build ${SALT_BUILD_DIR}
 RUN bash ${SALT_BUILD_DIR}/install.sh
 
+# COPY keeps the file modes of the build context, which depend on the umask of the host.
+# Modes are set explicitly, so the salt user can always read the runtime files (e.g. config/master.yml).
 COPY assets/runtime ${SALT_RUNTIME_DIR}
-RUN chmod -R +x ${SALT_RUNTIME_DIR}
+RUN chmod -R 755 ${SALT_RUNTIME_DIR}
 
 COPY assets/sbin/* /usr/local/sbin/
-RUN chmod +x /usr/local/sbin/*
+RUN chmod 755 /usr/local/sbin/*
 
 COPY --from=uv /uv /usr/local/bin/uv
 
@@ -73,7 +75,7 @@ RUN rm -rf "${SALT_BUILD_DIR:?}"
 
 # Entrypoint
 COPY entrypoint.sh /sbin/entrypoint.sh
-RUN chmod +x /sbin/entrypoint.sh
+RUN chmod 755 /sbin/entrypoint.sh
 
 # Shared resources
 EXPOSE 4505 4506 8000
