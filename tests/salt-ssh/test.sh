@@ -13,17 +13,17 @@ COMMON_FILE="${SCRIPT_PATH}/../lib/common.sh"
 # shellcheck source=tests/lib/common.sh
 source "${COMMON_FILE}"
 
-export SSH_NETWORK=salt-ssh-test
-export SSH_TARGET_NAME=salt-ssh-target
-export SSH_TARGET_IMAGE=salt-ssh-target:test
-export SSH_TARGET_PASSWORD=S4lt-SSH-t3st
-export SSH_PYTHON_TARGET_NAME=salt-ssh-python-target
-export SSH_PYTHON_TARGET_IMAGE=salt-ssh-python-target:test
+SSH_NETWORK=salt-ssh-test
+SSH_TARGET_NAME=salt-ssh-target
+SSH_TARGET_IMAGE=salt-ssh-target:test
+SSH_TARGET_PASSWORD=S4lt-SSH-t3st
+SSH_PYTHON_TARGET_NAME=salt-ssh-python-target
+SSH_PYTHON_TARGET_IMAGE=salt-ssh-python-target:test
 
-export SALTAPI_URL="https://localhost:8000/"
-export SALTAPI_USER=salt_api
-export SALTAPI_PASS=4wesome-Pass0rd
-export SALTAPI_EAUTH=pam
+SALTAPI_URL="https://localhost:8000/"
+SALTAPI_USER=salt_api
+SALTAPI_PASS=4wesome-Pass0rd
+SALTAPI_EAUTH=pam
 
 KEYS_DIR="${SCRIPT_PATH}/keys"
 CUSTOM_SALT_SSH_DIR=/home/salt/data/custom-salt-ssh
@@ -264,8 +264,7 @@ echo "==> Testing salt-ssh test.ping with the previous key ..."
 output="$(salt-ssh --out=json -i salt-ssh-root test.ping || error "salt-ssh test.ping with the previous key")"
 check_equal "$(jq -rM '."salt-ssh-root"' <<<"${output}")" true "salt-ssh test.ping with the previous key"
 
-# The earlier X-Auth-Token request returned 401 in this test setup. Use eauth credentials here
-# without assuming that every token authentication flow fails with the ssh client.
+# salt-api is called with eauth credentials: in this setup, a token from /login returned 401 with the ssh client.
 echo "==> Testing salt-api ssh client with roster from roster.d ..."
 output="$(curl -sSk "${SALTAPI_URL%/}/run" \
   -H "Accept: application/json" \

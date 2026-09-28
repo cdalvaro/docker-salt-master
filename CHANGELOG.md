@@ -10,7 +10,7 @@ for the list of changes in SaltStack.
 - Add `SALT_SSH_DIR` environment variable to set the directory with the `salt-ssh` roster file (`roster`) and the additional roster files (`roster.d/`). Default: `/home/salt/data/salt-ssh`.
 - Check SSH host keys: the SSH client no longer sets `StrictHostKeyChecking no`, and known host keys are stored in `${SALT_KEYS_DIR}/ssh/known_hosts` (next to the `salt-ssh` key) instead of `/dev/null`. `UserKnownHostsFile` can be overridden with `ssh_options` in the master configuration.
 - Add `uv` `0.12.19`.
-- Add `SALT_SSH_PYTHON_VERSIONS` environment variable to install Python versions with `uv` for `salt-ssh` `ssh_ext_alternatives`. Versions can be set as `MAJOR.MINOR` or `MAJOR.MINOR.PATCH` (only the ones supported by Salt), and each one is installed at `/opt/salt-ssh/python<MAJOR.MINOR>` with the Python modules of the `salt-ssh` thin, pinned with the lock files of Salt. Use `/opt/salt-ssh/salt` (the Salt package of `salt-master`) as `path` and `bin/python-isolated` as `py_bin`.
+- Add `SALT_SSH_PYTHON_VERSIONS` environment variable to install Python versions with `uv` for `salt-ssh` targets with other Python versions (`ssh_ext_alternatives`).
 - Fix the container startup when the image is built from a checkout with a restrictive `umask` (e.g. `027` or `077`): the file modes of the runtime scripts and configuration templates are set explicitly, so the `salt` user can read `master.yml` and `minion.yml`.
 
 **3008.2_2**

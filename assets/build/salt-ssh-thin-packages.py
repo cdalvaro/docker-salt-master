@@ -2,7 +2,7 @@
 Print the Python packages that salt-ssh packs into the thin, to install them for ssh_ext_alternatives.
 
 salt.utils.thin.get_tops_python() (used by auto_detect) returns the thin modules that a Python can import.
-Run with the salt-master Python, they are mapped to the distributions that provide them.
+This script runs with the salt-master Python and maps them to the distributions that provide them.
 """
 
 import importlib.metadata

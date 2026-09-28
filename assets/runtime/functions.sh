@@ -650,8 +650,11 @@ function configure_salt_ssh() {
   log_info "Configuring salt-ssh ..."
 
   # Known host keys are stored next to the salt-ssh key (pki_dir/ssh).
-  # It can be overridden with ssh_options in the master configuration.
+  # This location can be overridden with UserKnownHostsFile in the ssh_options of the master configuration.
   update_template /etc/ssh/ssh_config SALT_KEYS_DIR
+
+  # ssh-copy-id (used by salt-ssh --key-deploy) creates its temporary files under ~/.ssh
+  exec_as_salt mkdir -p -m 700 "${SALT_HOME}/.ssh"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -970,9 +973,6 @@ function initialize_datadir() {
     exit 1
   fi
 
-  # ssh-copy-id (used by salt-ssh --key-deploy) creates its temporary files under ~/.ssh
-  exec_as_salt mkdir -p -m 700 "${SALT_HOME}/.ssh"
-
   # Salt formulas
   if [[ -w "${SALT_FORMULAS_DIR}" ]]; then
     chown -R "${SALT_USER}:${SALT_USER}" "${SALT_FORMULAS_DIR}" || log_error "Unable to change '${SALT_FORMULAS_DIR}' ownership"
@@ -1110,11 +1110,6 @@ function install_salt_ssh_python_versions() {
   local onedir_version
   onedir_version="$(/opt/saltstack/salt/bin/python3 -c 'import sys; print("{}.{}".format(*sys.version_info))')"
 
-  # Python versions supported by this Salt version: the ones with a lock file (see salt-ssh-locks.py)
-  local supported_versions
-  supported_versions="$(for lock_file in "${SALT_SSH_PYTHON_DIR}"/locks/*.lock; do basename "${lock_file}" .lock; done |
-    awk -v onedir="${onedir_version}" '$0 != onedir' | sort -V | xargs)"
-
   # All versions are checked before installing any of them.
   # ssh_ext_alternatives matches the Python version of the targets by MAJOR.MINOR,
   # so there is one environment per MAJOR.MINOR and its path does not include the patch version.
@@ -1132,7 +1127,11 @@ function install_salt_ssh_python_versions() {
       return 1
     fi
 
+    # Python versions supported by this Salt version: the ones with a lock file (see salt-ssh-locks.py)
     if [[ ! -f "${SALT_SSH_PYTHON_DIR}/locks/${minor_version}.lock" ]]; then
+      local supported_versions
+      supported_versions="$(for lock_file in "${SALT_SSH_PYTHON_DIR}"/locks/*.lock; do basename "${lock_file}" .lock; done |
+        awk -v onedir="${onedir_version}" '$0 != onedir' | sort -V | xargs)"
       log_error "Python ${minor_version} in SALT_SSH_PYTHON_VERSIONS is not supported by Salt ${SALT_VERSION}. Supported versions: ${supported_versions}."
       return 1
     fi
@@ -1144,33 +1143,26 @@ function install_salt_ssh_python_versions() {
     minor_versions+=("${minor_version}")
   done
 
-  local i venv_dir lock_file environment_id
+  local i venv_dir lock_file
   for i in "${!python_versions[@]}"; do
     python_version="${python_versions[i]}"
     venv_dir="${SALT_SSH_PYTHON_DIR}/python${minor_versions[i]}"
     lock_file="${SALT_SSH_PYTHON_DIR}/locks/${minor_versions[i]}.lock"
 
-    # A working environment installed for the same Python version, lock file and packages is reused,
-    # so restarting the container neither needs the Internet nor replaces it.
-    environment_id="${python_version} $(cat "${lock_file}" "${SALT_SSH_PYTHON_DIR}/thin-packages.txt" | sha256sum | cut -d ' ' -f 1)"
-    if [[ "$(cat "${venv_dir}/.environment-id" 2>/dev/null)" == "${environment_id}" ]] &&
-      _check_salt_ssh_python_environment "${venv_dir}" 2>/dev/null; then
+    # SALT_SSH_PYTHON_VERSIONS and the lock files can't change in a container, so a working environment is reused
+    # when the container restarts, without the Internet. bin/python-isolated is only created after installing
+    # the packages, so an interrupted installation is never reused.
+    if _check_salt_ssh_python_environment "${venv_dir}" 2>/dev/null; then
       log_info "Using the existing Python ${python_version} environment for salt-ssh at ${venv_dir} ..."
       continue
     fi
 
-    # The previous environment is only removed once the new one works, and it is restored if the installation fails
     log_info "Installing Python ${python_version} for salt-ssh at ${venv_dir} ..."
-    rm -rf "${venv_dir}.previous"
-    [[ ! -e "${venv_dir}" ]] || mv "${venv_dir}" "${venv_dir}.previous"
+    rm -rf "${venv_dir}"
     if ! _create_salt_ssh_python_environment "${venv_dir}" "${python_version}" "${lock_file}"; then
       log_error "Unable to install Python ${python_version} for salt-ssh at ${venv_dir}."
-      rm -rf "${venv_dir}"
-      [[ ! -e "${venv_dir}.previous" ]] || mv "${venv_dir}.previous" "${venv_dir}"
       return 1
     fi
-    echo "${environment_id}" >"${venv_dir}/.environment-id"
-    rm -rf "${venv_dir}.previous"
   done
 }
 
