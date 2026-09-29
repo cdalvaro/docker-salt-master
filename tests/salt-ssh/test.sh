@@ -242,7 +242,7 @@ ok "ssh config created"
 echo "==> Starting docker-salt-master (${PLATFORM}) with custom SALT_SSH_DIR, previous salt-ssh keys and salt-api ..."
 start_container_and_wait \
   --network "${SSH_NETWORK}" \
-  --publish 8000:8000 \
+  --publish 127.0.0.1:8000:8000 \
   --env SALT_API_ENABLED=True \
   --env SALT_API_USER_PASS="${SALTAPI_PASS}" \
   --env SALT_SSH_DIR="${CUSTOM_SALT_SSH_DIR}" \

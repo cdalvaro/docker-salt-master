@@ -21,11 +21,18 @@ start_container_and_wait || error "container started"
 ok "container started"
 
 echo "==> Checking salt-master configuration placeholders ..."
-docker-exec grep -n '{{' /etc/salt/master && error "unrendered placeholders in /etc/salt/master"
+# grep exits with 1 when there are no matches and with >1 on errors (including docker exec failures)
+status=0
+docker-exec grep -n '{{' /etc/salt/master || status=$?
+[[ ${status} -eq 0 ]] && error "unrendered placeholders in /etc/salt/master"
+[[ ${status} -eq 1 ]] || error "unable to check /etc/salt/master (exit code ${status})"
 ok "no unrendered placeholders in /etc/salt/master"
 
 echo "==> Checking salt-minion configuration placeholders ..."
-docker-exec grep -n '{{' /etc/salt/minion && error "unrendered placeholders in /etc/salt/minion"
+status=0
+docker-exec grep -n '{{' /etc/salt/minion || status=$?
+[[ ${status} -eq 0 ]] && error "unrendered placeholders in /etc/salt/minion"
+[[ ${status} -eq 1 ]] || error "unable to check /etc/salt/minion (exit code ${status})"
 ok "no unrendered placeholders in /etc/salt/minion"
 
 # Check salt versions
