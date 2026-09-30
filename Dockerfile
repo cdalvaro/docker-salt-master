@@ -1,6 +1,6 @@
 FROM ghcr.io/astral-sh/uv:0.12.19 AS uv
 
-FROM public.ecr.aws/docker/library/ubuntu:resolute-20260610
+FROM public.ecr.aws/docker/library/ubuntu:resolute-20260912
 
 ARG SALT_VERSION
 ARG BUILD_DATE
@@ -91,7 +91,7 @@ LABEL org.opencontainers.image.vendor="cdalvaro"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 LABEL org.opencontainers.image.version="${IMAGE_VERSION}"
 LABEL org.opencontainers.image.revision="${VCS_REF}"
-LABEL org.opencontainers.image.base.name="public.ecr.aws/docker/library/ubuntu:resolute-20260610"
+LABEL org.opencontainers.image.base.name="public.ecr.aws/docker/library/ubuntu:resolute-20260912"
 LABEL org.opencontainers.image.licenses="MIT"
 
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]

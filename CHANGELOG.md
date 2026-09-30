@@ -12,6 +12,7 @@ for the list of changes in SaltStack.
 - Add `uv` `0.12.19`.
 - Add `SALT_SSH_PYTHON_VERSIONS` environment variable to install Python versions with `uv` for `salt-ssh` targets with other Python versions (`ssh_ext_alternatives`).
 - Fix the container startup when the image is built from a checkout with a restrictive `umask` (e.g. `027` or `077`): the file modes of the runtime scripts and configuration templates are set explicitly, so the `salt` user can read `master.yml` and `minion.yml`.
+- Change Docker base image to `ubuntu:resolute-20260912`.
 
 **3008.2_2**
 
