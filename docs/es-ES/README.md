@@ -295,27 +295,27 @@ services:
       - source: salt-master-key
         target: master.pem
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0400
       - source: salt-master-pub
         target: master.pub
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0644
       - source: salt-master-sign-priv-key
         target: master_sign.pem
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0400
       - source: salt-master-sign-pub-key
         target: master_sign.pub
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0644
       - source: salt-master-signature
         target: master_pubkey_signature
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0644
     environment:
       SALT_MASTER_SIGN_PUBKEY: True
@@ -635,7 +635,7 @@ services:
     secrets:
       - source: salt-ssh-key
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0600
 
 secrets:
@@ -647,7 +647,9 @@ Docker Compose monta la clave con el mismo propietario y los mismos permisos que
 pertenecer al usuario `salt` (`uid` `1000`, o el indicado en `PUID`) y tener permisos `600`. Añade antes su clave
 pública al archivo `authorized_keys` de tus hosts.
 
-Puedes usar el formato de _sintáxis completa_ de secretos para asegurar los permisos correctos.
+Si despliegas el servicio con Docker Swarm (`docker stack deploy`), puedes usar el formato de _sintaxis completa_ de
+secretos para establecer su `uid`, `gid` y `modo` dentro del contenedor. Con `docker compose up` y secretos mediante
+el sistema de ficheros, estas opciones se ignoran; así que hay que establecer los permisos correctos en el host.
 
 #### Usar salt-ssh desde Salt API
 

@@ -306,27 +306,27 @@ services:
       - source: salt-master-key
         target: master.pem
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0400
       - source: salt-master-pub
         target: master.pub
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0644
       - source: salt-master-sign-priv-key
         target: master_sign.pem
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0400
       - source: salt-master-sign-pub-key
         target: master_sign.pub
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0644
       - source: salt-master-signature
         target: master_pubkey_signature
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0644
     environment:
       SALT_MASTER_SIGN_PUBKEY: True
@@ -660,7 +660,7 @@ services:
     secrets:
       - source: salt-ssh-key
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0600
 
 secrets:
@@ -672,7 +672,9 @@ Docker Compose mounts the key with the same owner and permissions it has on the 
 user (`uid` `1000`, or the one set in `PUID`) and have `600` permissions. Add its public key to the `authorized_keys`
 file of your hosts beforehand.
 
-You can use the _long syntax_ format when setting the ssh key secret to ensure the right permissions.
+If you deploy this service with Docker Swarm (`docker stack deploy`), you can use the long secret syntax to set its `uid`,
+`gid`, and `mode` inside the container. With `docker compose up` and a file-backed secret, those settings are ignored;
+set the source file’s ownership and permissions on the host instead.
 
 #### Using salt-ssh from Salt API
 
