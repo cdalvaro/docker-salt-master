@@ -510,11 +510,10 @@ docker run --name salt_master --detach \
 ### Salt SSH
 
 Esta imagen incluye [`salt-ssh`](https://docs.saltproject.io/en/latest/topics/ssh/index.html), para ejecutar comandos
-y estados de Salt en hosts a través de SSH, sin instalar `salt-minion` en ellos. Los hosts de destino solo necesitan un
+y estados de Salt en hosts a través de SSH, sin instalar `salt-minion` en ellos. Los hosts de destino sólo necesitan un
 servidor SSH y `python3` (y `sudo` sin contraseña si usas `sudo: True`).
 
-Añade tus hosts a un [archivo roster](https://docs.saltproject.io/en/latest/topics/ssh/roster.html) llamado `roster`,
-dentro de un directorio `salt-ssh/`:
+Añade tus hosts al [archivo `roster`](https://docs.saltproject.io/en/latest/topics/ssh/roster.html), dentro de un directorio `salt-ssh/`:
 
 ```yml
 # salt-ssh/roster
@@ -541,8 +540,8 @@ docker run --name salt_master --detach \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
-La primera vez, despliega la clave de `salt-ssh` en cada host. Te pedirá una vez la contraseña del host, y `-i` acepta
-la clave del host:
+La primera vez, despliega la clave de `salt-ssh` en cada host. Te pedirá una vez la contraseña del host
+(`-i` acepta la clave del host):
 
 ```sh
 docker exec -it --user salt salt_master salt-ssh -i --key-deploy --askpass web1 test.ping
@@ -615,10 +614,6 @@ ssh_options:
   - UserKnownHostsFile=/home/salt/data/salt-ssh/known_hosts
 ```
 
-El directorio `salt-ssh/` se monta en solo lectura, así que añade antes a este archivo las claves verificadas de los
-hosts: `salt-ssh -i` solo puede guardar claves de hosts nuevos en un archivo con permisos de escritura, como el que
-se usa por defecto en `keys/ssh/`.
-
 #### Claves Privadas desde _Secrets_ de Docker
 
 En lugar de la clave generada, puedes indicar la clave privada de un host con la opción `priv` del roster
@@ -638,7 +633,10 @@ services:
   salt-master:
     image: ghcr.io/cdalvaro/docker-salt-master:latest
     secrets:
-      - salt-ssh-key
+      - source: salt-ssh-key
+        uid: 1000 # Or $PUID if env variable established
+        gid: 1000 # Or $GUID if env variable established
+        mode: 0600
 
 secrets:
   salt-ssh-key:
@@ -648,6 +646,8 @@ secrets:
 Docker Compose monta la clave con el mismo propietario y los mismos permisos que tiene en el host, así que debe
 pertenecer al usuario `salt` (`uid` `1000`, o el indicado en `PUID`) y tener permisos `600`. Añade antes su clave
 pública al archivo `authorized_keys` de tus hosts.
+
+Puedes usar el formato de _sintáxis completa_ de secretos para asegurar los permisos correctos.
 
 #### Usar salt-ssh desde Salt API
 
@@ -703,7 +703,7 @@ en tu archivo `config/ssh.conf`:
 ssh_ext_alternatives:
   python3.9: # Espacio de nombres: cualquier nombre
     py-version: [3, 9]
-    path: /opt/salt-ssh/salt # El paquete salt de salt-master
+    path: /opt/salt-ssh/salt # El paquete salt de salt-master. Es un alias a la instalación 'onedir'.
     auto_detect: True
     py_bin: /opt/salt-ssh/python3.9/bin/python-isolated
 ```
@@ -714,9 +714,6 @@ Ten en cuenta que:
   `/opt/salt-ssh/locks`), salvo la versión de Python de `salt-master`.
 - `py_bin` debe ser `bin/python-isolated`, no `bin/python`, para que no cargue los módulos de Python de `salt-master`.
 - Ejecuta `salt-ssh` con `--regen-thin` (`-t`) después de cambiar `ssh_ext_alternatives`.
-- Por un error de Salt 3008.2, `ssh_ext_alternatives` solo puede tener una entrada.
-- Los destinos deben tener la misma arquitectura que el contenedor de `salt-master` y una biblioteca de C (glibc)
-  compatible.
 - El contenedor necesita acceso a Internet para instalar las versiones de Python cada vez que se crea (al reiniciarlo,
   las reutiliza).
 - Puedes ignorar los errores `Could not auto detect file location for module ...` sobre módulos antiguos, como

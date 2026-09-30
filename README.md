@@ -566,8 +566,8 @@ docker run --name salt_master --detach \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
 
-The first time, deploy the `salt-ssh` key to each host. It asks for the host password once, and `-i` accepts the
-host key:
+The first time, deploy the `salt-ssh` key to each host. It asks for the host password once
+(`-i` accepts the host key):
 
 ```sh
 docker exec -it --user salt salt_master salt-ssh -i --key-deploy --askpass web1 test.ping
@@ -639,9 +639,6 @@ ssh_options:
   - UserKnownHostsFile=/home/salt/data/salt-ssh/known_hosts
 ```
 
-The `salt-ssh/` directory is mounted read-only, so add the verified host keys to this file beforehand:
-`salt-ssh -i` can only store new host keys in a writable file, like the default one in `keys/ssh/`.
-
 #### Private Keys from Docker Secrets
 
 Instead of the generated key, you can set the private key of a host with the `priv` option of the roster
@@ -661,7 +658,10 @@ services:
   salt-master:
     image: ghcr.io/cdalvaro/docker-salt-master:latest
     secrets:
-      - salt-ssh-key
+      - source: salt-ssh-key
+        uid: 1000 # Or $PUID if env variable established
+        gid: 1000 # Or $GUID if env variable established
+        mode: 0600
 
 secrets:
   salt-ssh-key:
@@ -671,6 +671,8 @@ secrets:
 Docker Compose mounts the key with the same owner and permissions it has on the host, so it must be owned by the `salt`
 user (`uid` `1000`, or the one set in `PUID`) and have `600` permissions. Add its public key to the `authorized_keys`
 file of your hosts beforehand.
+
+You can use the _long syntax_ format when setting the ssh key secret to ensure the right permissions.
 
 #### Using salt-ssh from Salt API
 
@@ -725,7 +727,7 @@ entry to your `config/ssh.conf` file:
 ssh_ext_alternatives:
   python3.9: # Namespace: any name
     py-version: [3, 9]
-    path: /opt/salt-ssh/salt # The salt package of salt-master
+    path: /opt/salt-ssh/salt # The salt package of salt-master. It is an alias to the 'onedir' instalation.
     auto_detect: True
     py_bin: /opt/salt-ssh/python3.9/bin/python-isolated
 ```
@@ -736,8 +738,6 @@ Keep in mind that:
   except the Python version of `salt-master`.
 - `py_bin` must be `bin/python-isolated`, not `bin/python`, so it doesn't load the Python modules of `salt-master`.
 - Run `salt-ssh` with `--regen-thin` (`-t`) after changing `ssh_ext_alternatives`.
-- Because of a bug in Salt 3008.2, `ssh_ext_alternatives` can only have one entry.
-- The targets must have the same architecture as the `salt-master` container, and a compatible C library (glibc).
 - The container needs access to the Internet to install the Python versions each time it is created (restarts
   reuse them).
 - You can ignore the `Could not auto detect file location for module ...` errors about legacy modules, like
