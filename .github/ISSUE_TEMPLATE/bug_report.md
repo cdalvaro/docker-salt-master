@@ -31,7 +31,7 @@ The full log with the outputted error.
 
 - Host OS: [e.g. `uname -a`]
 - Docker: [e.g. `docker --version`]
-- Image tag: [e.g. `3008.2_3`, `3007.15`]
+- Image tag: [e.g. `3008.3`, `3007.15`]
 
 **Additional context**
 

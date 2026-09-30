@@ -1,8 +1,13 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3008.2 Release Notes](https://docs.saltproject.io/en/3008/topics/releases/3008.2.html)
+Please refer to the [Salt 3008.3 Release Notes](https://docs.saltproject.io/en/3008/topics/releases/3008.3.html)
 for the list of changes in SaltStack.
+
+**3008.3**
+
+- Update `salt-master` to `3008.3`.
+- Include the Docker image changes introduced in `3007.15`.
 
 **3007.15**
 
