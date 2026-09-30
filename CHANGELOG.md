@@ -4,6 +4,16 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3008.2 Release Notes](https://docs.saltproject.io/en/3008/topics/releases/3008.2.html)
 for the list of changes in SaltStack.
 
+**3008.2_3**
+
+- Add support for `salt-ssh`.
+- Add `SALT_SSH_DIR` environment variable to set the directory with the `salt-ssh` roster file (`roster`) and the additional roster files (`roster.d/`). Default: `/home/salt/data/salt-ssh`.
+- Check SSH host keys: the SSH client no longer sets `StrictHostKeyChecking no`, and known host keys are stored in `${SALT_KEYS_DIR}/ssh/known_hosts` (next to the `salt-ssh` key) instead of `/dev/null`. `UserKnownHostsFile` can be overridden with `ssh_options` in the master configuration.
+- Add `uv` `0.12.19`.
+- Add `SALT_SSH_PYTHON_VERSIONS` environment variable to install Python versions with `uv` for `salt-ssh` targets with other Python versions (`ssh_ext_alternatives`).
+- Fix the container startup when the image is built from a checkout with a restrictive `umask` (e.g. `027` or `077`): the file modes of the runtime scripts and configuration templates are set explicitly, so the `salt` user can read `master.yml` and `minion.yml`.
+- Change Docker base image to `ubuntu:resolute-20260912`.
+
 **3008.2_2**
 
 - Update SaltGUI to version `1.34.0`.

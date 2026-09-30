@@ -210,6 +210,10 @@ jobs:
         if: always()
         run: tests/salt-minion/test.sh
 
+      - name: Execute salt-ssh Tests
+        if: always()
+        run: tests/salt-ssh/test.sh
+
       - name: Execute GitFS Tests
         if: always()
         env:

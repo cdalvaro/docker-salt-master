@@ -1,4 +1,6 @@
-FROM public.ecr.aws/docker/library/ubuntu:resolute-20260610
+FROM ghcr.io/astral-sh/uv:0.12.19 AS uv
+
+FROM public.ecr.aws/docker/library/ubuntu:resolute-20260912
 
 ARG SALT_VERSION
 ARG BUILD_DATE
@@ -6,14 +8,19 @@ ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
 ENV SALT_VERSION=${SALT_VERSION}
-ENV IMAGE_REVISION="_2"
+ENV IMAGE_REVISION="_3"
 ENV IMAGE_VERSION="${SALT_VERSION}${IMAGE_REVISION}"
 
+# SALT_USER, SALT_HOME and SALT_SHELL are also read by the Salt packages maintainer scripts during install.sh.
+# Do not rename or remove them: without SALT_HOME, the packages would move the salt user's home
+# to the onedir install directory (/opt/saltstack/salt).
+# https://docs.saltproject.io/en/latest/ref/configuration/nonroot.html
 ENV SALT_DOCKER_DIR="/etc/docker-salt" \
   SALT_ROOT_DIR="/etc/salt" \
   SALT_CACHE_DIR='/var/cache/salt' \
   SALT_USER="salt" \
-  SALT_HOME="/home/salt"
+  SALT_HOME="/home/salt" \
+  SALT_SHELL="/bin/bash"
 
 ENV SALT_BUILD_DIR="${SALT_DOCKER_DIR}/build" \
   SALT_RUNTIME_DIR="${SALT_DOCKER_DIR}/runtime" \
@@ -23,7 +30,13 @@ ENV SALT_CONFS_DIR="${SALT_DATA_DIR}/config" \
   SALT_KEYS_DIR="${SALT_DATA_DIR}/keys" \
   SALT_BASE_DIR="${SALT_DATA_DIR}/srv" \
   SALT_LOGS_DIR="${SALT_DATA_DIR}/logs" \
-  SALT_FORMULAS_DIR="${SALT_DATA_DIR}/3pfs"
+  SALT_FORMULAS_DIR="${SALT_DATA_DIR}/3pfs" \
+  SALT_SSH_DIR="${SALT_DATA_DIR}/salt-ssh"
+
+# Python versions for salt-ssh ssh_ext_alternatives (SALT_SSH_PYTHON_VERSIONS).
+# Python is installed outside /root, so the salt user can run it.
+ENV SALT_SSH_PYTHON_DIR="/opt/salt-ssh" \
+  UV_PYTHON_INSTALL_DIR="/opt/uv/python"
 
 RUN mkdir -p ${SALT_BUILD_DIR}
 WORKDIR ${SALT_BUILD_DIR}
@@ -44,11 +57,15 @@ RUN apt-get update \
 COPY assets/build ${SALT_BUILD_DIR}
 RUN bash ${SALT_BUILD_DIR}/install.sh
 
+# COPY keeps the file modes of the build context, which depend on the umask of the host.
+# Modes are set explicitly, so the salt user can always read the runtime files (e.g. config/master.yml).
 COPY assets/runtime ${SALT_RUNTIME_DIR}
-RUN chmod -R +x ${SALT_RUNTIME_DIR}
+RUN chmod -R 755 ${SALT_RUNTIME_DIR}
 
 COPY assets/sbin/* /usr/local/sbin/
-RUN chmod +x /usr/local/sbin/*
+RUN chmod 755 /usr/local/sbin/*
+
+COPY --from=uv /uv /usr/local/bin/uv
 
 COPY assets/supervisor/supervisord.conf /etc/supervisor/supervisord.conf
 
@@ -58,11 +75,11 @@ RUN rm -rf "${SALT_BUILD_DIR:?}"
 
 # Entrypoint
 COPY entrypoint.sh /sbin/entrypoint.sh
-RUN chmod +x /sbin/entrypoint.sh
+RUN chmod 755 /sbin/entrypoint.sh
 
 # Shared resources
 EXPOSE 4505 4506 8000
-RUN mkdir -p "${SALT_BASE_DIR}" "${SALT_FORMULAS_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" "${SALT_LOGS_DIR}"
+RUN mkdir -p "${SALT_BASE_DIR}" "${SALT_FORMULAS_DIR}" "${SALT_KEYS_DIR}" "${SALT_CONFS_DIR}" "${SALT_LOGS_DIR}" "${SALT_SSH_DIR}"
 
 LABEL org.opencontainers.image.title="Dockerized Salt Master"
 LABEL org.opencontainers.image.description="salt-master ${SALT_VERSION} containerized"
@@ -74,7 +91,7 @@ LABEL org.opencontainers.image.vendor="cdalvaro"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 LABEL org.opencontainers.image.version="${IMAGE_VERSION}"
 LABEL org.opencontainers.image.revision="${VCS_REF}"
-LABEL org.opencontainers.image.base.name="public.ecr.aws/docker/library/ubuntu:resolute-20260610"
+LABEL org.opencontainers.image.base.name="public.ecr.aws/docker/library/ubuntu:resolute-20260912"
 LABEL org.opencontainers.image.licenses="MIT"
 
 ENTRYPOINT [ "/sbin/entrypoint.sh" ]

@@ -83,7 +83,7 @@ function cleanup() {
 
   echo "  - Removing logs ..."
   if [[ -d "${LOGS_DIR}" ]]; then
-    for service in master minion api key; do
+    for service in master minion api key ssh; do
       [[ -f "${LOGS_DIR}/salt/${service}" ]] && rm -fv "${LOGS_DIR}/salt/${service}"
     done
   fi
@@ -350,6 +350,7 @@ function check_equal() {
   local expected="$2"
   local message="$3"
 
+  local output=
   output=$(
     cat <<EOF
 ${message}

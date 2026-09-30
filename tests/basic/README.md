@@ -2,6 +2,8 @@
 
 Checks performed by `tests/basic/test.sh`:
 
+- **salt-master configuration placeholders** - Verifies that `/etc/salt/master` does not contain unrendered `{{...}}` placeholders.
+- **salt-minion configuration placeholders** - Verifies that `/etc/salt/minion` does not contain unrendered `{{...}}` placeholders.
 - **salt-master version** - Verifies that the installed `salt-master` version matches the expected `SALT_VERSION`.
 - **salt-minion version** - Verifies that the installed `salt-minion` version matches the expected `SALT_VERSION`.
 - **salt-minion not running by default** - Confirms that `salt-minion` is not started automatically inside the container.

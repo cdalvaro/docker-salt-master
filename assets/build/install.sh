@@ -40,7 +40,7 @@ fi
 # https://manpages.ubuntu.com/manpages/xenial/en/man8/useradd.8.html
 log_info "Creating ${SALT_USER} user ..."
 useradd --home-dir "${SALT_HOME}" --create-home \
-  --shell /bin/bash --user-group "${SALT_USER}" \
+  --shell "${SALT_SHELL}" --user-group "${SALT_USER}" \
   --groups shadow
 
 # Set PATH
@@ -54,18 +54,33 @@ install_pkgs \
   salt-common="${SALT_VERSION/rc/~rc}" \
   salt-master="${SALT_VERSION/rc/~rc}" \
   salt-minion="${SALT_VERSION/rc/~rc}" \
-  salt-api="${SALT_VERSION/rc/~rc}"
+  salt-api="${SALT_VERSION/rc/~rc}" \
+  salt-ssh="${SALT_VERSION/rc/~rc}"
 
 # Install python packages
 log_info "Installing python packages ..."
 salt-pip install pygit2==1.19.2
 salt-pip install python-ldap
 
+# Python packages that salt-ssh packs into the thin, installed for SALT_SSH_PYTHON_VERSIONS
+log_info "Getting the Python packages of the salt-ssh thin ..."
+mkdir -p "${SALT_SSH_PYTHON_DIR}"
+/opt/saltstack/salt/bin/python3 "${SALT_BUILD_DIR}/salt-ssh-thin-packages.py" | tee "${SALT_SSH_PYTHON_DIR}/thin-packages.txt"
+
+# Lock files of this Salt version, used to pin those packages.
+# They also set the Python versions that can be used in SALT_SSH_PYTHON_VERSIONS.
+log_info "Getting the Python lock files of Salt ${SALT_VERSION} ..."
+/opt/saltstack/salt/bin/python3 "${SALT_BUILD_DIR}/salt-ssh-locks.py" "${SALT_VERSION}" "${SALT_SSH_PYTHON_DIR}/locks"
+
+# ssh_ext_alternatives packs the salt package of the onedir, which is the only Salt installation of the image
+ln -s "$(/opt/saltstack/salt/bin/python3 -c 'import os, salt; print(os.path.dirname(salt.__file__))')" \
+  "${SALT_SSH_PYTHON_DIR}/salt"
+
 # Configure ssh
+# Host keys are checked (OpenSSH default). {{SALT_KEYS_DIR}} is rendered when the container starts.
 log_info "Configuring ssh ..."
-sed -i -e "s|^[# ]*StrictHostKeyChecking.*$|    StrictHostKeyChecking no|" /etc/ssh/ssh_config
 {
-  echo "    UserKnownHostsFile /dev/null"
+  echo "    UserKnownHostsFile {{SALT_KEYS_DIR}}/ssh/known_hosts"
   echo "    LogLevel ERROR"
   echo "#   IdentityFile salt_ssh_key"
 } >>/etc/ssh/ssh_config

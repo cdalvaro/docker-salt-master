@@ -1,0 +1,5 @@
+# This entry only exists here, so it is reachable only through salt-api
+# (client=ssh, roster_file=api), which looks up roster files inside `rosters`.
+salt-ssh-api:
+  host: salt-ssh-target
+  user: root

@@ -1,0 +1,20 @@
+salt-ssh-root:
+  host: salt-ssh-target
+  user: root
+
+# Same target as salt-ssh-root, reached through a network alias that is not in known_hosts
+salt-ssh-new-host:
+  host: salt-ssh-new-host
+  user: root
+
+# Password-only entry (priv: null): salt-ssh connects with StrictHostKeyChecking=no.
+# Reached through a network alias that is not in known_hosts.
+salt-ssh-password:
+  host: salt-ssh-password-host
+  user: root
+  priv: null
+
+# Target with a different Python version, used to test ssh_ext_alternatives
+salt-ssh-python:
+  host: salt-ssh-python-target
+  user: root

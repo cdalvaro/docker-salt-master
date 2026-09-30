@@ -101,6 +101,7 @@ function map_uidgid() {
       -not -path "${SALT_BASE_DIR}*" \
       -not -path "${SALT_LOGS_DIR}*" \
       -not -path "${SALT_FORMULAS_DIR}*" \
+      -not -path "${SALT_SSH_DIR}*" \
       -path "${SALT_DATA_DIR}/*" \
       \( ! -uid "${PUID}" -o ! -gid "${PGID}" \) \
       -exec chown -h "${SALT_USER}": {} +
@@ -582,7 +583,8 @@ function _setup_gpgkeys() {
 function setup_salt_keys() {
   log_info "Setting up salt keys ..."
 
-  mkdir -p "${SALT_KEYS_DIR}/minions"
+  # ssh: salt-ssh key and known_hosts (ssh does not create missing directories for known_hosts)
+  mkdir -p "${SALT_KEYS_DIR}/minions" "${SALT_KEYS_DIR}/ssh"
   find "${SALT_KEYS_DIR}" -type d -exec chown "${SALT_USER}": {} \;
 
   setup_master_keys
@@ -623,6 +625,7 @@ function configure_salt_master() {
     SALT_LOG_LEVEL \
     SALT_LEVEL_LOGFILE \
     SALT_LOGS_DIR \
+    SALT_SSH_DIR \
     SALT_BASE_DIR \
     SALT_CACHE_DIR \
     SALT_CONFS_DIR \
@@ -637,6 +640,21 @@ function configure_salt_master() {
     SALT_MASTER_SIGN_KEY_NAME \
     SALT_MASTER_PUBKEY_SIGNATURE \
     SALT_MASTER_USE_PUBKEY_SIGNATURE
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  configure_salt_ssh
+#   DESCRIPTION:  Configure the SSH client used by salt-ssh.
+#----------------------------------------------------------------------------------------------------------------------
+function configure_salt_ssh() {
+  log_info "Configuring salt-ssh ..."
+
+  # Known host keys are stored next to the salt-ssh key (pki_dir/ssh).
+  # This location can be overridden with UserKnownHostsFile in the ssh_options of the master configuration.
+  update_template /etc/ssh/ssh_config SALT_KEYS_DIR
+
+  # ssh-copy-id (used by salt-ssh --key-deploy) creates its temporary files under ~/.ssh
+  exec_as_salt mkdir -p -m 700 "${SALT_HOME}/.ssh"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -922,7 +940,7 @@ function initialize_datadir() {
   [[ -d /srv ]] && [[ ! -L /srv ]] && rm -rf /srv
   ln -sfnv "${SALT_BASE_DIR}" /srv
   if [[ -w "${SALT_BASE_DIR}" ]]; then
-    chown -R "${SALT_USER}": "${SALT_BASE_DIR}" || log_error "Unable to change '${SALT_BASE_DIR}' ownership"
+    chown -R "${SALT_USER}:${SALT_USER}" "${SALT_BASE_DIR}" || log_error "Unable to change '${SALT_BASE_DIR}' ownership"
   else
     log_info "${SALT_BASE_DIR} is mounted as a read-only volume. Ownership won't be changed."
   fi
@@ -933,21 +951,21 @@ function initialize_datadir() {
   fi
 
   if [[ -w "${SALT_CONFS_DIR}" ]]; then
-    chown -R "${SALT_USER}": "${SALT_CONFS_DIR}" || log_error "Unable to change '${SALT_CONFS_DIR}' ownership"
+    chown -R "${SALT_USER}:${SALT_USER}" "${SALT_CONFS_DIR}" || log_error "Unable to change '${SALT_CONFS_DIR}' ownership"
   else
     log_info "${SALT_CONFS_DIR} is mounted as a read-only volume. Ownership won't be changed."
   fi
 
   # Set Salt root permissions
-  chown -R "${SALT_USER}": "${SALT_ROOT_DIR}"
+  chown -R "${SALT_USER}:${SALT_USER}" "${SALT_ROOT_DIR}"
 
   # Set Salt run permissions
   mkdir -p /var/run/salt
-  chown -R "${SALT_USER}": /var/run/salt
+  chown -R "${SALT_USER}:${SALT_USER}" /var/run/salt
 
   # Set cache permissions
-  mkdir -p /var/cache/salt/master
-  chown -R "${SALT_USER}": /var/cache/salt
+  mkdir -p "${SALT_CACHE_DIR}/master"
+  chown -R "${SALT_USER}:${SALT_USER}" "${SALT_CACHE_DIR}"
 
   # Keys directories
   if [[ ! -w "${SALT_KEYS_DIR}" ]]; then
@@ -957,9 +975,16 @@ function initialize_datadir() {
 
   # Salt formulas
   if [[ -w "${SALT_FORMULAS_DIR}" ]]; then
-    chown -R "${SALT_USER}": "${SALT_FORMULAS_DIR}" || log_error "Unable to change '${SALT_FORMULAS_DIR}' ownership"
+    chown -R "${SALT_USER}:${SALT_USER}" "${SALT_FORMULAS_DIR}" || log_error "Unable to change '${SALT_FORMULAS_DIR}' ownership"
   else
     log_info "${SALT_FORMULAS_DIR} is mounted as a read-only volume. Ownership won't be changed."
+  fi
+
+  # Salt SSH directory
+  if [[ -w "${SALT_SSH_DIR}" ]]; then
+    chown -R "${SALT_USER}:${SALT_USER}" "${SALT_SSH_DIR}" || log_error "Unable to change '${SALT_SSH_DIR}' ownership"
+  else
+    log_info "${SALT_SSH_DIR} is mounted as a read-only volume. Ownership won't be changed."
   fi
 
   # Logs directory
@@ -973,7 +998,7 @@ function initialize_datadir() {
   ln -sfnv "${SALT_LOGS_DIR}/salt" /var/log/salt
 
   chmod -R 0755 "${SALT_LOGS_DIR}"
-  chown -R "${SALT_USER}": "${SALT_LOGS_DIR}"
+  chown -R "${SALT_USER}:${SALT_USER}" "${SALT_LOGS_DIR}"
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
@@ -1004,7 +1029,8 @@ EOF
   cat >"${LOGROTATE_CONFIG_FILE}" <<EOF
 ${SALT_LOGS_DIR}/salt/api
 ${SALT_LOGS_DIR}/salt/master
-${SALT_LOGS_DIR}/salt/minion {
+${SALT_LOGS_DIR}/salt/minion
+${SALT_LOGS_DIR}/salt/ssh {
   ${SALT_LOG_ROTATE_FREQUENCY}
   missingok
   rotate ${SALT_LOG_ROTATE_RETENTION}
@@ -1070,6 +1096,124 @@ function install_python_additional_packages() {
 }
 
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  install_salt_ssh_python_versions
+#   DESCRIPTION:  Install the Python versions set in SALT_SSH_PYTHON_VERSIONS for salt-ssh ssh_ext_alternatives.
+#----------------------------------------------------------------------------------------------------------------------
+function install_salt_ssh_python_versions() {
+  [[ -n "${SALT_SSH_PYTHON_VERSIONS}" ]] || return 0
+
+  # Versions can be separated by any whitespace (including new lines), so none of them is ignored
+  local python_versions=()
+  IFS=$' \t\n' read -r -d '' -a python_versions <<<"${SALT_SSH_PYTHON_VERSIONS}" || true
+
+  # The Python version of salt-master does not need an environment: its targets use the default thin
+  local onedir_version
+  onedir_version="$(/opt/saltstack/salt/bin/python3 -c 'import sys; print("{}.{}".format(*sys.version_info))')"
+
+  # All versions are checked before installing any of them.
+  # ssh_ext_alternatives matches the Python version of the targets by MAJOR.MINOR,
+  # so there is one environment per MAJOR.MINOR and its path does not include the patch version.
+  local python_version minor_version
+  local minor_versions=()
+  for python_version in "${python_versions[@]}"; do
+    if [[ ! "${python_version}" =~ ^([0-9]+\.[0-9]+)(\.[0-9]+)?$ ]]; then
+      log_error "Invalid Python version '${python_version}' in SALT_SSH_PYTHON_VERSIONS. Use MAJOR.MINOR or MAJOR.MINOR.PATCH (e.g. 3.10 or 3.10.4)."
+      return 1
+    fi
+
+    minor_version="${BASH_REMATCH[1]}"
+    if [[ "${minor_version}" == "${onedir_version}" ]]; then
+      log_error "Python ${minor_version} in SALT_SSH_PYTHON_VERSIONS is the Python version of salt-master. Targets with this version use the default salt-ssh thin."
+      return 1
+    fi
+
+    # Python versions supported by this Salt version: the ones with a lock file (see salt-ssh-locks.py)
+    if [[ ! -f "${SALT_SSH_PYTHON_DIR}/locks/${minor_version}.lock" ]]; then
+      local supported_versions
+      supported_versions="$(for lock_file in "${SALT_SSH_PYTHON_DIR}"/locks/*.lock; do basename "${lock_file}" .lock; done |
+        awk -v onedir="${onedir_version}" '$0 != onedir' | sort -V | xargs)"
+      log_error "Python ${minor_version} in SALT_SSH_PYTHON_VERSIONS is not supported by Salt ${SALT_VERSION}. Supported versions: ${supported_versions}."
+      return 1
+    fi
+
+    if [[ " ${minor_versions[*]} " == *" ${minor_version} "* ]]; then
+      log_error "Python ${minor_version} is set more than once in SALT_SSH_PYTHON_VERSIONS. Set only one version per MAJOR.MINOR."
+      return 1
+    fi
+    minor_versions+=("${minor_version}")
+  done
+
+  local i venv_dir lock_file
+  for i in "${!python_versions[@]}"; do
+    python_version="${python_versions[i]}"
+    venv_dir="${SALT_SSH_PYTHON_DIR}/python${minor_versions[i]}"
+    lock_file="${SALT_SSH_PYTHON_DIR}/locks/${minor_versions[i]}.lock"
+
+    # SALT_SSH_PYTHON_VERSIONS and the lock files can't change in a container, so a working environment is reused
+    # when the container restarts, without the Internet. bin/python-isolated is only created after installing
+    # the packages, so an interrupted installation is never reused.
+    if _check_salt_ssh_python_environment "${venv_dir}" 2>/dev/null; then
+      log_info "Using the existing Python ${python_version} environment for salt-ssh at ${venv_dir} ..."
+      continue
+    fi
+
+    log_info "Installing Python ${python_version} for salt-ssh at ${venv_dir} ..."
+    rm -rf "${venv_dir}"
+    if ! _create_salt_ssh_python_environment "${venv_dir}" "${python_version}" "${lock_file}"; then
+      log_error "Unable to install Python ${python_version} for salt-ssh at ${venv_dir}."
+      return 1
+    fi
+  done
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _create_salt_ssh_python_environment
+#   DESCRIPTION:  Create a Python environment with the packages that salt-ssh packs into the thin.
+#     ARGUMENTS:
+#           - 1: The environment directory
+#           - 2: The Python version (MAJOR.MINOR or MAJOR.MINOR.PATCH)
+#           - 3: The lock file used to pin the packages
+#----------------------------------------------------------------------------------------------------------------------
+function _create_salt_ssh_python_environment() {
+  local venv_dir="$1"
+  local python_version="$2"
+  local lock_file="$3"
+
+  # This function is called in an if condition, where errexit is ignored, so every command checks its own result.
+  uv venv --managed-python --python "${python_version}" "${venv_dir}" || return 1
+
+  # Only the packages that salt-ssh packs into the thin are installed (thin-packages.txt is generated by install.sh),
+  # pinned with the lock file of this Salt version. Salt itself is not installed: ssh_ext_alternatives packs the salt
+  # package of the onedir (SALT_SSH_PYTHON_DIR/salt).
+  uv pip install --no-cache --python "${venv_dir}" \
+    --constraints "${lock_file}" --requirements "${SALT_SSH_PYTHON_DIR}/thin-packages.txt" || return 1
+
+  # salt-ssh runs py_bin (auto_detect) from the directory of the salt-master Python modules,
+  # so bin/python would import those modules instead of the ones of this environment.
+  # Isolated mode (-I) leaves the current directory out of sys.path.
+  cat >"${venv_dir}/bin/python-isolated" <<EOF || return 1
+#!/bin/sh
+exec "${venv_dir}/bin/python" -I "\$@"
+EOF
+  chmod +x "${venv_dir}/bin/python-isolated" || return 1
+
+  _check_salt_ssh_python_environment "${venv_dir}"
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
+#          NAME:  _check_salt_ssh_python_environment
+#   DESCRIPTION:  Check that a Python environment for salt-ssh imports the modules required by ssh_ext_alternatives.
+#     ARGUMENTS:
+#           - 1: The environment directory
+#----------------------------------------------------------------------------------------------------------------------
+function _check_salt_ssh_python_environment() {
+  local venv_dir="$1"
+
+  # Modules required by salt.utils.thin.get_ext_tops()
+  "${venv_dir}/bin/python-isolated" -c 'import jinja2, yaml, tornado, msgpack, distro'
+}
+
+#---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  initialize_system
 #   DESCRIPTION:  Initialize the system.
 #----------------------------------------------------------------------------------------------------------------------
@@ -1079,12 +1223,14 @@ function initialize_system() {
   configure_logrotate
   configure_timezone
   configure_salt_master
+  configure_salt_ssh
   setup_salt_keys
   configure_salt_api
   configure_salt_minion
   configure_salt_formulas
   configure_config_reloader
   install_python_additional_packages
+  install_salt_ssh_python_versions
   rm -rf /var/run/supervisor.sock
 
   log_info "System initialized successfully!"

@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.14.html"><img alt="Salt Project" src="https://img.shields.io/badge/salt-3007.14%20sts-57BCAD.svg?logo=SaltProject"/></a>
   <a href="https://docs.saltproject.io/en/3008/topics/releases/3008.2.html"><img alt="Salt Project" src="https://img.shields.io/badge/salt-3008.2%20lts-57BCAD.svg?logo=SaltProject"/></a>
-  <a href="https://gallery.ecr.aws/ubuntu/ubuntu"><img alt="Ubuntu Image" src="https://img.shields.io/badge/ubuntu-resolute--20260610-E95420.svg?logo=Ubuntu"/></a>
+  <a href="https://gallery.ecr.aws/ubuntu/ubuntu"><img alt="Ubuntu Image" src="https://img.shields.io/badge/ubuntu-resolute--20260912-E95420.svg?logo=Ubuntu"/></a>
   <a href="https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags"><img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED"/></a>
   <a href="https://github.com/users/cdalvaro/packages/container/package/docker-salt-master"><img alt="Architecture AMD64" src="https://img.shields.io/badge/arch-amd64-inactive.svg"/></a>
   <a href="https://github.com/users/cdalvaro/packages/container/package/docker-salt-master"><img alt="Architecture ARM64" src="https://img.shields.io/badge/arch-arm64-inactive.svg"/></a>
@@ -32,7 +32,7 @@ Para otros métodos de instalación de `salt-master`, por favor consulta la [gu�
 Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) y es el método recomendado para la instalación.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2_2
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2_3
 ```
 
 También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
@@ -54,7 +54,7 @@ Estas imágenes están también disponibles en:
 La versión LTS (Long Term Support) actual de Salt también está disponible mediante la etiqueta de versión explícita.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2_2
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.2_3
 ```
 
 También existen etiquetas específicas para las versiones LTS y STS:
@@ -68,13 +68,13 @@ También existen etiquetas específicas para las versiones LTS y STS:
 #### Tags Disponibles
 
 - `latest`
-- `3008.2_2`, `lts`
+- `3008.2_3`, `lts`
 - `3007.14`, `sts`
 
 Todas las versiones tienen su compañera con SaltGUI:
 
 - `latest-gui`
-- `3008.2_2-gui`, `lts-gui`
+- `3008.2_3-gui`, `lts-gui`
 - `3007.14-gui`, `sts-gui`
 
 ### Construir Desde la Fuente
@@ -295,27 +295,27 @@ services:
       - source: salt-master-key
         target: master.pem
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0400
       - source: salt-master-pub
         target: master.pub
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0644
       - source: salt-master-sign-priv-key
         target: master_sign.pem
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0400
       - source: salt-master-sign-pub-key
         target: master_sign.pub
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0644
       - source: salt-master-signature
         target: master_pubkey_signature
         uid: 1000 # Or $PUID if env variable established
-        gid: 1000 # Or $GUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
         mode: 0644
     environment:
       SALT_MASTER_SIGN_PUBKEY: True
@@ -506,6 +506,220 @@ docker run --name salt_master --detach \
     --volume $(pwd)/minion_config/:/home/salt/data/minion_config/ \
     ghcr.io/cdalvaro/docker-salt-master:latest
 ```
+
+### Salt SSH
+
+Esta imagen incluye [`salt-ssh`](https://docs.saltproject.io/en/latest/topics/ssh/index.html), para ejecutar comandos
+y estados de Salt en hosts a través de SSH, sin instalar `salt-minion` en ellos. Los hosts de destino sólo necesitan un
+servidor SSH y `python3` (y `sudo` sin contraseña si usas `sudo: True`).
+
+Añade tus hosts al [archivo `roster`](https://docs.saltproject.io/en/latest/topics/ssh/roster.html), dentro de un directorio `salt-ssh/`:
+
+```yml
+# salt-ssh/roster
+web1:
+  host: 192.168.1.10
+  user: root
+
+db1:
+  host: db1.example.com
+  user: deploy
+  sudo: True
+```
+
+Monta este directorio en `/home/salt/data/salt-ssh/` (puedes cambiar esta ruta con `SALT_SSH_DIR`):
+
+```sh
+docker run --name salt_master --detach \
+    --publish 4505:4505 --publish 4506:4506 \
+    --volume $(pwd)/roots/:/home/salt/data/srv/ \
+    --volume $(pwd)/keys/:/home/salt/data/keys/ \
+    --volume $(pwd)/logs/:/home/salt/data/logs/ \
+    --volume $(pwd)/config/:/home/salt/data/config/ \
+    --volume $(pwd)/salt-ssh/:/home/salt/data/salt-ssh/:ro \
+    ghcr.io/cdalvaro/docker-salt-master:latest
+```
+
+La primera vez, despliega la clave de `salt-ssh` en cada host. Te pedirá una vez la contraseña del host
+(`-i` acepta la clave del host):
+
+```sh
+docker exec -it --user salt salt_master salt-ssh -i --key-deploy --askpass web1 test.ping
+```
+
+Así, se confía en la clave del host de esta primera conexión sin verificarla. Para evitarlo, añade antes las claves
+verificadas de los hosts a `known_hosts` (ver [Claves de Host](#claves-de-host)) y ejecuta este comando sin `-i`, o
+añade `keys/ssh/salt-ssh.rsa.pub` a tus hosts por otros medios (`salt-ssh` la crea la primera vez que se ejecuta).
+
+A partir de ese momento, `salt-ssh` se autentica con su clave:
+
+```sh
+docker exec --user salt salt_master salt-ssh '*' test.ping
+docker exec --user salt salt_master salt-ssh web1 state.apply
+```
+
+> [!IMPORTANT]
+> Ejecuta siempre `salt-ssh` como el usuario `salt` (`docker exec --user salt`), para que los archivos que crea
+> pertenezcan a `salt`. Su clave (`salt-ssh.rsa`) y las claves de los hosts conocidos (`known_hosts`) se guardan en
+> `keys/ssh/`: mantén este directorio en un volumen para reutilizarlas cuando se recree el contenedor.
+
+Los logs de `salt-ssh` se escriben en `logs/salt/ssh`.
+
+#### Configuración de Salt SSH
+
+`salt-ssh` lee la configuración de `salt-master`, así que puedes configurarlo con un archivo `ssh.conf` dentro de tu
+directorio `config/` (ver [Personalización](#personalización)). Por ejemplo, para establecer valores por defecto en
+todos los hosts:
+
+```yml
+# config/ssh.conf
+roster_defaults:
+  user: deploy
+  sudo: True
+```
+
+Todas las opciones están en la
+[referencia de configuración del master](https://docs.saltproject.io/en/latest/ref/configuration/master.html#salt-ssh-configuration).
+No sobrescribas `roster_file` ni `rosters`: establece `SALT_SSH_DIR` para cambiar su ubicación.
+
+#### Claves de Host
+
+`salt-ssh` comprueba las claves de los hosts de destino con `keys/ssh/known_hosts`, así que la primera conexión con un
+host falla con `The host key needs to be accepted`. Ejecuta `salt-ssh` una vez con `-i` (`--ignore-host-keys`) para
+aceptar su clave y guardarla:
+
+```sh
+docker exec --user salt salt_master salt-ssh -i web1 test.ping
+```
+
+Para verificar la clave del host en lugar de confiar en la primera conexión, añádela antes a `known_hosts`: escanea el
+`host` del roster y comprueba que sus huellas coinciden con las que obtengas del host por un canal de confianza:
+
+```sh
+ssh-keyscan 192.168.1.10 > web1.keys
+ssh-keygen -lf web1.keys                # Añade las claves solo si estas huellas coinciden
+cat web1.keys >> keys/ssh/known_hosts
+```
+
+> [!WARNING]
+> `-i`, `--key-deploy` y las entradas del roster que solo usan contraseña (`priv: null`) aceptan claves de hosts nuevos
+> sin comprobarlas, y `-i` también acepta claves que han cambiado. Usa `-i` solo para la primera conexión con un host.
+
+Para guardar `known_hosts` en otro sitio, establece `UserKnownHostsFile` en `ssh_options` (las entradas del roster con
+su propio `ssh_options` sustituyen esta lista). Por ejemplo, junto a tu roster:
+
+```yml
+# config/ssh.conf
+ssh_options:
+  - UserKnownHostsFile=/home/salt/data/salt-ssh/known_hosts
+```
+
+#### Claves Privadas desde _Secrets_ de Docker
+
+En lugar de la clave generada, puedes indicar la clave privada de un host con la opción `priv` del roster
+(o de `roster_defaults`, para todos los hosts). Por ejemplo, con un _secret_ de Docker:
+
+```yml
+# salt-ssh/roster
+web1:
+  host: 192.168.1.10
+  user: root
+  priv: /run/secrets/salt-ssh-key
+```
+
+```yml
+# compose.yml
+services:
+  salt-master:
+    image: ghcr.io/cdalvaro/docker-salt-master:latest
+    secrets:
+      - source: salt-ssh-key
+        uid: 1000 # Or $PUID if env variable established
+        gid: 1000 # Or $PGID if env variable established
+        mode: 0600
+
+secrets:
+  salt-ssh-key:
+    file: ./secrets/salt-ssh-key
+```
+
+Docker Compose monta la clave con el mismo propietario y los mismos permisos que tiene en el host, así que debe
+pertenecer al usuario `salt` (`uid` `1000`, o el indicado en `PUID`) y tener permisos `600`. Añade antes su clave
+pública al archivo `authorized_keys` de tus hosts.
+
+Si despliegas el servicio con Docker Swarm (`docker stack deploy`), puedes usar el formato de _sintaxis completa_ de
+secretos para establecer su `uid`, `gid` y `modo` dentro del contenedor. Con `docker compose up` y secretos mediante
+el sistema de ficheros, estas opciones se ignoran; así que hay que establecer los permisos correctos en el host.
+
+#### Usar salt-ssh desde Salt API
+
+Para ejecutar `salt-ssh` a través de [`salt-api`](#salt-api), habilita su cliente `ssh`:
+
+```yml
+# config/salt-api.conf
+netapi_enable_clients:
+  - local
+  - ssh
+```
+
+Las peticiones usan el roster principal, o un roster de `salt-ssh/roster.d/` indicado con `roster_file`.
+Por ejemplo, para ejecutar `test.ping` en todos los hosts de `roster.d/production`:
+
+```sh
+curl -sSk https://localhost:8000/run \
+    -H 'Accept: application/x-yaml' \
+    -d client=ssh \
+    -d tgt='*' \
+    -d fun=test.ping \
+    -d roster_file=production \
+    -d username=salt_api \
+    -d password=4wesome-Pass0rd \
+    -d eauth=pam
+```
+
+Los hosts deben estar ya en `known_hosts`.
+
+> [!WARNING]
+> `roster.d/` no restringe qué rosters puede usar cada usuario de la API, así que habilita el cliente `ssh` solo si
+> confías en todos tus usuarios de la API.
+
+#### Destinos con Otras Versiones de Python
+
+`salt-ssh` envía a los destinos los módulos de Python de `salt-master`, y puede que algunos no funcionen con versiones
+antiguas de Python. Para estos destinos, establece `SALT_SSH_PYTHON_VERSIONS` con sus versiones de Python (p. ej.
+`3.9`, o `3.9.20` para una versión exacta). Al arrancar, el contenedor las instala con [`uv`](https://docs.astral.sh/uv/)
+en `/opt/salt-ssh/python<MAJOR.MINOR>`, con los módulos de Python fijados por los archivos lock de su versión de Salt.
+
+Añade esta opción al comando `docker run` anterior:
+
+```sh
+    --env 'SALT_SSH_PYTHON_VERSIONS=3.9' \
+```
+
+Después, añade una entrada a
+[`ssh_ext_alternatives`](https://docs.saltproject.io/en/latest/topics/ssh/ssh_ext_alternatives.html)
+en tu archivo `config/ssh.conf`:
+
+```yml
+# config/ssh.conf
+ssh_ext_alternatives:
+  python3.9: # Espacio de nombres: cualquier nombre
+    py-version: [3, 9]
+    path: /opt/salt-ssh/salt # El paquete salt de salt-master. Es un alias a la instalación 'onedir'.
+    auto_detect: True
+    py_bin: /opt/salt-ssh/python3.9/bin/python-isolated
+```
+
+Ten en cuenta que:
+
+- Solo puedes indicar las versiones de Python soportadas por la versión de Salt de esta imagen (las de
+  `/opt/salt-ssh/locks`), salvo la versión de Python de `salt-master`.
+- `py_bin` debe ser `bin/python-isolated`, no `bin/python`, para que no cargue los módulos de Python de `salt-master`.
+- Ejecuta `salt-ssh` con `--regen-thin` (`-t`) después de cambiar `ssh_ext_alternatives`.
+- El contenedor necesita acceso a Internet para instalar las versiones de Python cada vez que se crea (al reiniciarlo,
+  las reutiliza).
+- Puedes ignorar los errores `Could not auto detect file location for module ...` sobre módulos antiguos, como
+  `singledispatch` o `ssl_match_hostname`.
 
 ### Mapeo de Host
 
@@ -927,6 +1141,8 @@ A continuación puedes encontrar una lista con las opciones disponibles que pued
 | [`SALT_WORKER_THREADS`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#worker-threads)                           | El número de hilos para recibir comandos y respuestas de los minions conectados. Por defecto: `5`.                                                                                                                                                                                                                                                                                                                                                                            |
 | [`SALT_BASE_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#file-roots)                                     | La ruta `base` en `file_roots` para buscar los directorios `salt` y `pillar`. Por defecto: `/home/salt/data/srv`.                                                                                                                                                                                                                                                                                                                                                             |
 | [`SALT_CONFS_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std-conf_master-default_include)               | `salt-master` cargará automáticamente los ficheros de configuración que encuentre en este directorio. Por defecto: `/home/salt/data/config`. Cuando se establece la variable a un valor diferente el valor por defecto, se intentará crear un enlace simbólico apuntando de la variable de entorno a `/home/salt/data/config`. Esto se hace para facilitar que los archivos de configuración puedan usarse en diferentes contenedores refiriéndose todos al mismo directorio. |
+| [`SALT_SSH_DIR`](https://docs.saltproject.io/en/latest/ref/configuration/master.html#std-conf_master-roster_file)                     | Directorio con el archivo roster de `salt-ssh` (`roster`) y los archivos roster adicionales que usa `salt-api` (`roster.d/`). Por defecto: `/home/salt/data/salt-ssh`.                                                                                                                                                                                                                                                                                                        |
+| `SALT_SSH_PYTHON_VERSIONS`                                                                                                            | Lista de versiones de Python (`MAJOR.MINOR` o `MAJOR.MINOR.PATCH`), separadas por espacios, que se instalan con `uv` para `ssh_ext_alternatives` de `salt-ssh`. Ver [Destinos con Otras Versiones de Python](#destinos-con-otras-versiones-de-python). Por defecto: _No establecida_.                                                                                                                                                                                         |
 
 Cualquier parámetro no listado en la tabla anterior y disponible en el siguiente [enlace](https://docs.saltproject.io/en/latest/ref/configuration/examples.html#configuration-examples-master), puede establecerse creando el directorio `config` y añadiendo en él un archivo `.conf` con los parámetros deseados:
 
