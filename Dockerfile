@@ -8,7 +8,7 @@ ARG VCS_REF
 
 # https://github.com/saltstack/salt/releases
 ENV SALT_VERSION=${SALT_VERSION}
-ENV IMAGE_REVISION="_3"
+ENV IMAGE_REVISION=""
 ENV IMAGE_VERSION="${SALT_VERSION}${IMAGE_REVISION}"
 
 # SALT_USER, SALT_HOME and SALT_SHELL are also read by the Salt packages maintainer scripts during install.sh.
