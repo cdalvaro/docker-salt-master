@@ -9,6 +9,9 @@ SCRIPT_PATH="$(
   pwd -P
 )"
 
+echo "==> Checking the version-scoped host-key prompt backport ..."
+python3 "${SCRIPT_PATH}/test_host_key_prompt_patch.py" || exit 1
+
 COMMON_FILE="${SCRIPT_PATH}/../lib/common.sh"
 # shellcheck source=tests/lib/common.sh
 source "${COMMON_FILE}"
@@ -92,12 +95,15 @@ function check_salt_ssh_fails() {
   local message="$2"
   shift 2
 
-  local output=
-  if output="$(salt-ssh --out=json "$@" 2>&1)"; then
-    echo "${output}"
-    error "${message} (salt-ssh succeeded)"
-  fi
+  local output='' status=0
+  # Bound the command inside the container, so Docker does not leave a hanging SSH worker behind.
+  output="$(docker-exec-as-salt timeout --kill-after=5s 60s salt-ssh --out=json "$@" 2>&1)" || status=$?
   echo "${output}"
+  if [[ "${status}" -eq 0 ]]; then
+    error "${message} (salt-ssh succeeded)"
+  elif [[ "${status}" -eq 124 || "${status}" -eq 137 ]]; then
+    error "${message} (salt-ssh timed out after 60 seconds)"
+  fi
 
   grep -qF -- "${expected}" <<<"${output}" || error "${message} (expected output to contain: '${expected}')"
   ok "${message}"
