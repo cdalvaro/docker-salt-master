@@ -57,8 +57,8 @@ install_pkgs \
   salt-api="${SALT_VERSION/rc/~rc}" \
   salt-ssh="${SALT_VERSION/rc/~rc}"
 
-# Salt 3007.15 does not recognize OpenSSH's (yes/no/[fingerprint]) host-key prompt.
-# Keep host-key rejection enabled; other Salt versions are left untouched.
+# Salt versions before 3008.0 may not recognize OpenSSH's (yes/no/[fingerprint]) host-key prompt.
+# Keep host-key rejection enabled; versions with the upstream fix are left untouched.
 log_info "Checking salt-ssh host-key prompt compatibility ..."
 /opt/saltstack/salt/bin/python3 "${SALT_BUILD_DIR}/salt-ssh-host-key-prompt.py"
 

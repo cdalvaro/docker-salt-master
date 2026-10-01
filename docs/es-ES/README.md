@@ -7,7 +7,7 @@
 </picture>
 
 <p align="center">
-  <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.14.html"><img alt="Salt Project" src="https://img.shields.io/badge/salt-3007.14%20sts-57BCAD.svg?logo=SaltProject"/></a>
+  <a href="https://docs.saltproject.io/en/latest/topics/releases/3007.15.html"><img alt="Salt Project" src="https://img.shields.io/badge/salt-3007.15%20sts-57BCAD.svg?logo=SaltProject"/></a>
   <a href="https://docs.saltproject.io/en/3008/topics/releases/3008.2.html"><img alt="Salt Project" src="https://img.shields.io/badge/salt-3008.2%20lts-57BCAD.svg?logo=SaltProject"/></a>
   <a href="https://gallery.ecr.aws/ubuntu/ubuntu"><img alt="Ubuntu Image" src="https://img.shields.io/badge/ubuntu-resolute--20260912-E95420.svg?logo=Ubuntu"/></a>
   <a href="https://hub.docker.com/repository/docker/cdalvaro/docker-salt-master/tags"><img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/cdalvaro/docker-salt-master/latest?logo=docker&color=2496ED"/></a>
@@ -69,13 +69,13 @@ También existen etiquetas específicas para las versiones LTS y STS:
 
 - `latest`
 - `3008.2_3`, `lts`
-- `3007.14`, `sts`
+- `3007.15`, `sts`
 
 Todas las versiones tienen su compañera con SaltGUI:
 
 - `latest-gui`
 - `3008.2_3-gui`, `lts-gui`
-- `3007.14-gui`, `sts-gui`
+- `3007.15-gui`, `sts-gui`
 
 ### Construir Desde la Fuente
 
