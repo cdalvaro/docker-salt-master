@@ -64,7 +64,7 @@ log_info "Checking salt-ssh host-key prompt compatibility ..."
 
 # Install python packages
 log_info "Installing python packages ..."
-salt-pip install pygit2==1.19.2
+salt-pip install pygit2==1.20.1
 salt-pip install python-ldap
 
 # Python packages that salt-ssh packs into the thin, installed for SALT_SSH_PYTHON_VERSIONS
