@@ -1,7 +1,7 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3007.15 Release Notes](https://docs.saltproject.io/en/latest/topics/releases/3007.15.html)
+Please refer to the [Salt 3008.2 Release Notes](https://docs.saltproject.io/en/3008/topics/releases/3008.2.html)
 for the list of changes in SaltStack.
 
 **3007.15**
