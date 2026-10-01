@@ -7,6 +7,7 @@ for the list of changes in SaltStack.
 **3007.15**
 
 - Update `salt-master` to `3007.15` _Chlorine_.
+- Update `pygit2` to `1.20.1`.
 - Backport OpenSSH host-key prompt recognition for Salt versions before `3008.0`, preserving host-key verification.
 - Bound negative `salt-ssh` checks to 60 seconds so stalled commands fail explicitly.
 
