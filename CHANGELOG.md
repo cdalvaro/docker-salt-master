@@ -1,8 +1,14 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3008.2 Release Notes](https://docs.saltproject.io/en/3008/topics/releases/3008.2.html)
+Please refer to the [Salt 3007.15 Release Notes](https://docs.saltproject.io/en/latest/topics/releases/3007.15.html)
 for the list of changes in SaltStack.
+
+**3007.15**
+
+- Update `salt-master` to `3007.15` _Chlorine_.
+- Backport OpenSSH host-key prompt recognition for Salt versions before `3008.0`, preserving host-key verification.
+- Bound negative `salt-ssh` checks to 60 seconds so stalled commands fail explicitly.
 
 **3008.2_3**
 
