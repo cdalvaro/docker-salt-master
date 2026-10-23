@@ -43,6 +43,59 @@ class ReleaseBuildTests(unittest.TestCase):
                             runpy.run_path(str(ROOT / "assets/build/salt-ssh-locks.py"))
                         self.assertEqual(list(pathlib.Path(tmp).iterdir()), [])
 
+    def test_basic_salt_versions(self):
+        # Run the real parsing/comparison block, mocking only the Salt CLI output.
+        basic = (ROOT / "tests/basic/test.sh").read_text()
+        block = basic.split("# Check salt versions\n", 1)[1].split(
+            'echo "==> Checking salt-minion service ..."', 1
+        )[0]
+        script = f'''
+        IMAGE_NAME=unused PLATFORM=linux/amd64 SCRIPT_PATH="{ROOT}/tests/basic"
+        source "{ROOT}/tests/lib/common.sh"
+        container_log() {{ :; }}
+        master_log() {{ :; }}
+        builtin_minion_log() {{ :; }}
+        minion_log() {{ :; }}
+        SALT_VERSION="$1"; MASTER_VERSION="$2"; MINION_VERSION="$3"
+        docker-exec() {{
+          if [[ "$1" == salt-master ]]; then
+            printf 'Salt Version:\\n          Salt: %s\\n' "$MASTER_VERSION"
+          else
+            printf 'Salt Version:\\n          Salt: %s\\n' "$MINION_VERSION"
+          fi
+        }}
+        ''' + block
+        cases = [
+            ("3008.3", "3008.3", 0),
+            ("3008.3-1", "3008.3-1", 0),
+            ("3008.3-1", "3008.3", 1),
+            ("3008.3", "3008.3-1", 1),
+            ("3008.3-1", "3008.3-2", 1),
+            ("3008.0rc4", "3008.0rc4", 0),
+            ("3008.0rc4", "3008.0rc4-0-gabcdef0", 0),
+            ("3008.0rc4", "3008.0rc4+0.gabcdef0", 0),
+            ("3008.0rc4", "3008.0rc3-0-gabcdef0", 1),
+            ("3008.0rc4", "3008.0rc4-1-gabcdef0", 1),
+            ("3008.0rc4", "3008.0rc4+1.gabcdef0", 1),
+            ("3008.0rc4", "3008.0rc4-1", 1),
+            ("3008.0rc4", "3008.0rc4-0-gabcdef0-dirty", 1),
+            ("3008.0rc4-1", "3008.0rc4-1", 0),
+            ("3008.0rc4", "3008.0", 1),
+            ("3008.0", "3008.0rc4", 1),
+            ("3008.3-1", "", 1),
+        ]
+        for expected, actual, status in cases:
+            for target in ("master", "minion"):
+                with self.subTest(expected=expected, actual=actual, target=target):
+                    master, minion = (actual, expected) if target == "master" else (expected, actual)
+                    result = subprocess.run(
+                        ["bash", "-e", "-c", script, "version-regression", expected, master, minion],
+                        capture_output=True, text=True, check=False,
+                    )
+                    self.assertEqual(result.returncode, status, result.stdout + result.stderr)
+                    if status == 0:
+                        self.assertIn(f"Expected: {expected}\n", result.stdout)
+
     def test_image_revision_guards(self):
         # Mock only git's read output; execute the real shell guard functions.
         git = '''
