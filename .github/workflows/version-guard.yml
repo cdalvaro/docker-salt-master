@@ -14,10 +14,7 @@ on:
       - assets/**
       - .github/workflows/version-guard.yml
       - .github/workflows/ci_tools.sh
-      - tests/test_release_build.py
-      - tests/lib/common.sh
-      - tests/basic/test.sh
-      - tests/salt-minion/test.sh
+      - tests/**
 
 jobs:
   image-revision:
