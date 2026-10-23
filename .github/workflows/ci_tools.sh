@@ -143,6 +143,13 @@ function check_image_revision_changed() {
   local BASE_REF="${1:?base git ref required}"
   local HEAD_REF="${2:-HEAD}"
 
+  local changed_version_files
+  changed_version_files=$(git diff --name-only "${BASE_REF}...${HEAD_REF}" -- VERSION VERSION_STS VERSION_LTS)
+  if [[ -n "${changed_version_files}" ]]; then
+    echo "Salt version changed; IMAGE_REVISION reset is checked separately."
+    return 0
+  fi
+
   local changed_image_files
   changed_image_files=$(git diff --name-only "${BASE_REF}...${HEAD_REF}" -- Dockerfile Dockerfile.gui entrypoint.sh assets)
 
