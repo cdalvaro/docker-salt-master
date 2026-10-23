@@ -4,6 +4,11 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3008.3 Release Notes](https://docs.saltproject.io/en/3008/topics/releases/3008.3.html)
 for the list of changes in SaltStack.
 
+**3008.3-1**
+
+- Update `salt-master` to `3008.3-1`.
+- Fetch the `salt-ssh` Python lock files from the official Salt release source archive, verifying its SHA512 checksum, including packaging revisions not published on PyPI.
+
 **3008.3**
 
 - Update `salt-master` to `3008.3`.

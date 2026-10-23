@@ -14,6 +14,7 @@ on:
       - assets/**
       - .github/workflows/version-guard.yml
       - .github/workflows/ci_tools.sh
+      - tests/test_release_build.py
 
 jobs:
   image-revision:
@@ -25,6 +26,9 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Test release build helpers
+        run: python3 tests/test_release_build.py
 
       - name: Check image revision
         run: |
