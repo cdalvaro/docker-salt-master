@@ -99,7 +99,7 @@ jobs:
         if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
-          role-to-assume: ${{ secrets.AWS_ECR_READ_ONLY_ROLE_ARN }}
+          role-to-assume: ${{ vars.AWS_ECR_READ_ONLY_ROLE_ARN }}
           aws-region: us-east-1
 
       - name: Login to Amazon ECR Public
@@ -176,7 +176,7 @@ jobs:
         if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
-          role-to-assume: ${{ secrets.AWS_ECR_READ_ONLY_ROLE_ARN }}
+          role-to-assume: ${{ vars.AWS_ECR_READ_ONLY_ROLE_ARN }}
           aws-region: us-east-1
 
       - name: Login to Amazon ECR Public

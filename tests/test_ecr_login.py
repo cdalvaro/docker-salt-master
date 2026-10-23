@@ -31,7 +31,7 @@ class ECRLoginTests(unittest.TestCase):
                     login = next(s for s in steps if "uses: aws-actions/amazon-ecr-login@" in s)
                     self.assertIn(f"        if: {GUARD}\n", configure)
                     self.assertIn(f"        if: {GUARD}\n", login)
-                    self.assertIn("role-to-assume: ${{ secrets.AWS_ECR_READ_ONLY_ROLE_ARN }}\n", configure)
+                    self.assertIn("role-to-assume: ${{ vars.AWS_ECR_READ_ONLY_ROLE_ARN }}\n", configure)
                     self.assertIn("aws-region: us-east-1\n", configure)
                     self.assertIn("registry-type: public\n", login)
                     self.assertNotIn("mask-password: false", login)
