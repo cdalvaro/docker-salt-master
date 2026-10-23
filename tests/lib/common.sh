@@ -366,6 +366,21 @@ EOF
   fi
 }
 
+# RCs built from their exact tag may include zero-distance Git metadata.
+# Strip only that suffix: RC numbers and numeric packaging revisions remain significant.
+function check_salt_version() {
+  local actual="$1"
+  local expected="$2"
+  local message="$3"
+
+  if [[ "${expected}" =~ rc[0-9]+$ &&
+    "${actual}" =~ ^([0-9]+(\.[0-9]+)*rc[0-9]+)(-0-g|\+0\.g)[0-9a-f]{7,40}$ ]]; then
+    actual="${BASH_REMATCH[1]}"
+  fi
+
+  check_equal "${actual}" "${expected}" "${message}"
+}
+
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  variable_is_empty
 #   DESCRIPTION:  Check whether the given variable is empty.

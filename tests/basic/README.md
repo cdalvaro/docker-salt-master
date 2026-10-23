@@ -6,6 +6,7 @@ Checks performed by `tests/basic/test.sh`:
 - **salt-minion configuration placeholders** - Verifies that `/etc/salt/minion` does not contain unrendered `{{...}}` placeholders.
 - **salt-master version** - Verifies that the installed `salt-master` version matches the expected `SALT_VERSION`.
 - **salt-minion version** - Verifies that the installed `salt-minion` version matches the expected `SALT_VERSION`.
+- Version checks preserve RC numbers and packaging revisions such as `3008.3-1`. For an RC, only zero-distance Git metadata (`-0-g<hash>` or `+0.g<hash>`) is ignored; a different RC, revision, or later development build is rejected.
 - **salt-minion not running by default** - Confirms that `salt-minion` is not started automatically inside the container.
 - **salt-minion connectivity** - Starts an external `salt-minion` and verifies it can ping the master (`test.ping`).
 - **salt home permissions** - Checks that the `${SALT_HOME}` directory is owned by the `salt` user and group.
