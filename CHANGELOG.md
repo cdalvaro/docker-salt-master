@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3008.4 Release Notes](https://docs.saltproject.io/en/3008/topics/releases/3008.4.html)
 for the list of changes in SaltStack.
 
+**3007.17**
+
+- Update `salt-master` to `3007.17` _Chlorine_.
+
 **3007.16**
 
 - Update `salt-master` to `3007.16` _Chlorine_.
