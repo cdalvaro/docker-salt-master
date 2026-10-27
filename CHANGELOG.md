@@ -1,8 +1,12 @@
 # Changelog
 
 This file only reflects the changes that are made in this image.
-Please refer to the [Salt 3008.4 Release Notes](https://docs.saltproject.io/en/3008/topics/releases/3008.4.html)
+Please refer to the [Salt 3008.5 Release Notes](https://docs.saltproject.io/en/3008/topics/releases/3008.5.html)
 for the list of changes in SaltStack.
+
+**3008.5**
+
+- Update `salt-master` to `3008.5`.
 
 **3007.17**
 
