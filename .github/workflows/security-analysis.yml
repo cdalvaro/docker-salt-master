@@ -87,14 +87,14 @@ jobs:
         uses: docker/setup-buildx-action@v4.4.1
 
       - name: Configure read-only AWS credentials
-        if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
           role-to-assume: ${{ vars.AWS_ECR_READ_ONLY_ROLE_ARN }}
           aws-region: us-east-1
 
       - name: Login to Amazon ECR Public
-        if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         uses: aws-actions/amazon-ecr-login@v2.1.7
         with:
           registry-type: public

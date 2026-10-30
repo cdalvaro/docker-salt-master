@@ -5,10 +5,7 @@ import re
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-GUARD = (
-    "github.actor != 'dependabot[bot]' && "
-    "(github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)"
-)
+GUARD = "github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository"
 
 
 class ECRLoginTests(unittest.TestCase):
