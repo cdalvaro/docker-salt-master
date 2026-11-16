@@ -35,7 +35,7 @@ Automated builds of the image are available on
 the recommended method of installation.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3008.5
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.5_1
 ```
 
 You can also pull the `latest` tag, which is built from the repository `HEAD`
@@ -57,7 +57,7 @@ These images are also available from:
 The current LTS (Long Term Support) Salt version is also available through the explicit version tag.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3008.5
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.5_1
 ```
 
 There are also specific tags for LTS and STS versions:
@@ -71,13 +71,13 @@ There are also specific tags for LTS and STS versions:
 #### Available Tags
 
 - `latest`
-- `3008.5`, `lts`
+- `3008.5_1`, `lts`
 - `3007.17`, `sts`
 
 All versions have their SaltGUI counterparts:
 
 - `latest-gui`
-- `3008.5-gui`, `lts-gui`
+- `3008.5_1-gui`, `lts-gui`
 - `3007.17-gui`, `sts-gui`
 
 ### Build From Source
@@ -1100,7 +1100,7 @@ This container will watch your containers and restart your failing instances.
 
 ### SaltGUI
 
-There is a set of dedicated images tagged with `-gui` that include built-in support for [SaltGUI](https://github.com/erwindon/SaltGUI) `1.34.0`.
+There is a set of dedicated images tagged with `-gui` that include built-in support for [SaltGUI](https://github.com/erwindon/SaltGUI) `1.35.1`.
 
 These images have `salt-api` enabled by default. However, it's up to you to define the [permissions](https://docs.saltproject.io/en/latest/topics/eauth/access_control.html) granted to the `salt-api` user. There is more information about permissions in the [SaltGUI documentation](https://github.com/erwindon/SaltGUI/blob/master/docs/PERMISSIONS.md).
 

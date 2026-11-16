@@ -32,7 +32,7 @@ Para otros métodos de instalación de `salt-master`, por favor consulta la [gu�
 Todas las imágenes están disponibles en el [Registro de Contenedores de GitHub](https://github.com/cdalvaro/docker-salt-master/pkgs/container/docker-salt-master) y es el método recomendado para la instalación.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3008.5
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.5_1
 ```
 
 También puedes obtener la imagen `latest`, que se construye a partir del repositorio `HEAD`.
@@ -54,7 +54,7 @@ Estas imágenes están también disponibles en:
 La versión LTS (Long Term Support) actual de Salt también está disponible mediante la etiqueta de versión explícita.
 
 ```sh
-docker pull ghcr.io/cdalvaro/docker-salt-master:3008.5
+docker pull ghcr.io/cdalvaro/docker-salt-master:3008.5_1
 ```
 
 También existen etiquetas específicas para las versiones LTS y STS:
@@ -68,13 +68,13 @@ También existen etiquetas específicas para las versiones LTS y STS:
 #### Tags Disponibles
 
 - `latest`
-- `3008.5`, `lts`
+- `3008.5_1`, `lts`
 - `3007.17`, `sts`
 
 Todas las versiones tienen su compañera con SaltGUI:
 
 - `latest-gui`
-- `3008.5-gui`, `lts-gui`
+- `3008.5_1-gui`, `lts-gui`
 - `3007.17-gui`, `sts-gui`
 
 ### Construir Desde la Fuente
@@ -1047,7 +1047,7 @@ Este contenedor vigilará tus contenedores y reiniciará las instancias que fall
 
 ### SaltGUI
 
-Hay un conjunto de imáges dedicadas con tags `-gui` que incluyen soporte integrado para [SaltGUI](https://github.com/erwindon/SaltGUI) `1.34.0`.
+Hay un conjunto de imáges dedicadas con tags `-gui` que incluyen soporte integrado para [SaltGUI](https://github.com/erwindon/SaltGUI) `1.35.1`.
 
 Estas imágenes tienen habilitado por defecto `salt-api`. Sin embargo, qué [permisos](https://docs.saltproject.io/en/latest/topics/eauth/access_control.html) asignes al usuario `salt-api` depende de tus necesidades específicas. Hay información más detallada sobre los permisos en la [documentación de SaltGUI](https://github.com/erwindon/SaltGUI/blob/master/docs/PERMISSIONS.md).
 

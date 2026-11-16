@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image.
 Please refer to the [Salt 3008.5 Release Notes](https://docs.saltproject.io/en/3008/topics/releases/3008.5.html)
 for the list of changes in SaltStack.
 
+**3008.5_1**
+
+- Update SaltGUI to version `1.35.1`, which fixes two XSS vulnerabilities ([GHSA-pr7r-5wv5-qwjm](https://github.com/erwindon/SaltGUI/security/advisories/GHSA-pr7r-5wv5-qwjm) and [GHSA-q237-5hh5-2698](https://github.com/erwindon/SaltGUI/security/advisories/GHSA-q237-5hh5-2698)).
+
 **3008.5**
 
 - Update `salt-master` to `3008.5`.
