@@ -72,13 +72,13 @@ There are also specific tags for LTS and STS versions:
 
 - `latest`
 - `3008.5_1`, `lts`
-- `3007.17`, `sts`
+- `3007.17_1`, `sts`
 
 All versions have their SaltGUI counterparts:
 
 - `latest-gui`
 - `3008.5_1-gui`, `lts-gui`
-- `3007.17-gui`, `sts-gui`
+- `3007.17_1-gui`, `sts-gui`
 
 ### Build From Source
 

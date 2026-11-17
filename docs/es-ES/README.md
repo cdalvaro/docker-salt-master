@@ -69,13 +69,13 @@ También existen etiquetas específicas para las versiones LTS y STS:
 
 - `latest`
 - `3008.5_1`, `lts`
-- `3007.17`, `sts`
+- `3007.17_1`, `sts`
 
 Todas las versiones tienen su compañera con SaltGUI:
 
 - `latest-gui`
 - `3008.5_1-gui`, `lts-gui`
-- `3007.17-gui`, `sts-gui`
+- `3007.17_1-gui`, `sts-gui`
 
 ### Construir Desde la Fuente
 
